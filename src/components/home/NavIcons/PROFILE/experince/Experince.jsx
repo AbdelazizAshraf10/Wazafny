@@ -389,7 +389,7 @@ function Experience() {
                 type="submit"
                 className="p-2 w-[112px] bg-black text-white rounded-xl font-semibold hover:bg-gray-900 transition mx-4"
               >
-                Save your inputs
+                Save 
               </button>
             </div>
           </form>

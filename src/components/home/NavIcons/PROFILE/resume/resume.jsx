@@ -2,6 +2,7 @@ import { Pencil } from "lucide-react";
 import { useState } from "react";
 import Modal from "../profile/Modal";
 import upload1 from "../../../../../assets/upload-file.png";
+import upload2 from "../../../../../assets/resume-cv.png";
 
 function Resume() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -43,12 +44,28 @@ function Resume() {
           />
         </div>
 
-        {/* Description */}
-        <div className="text-center mt-7">
-          <p className="text-[#A1A1A1]">
-            Upload your resume here to showcase your skills and experience.
-          </p>
+        {/* Display Uploaded File Name */}
+        <div className="flex items-center justify-center mt-3 ml-2">
+          {file ? ( // Check if file exists before accessing file.name
+            <>
+              <img src={upload2} alt="Upload Icon" className="w-15 h-10 mr-3" />
+              <p className="text-[#201A23] font-semibold">{file.name}</p>
+            </>
+          ) : (
+            <p className="text-[#A1A1A1]  text-center">
+              Upload your resume here to showcase your skills and experience.
+            </p>
+          )}
         </div>
+
+        
+
+        
+
+
+          
+        
+        
       </div>
 
       <Modal
@@ -85,7 +102,7 @@ function Resume() {
                   <img src={upload1} alt="Upload Icon" />
                   <div>
                     <p className="text-xl text-left font-bold text-gray-900 mt-6">
-                      {file ? file.name : "Upload Resme"}
+                      {file ? file.name : "Upload Resume"}
                     </p>
                     <p className="text-md text-gray-500 mt-3">
                       Accepted file types are{" "}
@@ -104,7 +121,6 @@ function Resume() {
               />
 
               {/* Button for Manual Upload */}
-              
               <input
                 id="file-upload"
                 type="file"

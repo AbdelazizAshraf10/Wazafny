@@ -11,6 +11,7 @@ import Modal from "./Modal";
 import About from "../about/about";
 import Resume from "../resume/resume";
 import Experince from "../experince/experince";
+import Skill from "../skills/skill";
 
 const UserProfile = ({
   FirstName = "Youssef",
@@ -154,6 +155,12 @@ const UserProfile = ({
       <div className="flex justify-center mt-3">
         <Experince/>
       </div>
+
+      <div className="flex justify-center mt-3">
+        <Skill/>
+      </div>
+
+
 
       <div className="flex justify-center mt-3">
         <div className="bg-white border border-[#D9D9D9] rounded-xl w-[800px] p-6">
