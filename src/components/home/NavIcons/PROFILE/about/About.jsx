@@ -28,11 +28,12 @@ function About() {
   };
 
   return (
-    <div className="flex justify-center mt-2">
-      <div className="bg-white border border-[#D9D9D9] rounded-xl w-[900px] h-auto p-6 relative">
+    <div className="flex justify-center mt-4 w-full">
+      {/* Main Container */}
+      <div className="bg-white border border-[#D9D9D9] rounded-xl w-full max-w-[900px] p-6 md:p-8 relative">
         {/* Title with Pencil Icon in the Top Right */}
         <div className="flex justify-between items-center">
-          <h3 className="text-xl font-bold text-[#201A23]">About</h3>
+          <h3 className="text-lg md:text-xl font-bold text-[#201A23]">About</h3>
           <Pencil
             className="w-5 h-5 text-gray-600 cursor-pointer hover:text-black"
             onClick={() => setIsModalOpen(true)}
@@ -40,8 +41,8 @@ function About() {
         </div>
 
         {/* Display Saved Text or Default Message */}
-        <div className="mt-7">
-          <p className={`text-[#A1A1A1] ${savedText ? 'text-left' : 'text-center'}`}>
+        <div className="mt-8">
+          <p className={`text-[#A1A1A1] ${savedText ? 'text-left' : 'text-center'} text-sm md:text-base`}>
             {savedText || "Mention your years of experience, industry, key skills, achievements, and past work experiences."}
           </p>
         </div>
@@ -54,41 +55,45 @@ function About() {
         title={"About text area"}
       >
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-10 rounded-lg shadow-lg w-[819px] h-auto  relative">
+          {/* Responsive Modal Container */}
+          <div className="bg-white p-6 md:p-10 rounded-lg shadow-lg w-full max-w-[819px] h-auto relative">
+            {/* Header */}
             <div className="flex justify-between mb-4">
-              <h2 className="text-xl font-bold">About</h2>
+              <h2 className="text-lg md:text-xl font-bold">About</h2>
               <button
-                className="text-gray-500 hover:text-black"
+                className="text-gray-500 hover:text-black text-lg"
                 onClick={() => setIsModalOpen(false)}
               >
                 ✖
               </button>
             </div>
 
-            <p className="text-[#A1A1A1] text-center">
+            {/* Instructions */}
+            <p className="text-[#A1A1A1] text-center text-sm md:text-base">
               Mention your years of experience, industry, key skills,
               achievements, and past work experiences.
             </p>
 
             {/* Textarea with Word Limit */}
             <textarea
-              className={`w-full h-60 border-2 rounded-xl p-2 mt-5 ${
+              className={`w-full h-40 md:h-60 border-2 rounded-xl p-2 mt-5 ${
                 countWords(aboutText) >= maxWords ? "border-red-500" : "border-[#201A23]"
               }`}
               value={aboutText}
               onChange={handleChange}
             />
             <p
-              className={`text-sm mt-2 ${
+              className={`text-xs md:text-sm mt-2 ${
                 countWords(aboutText) >= maxWords ? "text-red-500" : "text-gray-500"
               }`}
             >
               {countWords(aboutText)}/{maxWords} words
             </p>
 
+            {/* Save Button */}
             <div className="flex justify-end mt-4">
               <button
-                className="bg-[#201A23] font-bold text-white px-9 py-2 rounded-md"
+                className="bg-[#201A23] font-bold text-white px-6 py-2 rounded-md text-sm md:text-base"
                 onClick={handleSave}
               >
                 Save
