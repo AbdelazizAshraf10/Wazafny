@@ -54,11 +54,11 @@ const EditProfile = () => {
         title={"Personal Information"}
       >
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <form className="bg-white p-6 rounded-lg shadow-lg w-[700px] text-left relative overflow-y-auto max-h-[80vh]">
+          <form className="bg-white p-6 rounded-lg shadow-lg w-[750px] text-left relative overflow-y-auto max-h-[90vh]">
             <div className="flex justify-between items-center relative mb-3">
               <h2 className="text-xl font-bold">Personal Information</h2>
               <button
-                className="text-gray-500 hover:text-black"
+                className="text-gray-500 hover:text-black scale-150"
                 onClick={() => setIsModalOpen(false)}
               >
                 ✖

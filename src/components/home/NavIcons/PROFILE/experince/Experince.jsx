@@ -49,7 +49,7 @@ function Experience() {
 
   const handleSave = (e) => {
     e.preventDefault();
-  
+
     // Validate required fields
     if (
       !formInputs.Title ||
@@ -59,7 +59,7 @@ function Experience() {
     ) {
       return;
     }
-  
+
     if (editingIndex !== null) {
       // Editing an existing experience
       const updatedExperiences = [...experienceList];
@@ -70,11 +70,11 @@ function Experience() {
       // Adding a new experience
       setExperienceList([...experienceList, formInputs]);
     }
-  
+
     // Close the modal after saving
     setIsModalOpen(false);
     setIsModaladdOpen(false);
-    
+
     // Reset form fields
     setFormInputs({
       Title: "",
@@ -85,24 +85,14 @@ function Experience() {
       WorkingRole: false,
     });
   };
-  
 
-
-
-  
-  
   const handleEdit = (index) => {
-    
-  
     const experienceToEdit = experienceList[index];
     setFormInputs(experienceToEdit);
     setEditingIndex(index);
     setIsModaladdOpen(true);
     setIsModalOpen(false);
   };
-  
-  
-
 
   const handleDelete = (index) => {
     setExperienceList(experienceList.filter((_, i) => i !== index));
@@ -110,292 +100,329 @@ function Experience() {
 
   return (
     <div className="max-h-[80vh] sm:max-h-[80vh] md:max-h-[80vh] lg:max-h-[80vh] xl:max-h-[80vh] 2xl:max-h-[80vh] 3xl:max-h-[80vh] 4xl:max-h-[80vh] ">
-    <div className="flex  mt-2 ">
-      <div className="bg-white border border-[#D9D9D9] rounded-xl w-[900px] p-6 ">
-        {/* Header with Icon */}
-        <div className="flex justify-between  ">
-          <h3 className="text-xl font-bold text-[#201A23]">Experience</h3>
-          <div className="flex gap-4 ">
-            <Plus
-              className="w-5 h-5 text-gray-600 cursor-pointer hover:text-black"
-              onClick={() => setIsModaladdOpen(true)}
-            />
+      <div className="flex  mt-2 ">
+        <div className="bg-white border border-[#D9D9D9] rounded-xl w-[900px] p-6 ">
+          {/* Header with Icon */}
+          <div className="flex justify-between  ">
+            <h3 className="text-xl font-bold text-[#201A23]">Experience</h3>
+            <div className="flex gap-4 ">
+              <Plus
+                className="w-5 h-5 text-gray-600 cursor-pointer hover:text-black"
+                onClick={() => setIsModaladdOpen(true)}
+              />
 
-            <Pencil
-              className="w-5 h-5 text-gray-600 cursor-pointer hover:text-black"
-              onClick={() => setIsModalOpen(true)}
-            />
+              <Pencil
+                className="w-5 h-5 text-gray-600 cursor-pointer hover:text-black"
+                onClick={() => setIsModalOpen(true)}
+              />
+            </div>
           </div>
+
+          {/* Display Experience List or Placeholder */}
+          {experienceList.length === 0 ? (
+            <div className="text-center mt-7 text-[#A1A1A1]">
+              Add your work experience, including job roles and
+              responsibilities, here.
+            </div>
+          ) : (
+            experienceList.map((exp, index) => (
+              <div
+                key={index}
+                className="text-left flex mt-4 border-t pt-4  gap-4"
+              >
+                <img src={Logo} className="w-[48px] h-[54px] mt-2.5" />
+                <div>
+                  <h4 className="font-bold text-lg">{exp.Title}</h4>
+                  <p className="text-gray-600">
+                    {exp.Company} - {exp.EmploymentType}
+                  </p>
+                  <p className="text-[#A1A1A1]">
+                    {exp.StartDate.Month} {exp.StartDate.Year} -
+                    {exp.WorkingRole
+                      ? " Present"
+                      : ` ${exp.EndDate.Month} ${exp.EndDate.Year}`}
+                  </p>
+                </div>
+              </div>
+            ))
+          )}
         </div>
 
-        {/* Display Experience List or Placeholder */}
-        {experienceList.length === 0 ? (
-          <div className="text-center mt-7 text-[#A1A1A1]">
-            Add your work experience, including job roles and responsibilities,
-            here.
-          </div>
-        ) : (
-          experienceList.map((exp, index) => (
-            <div
-              key={index}
-              className="text-left flex mt-4 border-t pt-4  gap-4"
+        {/* modal for edit Experience */}
+        <Modal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          title="edit Experience"
+        >
+          <div className="fixed inset-0 flex items-center  justify-center bg-black bg-opacity-50">
+            <form
+              className="bg-white p-6 rounded-lg shadow-lg w-[700px] text-left relative overflow-y-auto max-h-[80vh] sm:max-h-[80vh] md:max-h-[80vh] lg:max-h-[80vh] xl:max-h-[80vh] 2xl:max-h-[80vh] 3xl:max-h-[80vh] 4xl:max-h-[80vh] "
+              onSubmit={() => setIsModalOpen(false)}
             >
-              <img src={Logo}  className="w-[48px] h-[54px] mt-2.5"/>
-              <div>
-                <h4 className="font-bold text-lg">{exp.Title}</h4>
-                <p className="text-gray-600">
-                  {exp.Company} - {exp.EmploymentType}
-                </p>
-                <p className="text-[#A1A1A1]">
-                  {exp.StartDate.Month} {exp.StartDate.Year} -
-                  {exp.WorkingRole
-                    ? " Present"
-                    : ` ${exp.EndDate.Month} ${exp.EndDate.Year}`}
-                </p>
+              <div className="flex justify-between items-center mb-3 relative">
+                <h2 className="text-xl font-bold">Experience</h2>
+                <button
+                  className="text-gray-500 hover:text-black absolute top-0 right-0"
+                  onClick={() => setIsModalOpen(false)}
+                >
+                  ✖
+                </button>
               </div>
-            </div>
-          ))
-        )}
-      </div>
-
-
-
-
-      {/* modal for edit Experience */}
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title="edit Experience"
-      >
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <form
-            className="bg-white p-6 rounded-lg shadow-lg w-[700px] text-left relative overflow-y-auto max-h-[80vh] sm:max-h-[80vh] md:max-h-[80vh] lg:max-h-[80vh] xl:max-h-[80vh] 2xl:max-h-[80vh] 3xl:max-h-[80vh] 4xl:max-h-[80vh] "
-            onSubmit={() => setIsModalOpen(false)}
-          >
-            <div className="flex justify-between items-center mb-3 relative">
-              <h2 className="text-xl font-bold">Experience</h2>
-              <button
-                className="text-gray-500 hover:text-black absolute top-0 right-0"
-                onClick={() => setIsModalOpen(false)}
-              >
-                ✖
-              </button>
-            </div>
-            <div className="mt-4 space-y-5">
-              {experienceList.length === 0 ? (
-                <div className="text-center mt-7 text-[#A1A1A1]">
-                  Add your work experience here.
-                </div>
-              ) : (
-                experienceList.map((exp, index) => (
-                  <div
-                    key={index}
-                    className="flex mt-4 border-t pt-4 gap-4 justify-between items-center"
-                  >
-                    <div className="flex gap-4">
-                      <img src={Logo} className="w-[48px] h-[54px] mt-2.5" />
-                      <div>
-                        <h4 className="font-bold text-lg">{exp.Title}</h4>
-                        <p className="text-gray-600">
-                          {exp.Company} - {exp.EmploymentType}
-                        </p>
-                        <p className="text-[#A1A1A1]">
-                          {exp.StartDate.Month} {exp.StartDate.Year} -{" "}
-                          {exp.WorkingRole
-                            ? "Present"
-                            : `${exp.EndDate.Month} ${exp.EndDate.Year}`}
-                        </p>
+              <div className="mt-4 space-y-5">
+                {experienceList.length === 0 ? (
+                  <div className="text-center mt-7 text-[#A1A1A1]">
+                    Add your work experience here.
+                  </div>
+                ) : (
+                  experienceList.map((exp, index) => (
+                    <div
+                      key={index}
+                      className="flex mt-4 border-t pt-4 gap-4 justify-between items-center"
+                    >
+                      <div className="flex gap-4">
+                        <img src={Logo} className="w-[48px] h-[54px] mt-2.5" />
+                        <div>
+                          <h4 className="font-bold text-lg">{exp.Title}</h4>
+                          <p className="text-gray-600">
+                            {exp.Company} - {exp.EmploymentType}
+                          </p>
+                          <p className="text-[#A1A1A1]">
+                            {exp.StartDate.Month} {exp.StartDate.Year} -{" "}
+                            {exp.WorkingRole
+                              ? "Present"
+                              : `${exp.EndDate.Month} ${exp.EndDate.Year}`}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex gap-6">
+                        <Trash
+                          className="w-5 h-5  fill-[#201A23] cursor-pointer "
+                          onClick={() => handleDelete(index)}
+                        />
+                        <Pencil
+                          className="w-5 h-5 text-gray-600 cursor-pointer hover:text-black"
+                          onClick={() => handleEdit(index)}
+                        />
                       </div>
                     </div>
-                    <div className="flex gap-6">
-                      <Trash
-                        className="w-5 h-5  fill-[#201A23] cursor-pointer "
-                        onClick={() => handleDelete(index)}
-                      />
-                      <Pencil
-                        className="w-5 h-5 text-gray-600 cursor-pointer hover:text-black"
-                        onClick={() => handleEdit(index)}
-                      />
-                      
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-            {/* Display Experience List or Placeholder */}
+                  ))
+                )}
+              </div>
+              {/* Display Experience List or Placeholder */}
 
-            <hr className="border-t-2 border-gray-300 my-[17px]" />
+              <hr className="border-t-2 border-gray-300 my-[17px]" />
 
-            <button
-              onClick={() => setIsModaladdOpen(true)}
-              className="flex items-center gap-2 text-[#6A0DAD]  hover:text-black"
+              <button
+                onClick={() => setIsModaladdOpen(true)}
+                className="flex items-center gap-2 text-[#6A0DAD]  hover:text-black"
+              >
+                <span className="text-2xl">+</span> Add new Experience
+              </button>
+
+              {/* Save Button */}
+              <div className="flex justify-end mb-4">
+                <button
+                  type="submit"
+                  className="p-2 w-[112px] bg-black text-white rounded-xl font-semibold hover:bg-gray-900 transition mx-4"
+                >
+                  Save
+                </button>
+              </div>
+            </form>
+          </div>
+        </Modal>
+
+        {/* Modal for ADD Experience */}
+        <Modal
+          isOpen={isModalِaddOpen}
+          onClose={() => setIsModaladdOpen(false)}
+          title="Edit Experience"
+        >
+          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+            <form
+              className="bg-white p-6 rounded-lg shadow-lg w-[700px] text-left relative overflow-y-auto max-h-[95vh]"
+              onSubmit={handleSave}
             >
-              <span className="text-2xl">+</span> Add new Experience
-            </button>
+              {/* Header */}
+              <div className="flex justify-between items-center mb-3">
+                <h2 className="text-xl font-bold">Experience</h2>
+                <button
+                  className="text-gray-500 hover:text-black"
+                  onClick={() => setIsModaladdOpen(false)}
+                >
+                  ✖
+                </button>
+              </div>
 
-            {/* Save Button */}
-            <div className="flex justify-end mb-4">
-              <button
-                type="submit"
-                className="p-2 w-[112px] bg-black text-white rounded-xl font-semibold hover:bg-gray-900 transition mx-4"
-              >
-                Save
-              </button>
-            </div>
-          </form>
-        </div>
-      </Modal>
+              <p className="text-[#A1A1A1] mb-3">
+                Add your work experience, including job roles and
+                responsibilities, here.
+              </p>
 
-      {/* Modal for ADD Experience */}
-      <Modal
-        isOpen={isModalِaddOpen}
-        onClose={() => setIsModaladdOpen(false)}
-        title="edit Experience"
-        
-      >
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <form
-            className="bg-white p-6 rounded-lg shadow-lg w-[700px] text-left relative overflow-y-auto max-h-[90vh] space-y-3"
-            onSubmit={handleSave}
-          >
-            <div className="flex justify-between items-center mb-3 relative">
-              <h2 className="text-xl font-bold">Personal Information</h2>
-              <button
-                className="text-gray-500 hover:text-black absolute top-0 right-0"
-                onClick={() => setIsModaladdOpen(false)}
-              >
-                ✖
-              </button>
-            </div>
-
-            {/* Title */}
-            <InputField
-              label="Title"
-              name="Title"
-              value={formInputs.Title}
-              onChange={(e) =>
-                setFormInputs({ ...formInputs, Title: e.target.value })
-              }
-              required
-            />
-
-            {/* Employment Type */}
-            <InputField
-              label="Employment Type"
-              name="EmploymentType"
-              value={formInputs.EmploymentType}
-              onChange={(e) =>
-                setFormInputs({ ...formInputs, EmploymentType: e.target.value })
-              }
-              required
-            />
-
-            {/* Company */}
-            <InputField
-              label="Company"
-              name="Company"
-              value={formInputs.Company}
-              onChange={(e) =>
-                setFormInputs({ ...formInputs, Company: e.target.value })
-              }
-              required
-            />
-
-            {/* Start Date */}
-            <div className="flex gap-4 mb-4">
-              <SelectField
-                label="Month"
-                name="Month"
-                value={formInputs.StartDate.Month}
+              {/* Title */}
+              <InputField
+                label="Title"
+                name="Title"
+                value={formInputs.Title}
                 onChange={(e) =>
-                  setFormInputs({
-                    ...formInputs,
-                    StartDate: {
-                      ...formInputs.StartDate,
-                      Month: e.target.value,
-                    },
-                  })
+                  setFormInputs({ ...formInputs, Title: e.target.value })
                 }
-                options={Month}
-              />
-              <SelectField
-                label="Start year"
-                name="Year"
-                value={formInputs.StartDate.Year}
-                onChange={(e) =>
-                  setFormInputs({
-                    ...formInputs,
-                    StartDate: {
-                      ...formInputs.StartDate,
-                      Year: e.target.value,
-                    },
-                  })
-                }
-                options={Year}
                 required
+                className="w-full mb-4"
               />
-            </div>
 
-            {/* End Date */}
-            <div className="flex gap-4 mb-4">
-              <SelectField
-                label="End Date"
-                name="Month"
-                value={formInputs.EndDate.Month}
+              {/* Employment Type */}
+              <InputField
+                label="Employment Type"
+                name="EmploymentType"
+                value={formInputs.EmploymentType}
                 onChange={(e) =>
                   setFormInputs({
                     ...formInputs,
-                    EndDate: { ...formInputs.EndDate, Month: e.target.value },
+                    EmploymentType: e.target.value,
                   })
                 }
-                options={Month}
                 required
+                className="w-full mb-4"
               />
-              <SelectField
-                label=""
-                name="Year"
-                value={formInputs.EndDate.Year}
+
+              {/* Company */}
+              <InputField
+                label="Company"
+                name="Company"
+                value={formInputs.Company}
                 onChange={(e) =>
-                  setFormInputs({
-                    ...formInputs,
-                    EndDate: { ...formInputs.EndDate, Year: e.target.value },
-                  })
+                  setFormInputs({ ...formInputs, Company: e.target.value })
                 }
-                options={Year}
                 required
+                className="w-full mb-4"
               />
-            </div>
 
-            {/* Currently Working Checkbox */}
-            <div className="flex mb-3 space-x-2">
-              <input
-                type="checkbox"
-                checked={formInputs.WorkingRole}
-                onChange={(e) =>
-                  setFormInputs({
-                    ...formInputs,
-                    WorkingRole: e.target.checked,
-                  })
-                }
-                className="size-5 accent-black"
-              />
-              <p>I am currently working in this role</p>
-            </div>
+              {/* Start Date */}
+              <div className="mb-4">
+                <label className="text-sm font-medium text-gray-700">
+                  Start Date*
+                </label>
+                <div className="flex gap-4 mt-1">
+                  <SelectField
+                    name="StartMonth"
+                    value={formInputs.StartDate.Month}
+                    onChange={(e) =>
+                      setFormInputs({
+                        ...formInputs,
+                        StartDate: {
+                          ...formInputs.StartDate,
+                          Month: e.target.value,
+                        },
+                      })
+                    }
+                    options={Month}
+                    required
+                    className="w-1/2"
+                  />
+                  <SelectField
+                    name="StartYear"
+                    value={formInputs.StartDate.Year}
+                    onChange={(e) =>
+                      setFormInputs({
+                        ...formInputs,
+                        StartDate: {
+                          ...formInputs.StartDate,
+                          Year: e.target.value,
+                        },
+                      })
+                    }
+                    options={Year}
+                    required
+                    className="w-1/2"
+                  />
+                </div>
+              </div>
 
-            {/* Save Button */}
-            <div className="flex justify-end mb-4">
-              <button
-              
-                type="submit"
-                className="p-2 w-[112px] bg-black text-white rounded-xl font-semibold hover:bg-gray-900 transition mx-4"
-              >
-                Save 
-              </button>
-            </div>
-          </form>
-        </div>
-      </Modal>
-    </div>
+              {/* End Date */}
+              <div className="mb-4">
+                <label className="text-sm font-medium text-gray-700">
+                  End Date*
+                </label>
+                <div className="flex gap-4 mt-1">
+                  <SelectField
+                    name="EndMonth"
+                    value={formInputs.EndDate.Month}
+                    onChange={(e) =>
+                      setFormInputs({
+                        ...formInputs,
+                        EndDate: {
+                          ...formInputs.EndDate,
+                          Month: e.target.value,
+                        },
+                      })
+                    }
+                    options={Month}
+                    disabled={formInputs.WorkingRole}
+                    required={!formInputs.WorkingRole}
+                    className={`w-1/2 ${
+                      formInputs.WorkingRole
+                        ? "bg-[#EFF0F2] cursor-not-allowed"
+                        : ""
+                    }`}
+                  />
+                  <SelectField
+                    name="EndYear"
+                    value={formInputs.EndDate.Year}
+                    onChange={(e) =>
+                      setFormInputs({
+                        ...formInputs,
+                        EndDate: {
+                          ...formInputs.EndDate,
+                          Year: e.target.value,
+                        },
+                      })
+                    }
+                    options={Year}
+                    disabled={formInputs.WorkingRole}
+                    className={`w-1/2 ${
+                      formInputs.WorkingRole
+                        ? "bg-[#EFF0F2] cursor-not-allowed"
+                        : ""
+                    }`}
+                  />
+                </div>
+              </div>
+
+              {/* Currently Working Checkbox */}
+              <div className="flex items-center gap-2 mt-3">
+                <input
+                  type="checkbox"
+                  checked={formInputs.WorkingRole}
+                  onChange={(e) =>
+                    setFormInputs({
+                      ...formInputs,
+                      WorkingRole: e.target.checked,
+                      ...(e.target.checked && {
+                        EndDate: { Month: "", Year: "" },
+                      }),
+                    })
+                  }
+                  className="size-5 accent-black"
+                />
+                <label className="text-sm font-medium text-gray-700">
+                  I am currently working in this role
+                </label>
+              </div>
+
+              {/* Save Button */}
+              <div className="flex justify-end mt-6">
+                <button
+                  type="submit"
+                  className="p-2 w-[112px] bg-black text-white rounded-xl font-semibold hover:bg-gray-900 transition"
+                >
+                  Save
+                </button>
+              </div>
+            </form>
+          </div>
+        </Modal>
+      </div>
     </div>
   );
 }

@@ -6,13 +6,12 @@ import Cover from "../../../../../assets/profile-banner.png";
 import CoverDefault from "../../../../../assets/coverimagedefault.png";
 import Modal from "./Modal";
 
-
-
 import About from "../about/about";
 import Resume from "../resume/resume";
 import Experince from "../experince/Experince";
 import Skill from "../skills/skill";
 import Education from "../education/Education";
+import Following from "./Following-Modal";
 const UserProfile = ({
   FirstName = "Youssef",
   LastName = "Ahmed",
@@ -21,6 +20,8 @@ const UserProfile = ({
 }) => {
   // set Cover photo
   const [coverPhoto, setCoverPhoto] = useState(null);
+
+  const [isFollowingModalOpen, setIsFollowingModalOpen] = useState(false);
 
   // set profile photo
   const [profilePhoto, setProfilePhoto] = useState(null);
@@ -117,9 +118,21 @@ const UserProfile = ({
             {/* User Info */}
             <div className="mt-2">
               <h2 className="text-xl font-bold text-black">{user.name}</h2>
-              <p className="text-[#6A0DAD] font-medium">
-                {user.following} Following
-              </p>
+              {/* Other UserProfile code */}
+              <button
+                onClick={() => setIsFollowingModalOpen(true)} // Open the modal on click
+                className="text-left bg-transparent border-none cursor-pointer"
+              >
+                <p className="text-[#6A0DAD] font-medium">
+                  {user.following} Following
+                </p>
+              </button>
+
+              {/* Render the Following Modal */}
+              <Following
+                isOpen={isFollowingModalOpen}
+                onClose={() => setIsFollowingModalOpen(false)}
+              />
             </div>
 
             {/* Headline and Location */}
@@ -131,55 +144,29 @@ const UserProfile = ({
         </div>
       </div>
 
-
-
-
-
-
-
-
-
       {/* another sectionsssss */}
 
-      
-
       <div className="flex justify-center ">
-        <About/>
-        
+        <About />
       </div>
 
       <div className="flex justify-center mt-3">
-        <Resume/>
+        <Resume />
       </div>
 
       <div className="flex justify-center mt-3">
-        <Experince/>
+        <Experince />
       </div>
 
       <div className="flex justify-center mt-3">
-        <Skill/>
+        <Skill />
       </div>
 
-
-
-      <div className="flex justify-center mt-3">
-        <Education/>
+      <div className="flex justify-center mt-3 mb-9">
+        <Education />
       </div>
-
-
 
       {/* end of another sectionsss */}
-
-
-
-
-
-
-
-
-
-
-
 
       {/* cover photo modal */}
 
@@ -193,7 +180,7 @@ const UserProfile = ({
             <div className="flex justify-between mb-4">
               <h2 className="text-xl font-bold">Banner photo</h2>
               <button
-                className="text-gray-500 hover:text-black"
+                className="text-gray-500 hover:text-black scale-150"
                 onClick={() => setIsCoverModalOpen(false)}
               >
                 ✖
@@ -268,7 +255,7 @@ const UserProfile = ({
             <div className="flex justify-between mb-4">
               <h2 className="text-xl font-bold">Profile photo</h2>
               <button
-                className="text-gray-500 hover:text-black"
+                className="text-gray-500 hover:text-black scale-150 "
                 onClick={() => setIsProfileModalOpen(false)}
               >
                 ✖
