@@ -3,15 +3,24 @@
 @tailwind utilities;
 
 :root{
-  font-family: "Somar Sans", serif;
+  font-family: "somar_sans", sans-serif;
+}
+.title{
+  /* font-size: 1.38rem; */
+  /* font-weight: 800; */
 }
 .Register {}
 .sign-up{
   border: 2px solid rgb(217, 217, 217);
-  border-radius: 2%;
+  border-radius: 7%;
   padding: 3rem;
+  padding-top:2rem;
   width: 30%;
 
+}
+
+.fPass{
+  width: 40%;
 }
 
 .my-form{
@@ -22,15 +31,15 @@
 }
 
 .my-butt{
-  width: 100%;
+  /* width: 100%; */
   color: white;
   background-color: rgb(106, 13, 173);
-  border-radius: .375rem;
-  padding: .525rem;
+  /* border-radius: .375rem; */
+  padding: 3rem;
   padding-top: .6rem;
   padding-bottom: .6rem;
   margin-top: .9375rem;
-  margin-bottom:0.9375rem ;
+  /* margin-bottom:.9375rem ; */
 }
 .log-butt{
   margin-top: .625rem;
@@ -44,7 +53,7 @@
 }
 
 .login-link .link-color{
-  color:rgb(106, 13, 173) ;
+  color:#6a0dad ;
   margin-top: 5px;
 }
 .login-link .comp{
@@ -62,3 +71,131 @@ padding: 1.25rem;
 .forget a{
   text-decoration: underline;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Group 49 */
+/* 
+position: absolute;
+width: 765px;
+height: 141px;
+left: calc(50% - 765px/2 + 0.5px);
+top: 500px; */
+
+
+/* Group 49 */
+
+/* position: absolute;
+width: 765px;
+height: 141px;
+left: calc(50% - 765px/2 + 0.5px);
+top: 500px; */
+
+
+
+/* Rectangle 34 */
+/* 
+box-sizing: border-box;
+
+position: absolute;
+width: 100px;
+height: 141px;
+left: 578px;
+top: 500px;
+
+border: 2px solid #A1A1A1;
+border-radius: 16px; */
+
+
+/* Rectangle 35 */
+
+/* box-sizing: border-box;
+
+position: absolute;
+width: 100px;
+height: 141px;
+left: 711px;
+top: 500px;
+
+border: 2px solid #A1A1A1;
+border-radius: 16px; */
+
+
+/* Rectangle 36 */
+/* 
+box-sizing: border-box;
+
+position: absolute;
+width: 100px;
+height: 141px;
+left: 844px;
+top: 500px;
+
+border: 2px solid #A1A1A1;
+border-radius: 16px; */
+
+
+/* Rectangle 37 */
+
+/* box-sizing: border-box;
+
+position: absolute;
+width: 100px;
+height: 141px;
+left: 977px;
+top: 500px;
+
+border: 2px solid #A1A1A1;
+border-radius: 16px; */
+
+
+/* Rectangle 38 */
+
+/* box-sizing: border-box;
+
+position: absolute;
+width: 100px;
+height: 141px;
+left: 1110px;
+top: 500px;
+
+border: 2px solid #A1A1A1;
+border-radius: 16px; */
+
+
+/* Rectangle 39 */
+
+/* box-sizing: border-box;
+
+position: absolute;
+width: 100px;
+height: 141px;
+left: 1243px;
+top: 500px;
+
+border: 2px solid #A1A1A1;
+border-radius: 16px; */

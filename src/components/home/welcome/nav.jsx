@@ -1,4 +1,4 @@
-import React from "react";
+
 import logo from "../../../assets/wazafny.png";
 import { Link } from "react-router-dom";
 
@@ -22,9 +22,14 @@ function Nav() {
           </button>
         </Link>
 
-        <button className="border-2 sm:border-3 border-[#6a0dad] text-[#6a0dad] px-4 sm:px-6 py-1 sm:py-1.5 text-base sm:text-lg md:text-xl font-bold rounded-lg transition duration-300 hover:bg-[#6a0dad] hover:text-white">
-          Signup
-        </button>
+
+
+        <Link to="/register">
+          <button className="border-2 sm:border-3 border-[#6a0dad] text-[#6a0dad] px-4 sm:px-6 py-1 sm:py-1.5 text-base sm:text-lg md:text-xl font-bold rounded-lg transition duration-300 hover:bg-[#6a0dad] hover:text-white">
+            Signup
+          </button>
+        </Link>
+        
       </div>
     </div>
   );
