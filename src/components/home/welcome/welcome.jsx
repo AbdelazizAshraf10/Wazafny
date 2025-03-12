@@ -48,12 +48,16 @@ const Welcome = () => {
               </button>
             </Link>
 
-            <button
-              onClick={handlePostJobClick} // Handle button click
-              className="border-4 border-[#242645] text-[#242645] px-4 sm:px-8 sm:py-2.5 rounded-xl font-bold text-base sm:text-xl md:text-2xl transition duration-300 hover:bg-gray-300"
-            >
-              Post a Job
-            </button>
+            <Link to="/Dashboard">
+              <button
+                onClick={handlePostJobClick} // Handle button click
+                className="border-4 border-[#242645] text-[#242645] px-4 sm:px-8 sm:py-2.5 rounded-xl font-bold text-base sm:text-xl md:text-2xl transition duration-300 hover:bg-gray-300"
+              >
+                Post a Job
+              </button>
+            </Link>
+            
+
           </div>
         </div>
 

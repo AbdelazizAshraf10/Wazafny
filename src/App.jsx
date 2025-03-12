@@ -1,4 +1,4 @@
-import { useState } from "react";
+
 import { AuthProvider } from "./Contexts/Authenticate";
 import "./App.css";
 import Register from "./components/Register/Register";
@@ -17,11 +17,13 @@ import Info from "./components/Info/Info";
 import Welcome from "./components/home/welcome/welcome";
 import Company from "./components/home/NavIcons/company-nav";
 import UserProfile from "./components/home/NavIcons/PROFILE/profile/ProfilePage-1";
+import Dashboard from "./components/Dashboard-Company/Dashboard";
 
 let x = createBrowserRouter([
   { index: true, element: <Welcome /> },
   { path: "Home", element: <Company /> },
   { path: "profile", element: <UserProfile /> },
+  { path: "Dashboard", element: <Dashboard /> },
 
   {
     path: "",
@@ -42,7 +44,7 @@ let x = createBrowserRouter([
   },
 ]);
 function App() {
-  const [count, setCount] = useState(0);
+  
 
   return (
     <AuthProvider>
