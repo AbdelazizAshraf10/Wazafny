@@ -1,7 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import logo from "../../assets/wazafny.png";
-import DashboardContent from "./dashboard-content";
-import Jobpost from "./jobpost";
 
 // Icon imports
 import homeActiveIcon from "../../assets/company/homeActiveIcon.svg";
@@ -10,13 +9,22 @@ import jobPostActiveIcon from "../../assets/company/jobPostActiveIcon.svg";
 import jobPostInactiveIcon from "../../assets/company/jobPostInactiveIcon.svg";
 
 function Dashboard() {
-  // State to track the active button
-  const [activeButton, setActiveButton] = useState("overview");
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  // State to toggle the side menu open/close
-  const [isMenuOpen, setIsMenuOpen] = useState(false); // Start with the menu closed
+  // Sync activeButton with current path
+  const getCurrentPage = () => {
+    if (location.pathname.includes("Jobpost")) return "jobposts";
+    return "overview";
+  };
 
-  // Mapping of button states to icons
+  const [activeButton, setActiveButton] = useState(getCurrentPage());
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  useEffect(() => {
+    setActiveButton(getCurrentPage());
+  }, [location.pathname]);
+
   const buttonIcons = {
     overview: {
       active: homeActiveIcon,
@@ -28,20 +36,26 @@ function Dashboard() {
     },
   };
 
-  
-
-  // Helper function to handle image loading errors
   const handleImageError = (event) => {
-    event.target.src = "../../assets/default-icon.png"; // Fallback icon
+    event.target.src = "../../assets/default-icon.png";
     event.target.alt = "Default Icon";
+  };
+
+  const handleNavigation = (buttonKey) => {
+    setActiveButton(buttonKey);
+    if (buttonKey === "overview") {
+      navigate("/Dashboard/Overview");
+    } else if (buttonKey === "jobposts") {
+      navigate("/Dashboard/Jobpost");
+    }
   };
 
   return (
     <div className="flex h-screen bg-gray-100">
       {/* Side Menu */}
       <nav
-        onMouseEnter={() => setIsMenuOpen(true)} // Open menu on hover
-        onMouseLeave={() => setIsMenuOpen(false)} // Close menu when cursor leaves
+        onMouseEnter={() => setIsMenuOpen(true)}
+        onMouseLeave={() => setIsMenuOpen(false)}
         className={`bg-white shadow-lg p-4 flex flex-col justify-between transition-all duration-300 ease-in-out ${
           isMenuOpen ? "w-60" : " md:w-20"
         }`}
@@ -67,10 +81,10 @@ function Dashboard() {
                   ? "bg-[#F2E9FF] text-[#6A0DAD]"
                   : "hover:bg-gray-100 hover:text-gray-700"
               } focus:outline-none focus:ring-2 focus:ring-[#6A0DAD]`}
-              onClick={() => setActiveButton(buttonKey)}
+              onClick={() => handleNavigation(buttonKey)}
               aria-label={buttonKey === "overview" ? "Overview" : "Job Posts"}
             >
-              {/* Icon - Centered & Sized Correctly */}
+              {/* Icon */}
               <div className="flex items-center justify-center flex-shrink-0 w-10 h-10">
                 <img
                   src={
@@ -86,7 +100,7 @@ function Dashboard() {
                 />
               </div>
 
-              {/* Text - Only Visible When Sidebar is Open */}
+              {/* Label */}
               <span
                 className={`ml-3 transition-opacity duration-300 whitespace-nowrap ${
                   isMenuOpen ? "opacity-100" : "opacity-0 w-0 overflow-hidden"
@@ -102,21 +116,18 @@ function Dashboard() {
         <div className="mt-auto">
           <button
             className={`w-full py-3 px-4 font-bold rounded-md flex items-center transition-all duration-300 ${
-              activeButton === "post-job"
-                ? "bg-[#6A0DAD] text-white"
-                :isMenuOpen
+              isMenuOpen
                 ? "bg-[#6A0DAD] text-white"
                 : " hover:bg-[#6A0DAD] hover:text-white"
             } focus:outline-none focus:ring-2 focus:ring-[#6A0DAD]`}
             onClick={() => alert("Post new job clicked!")}
             aria-label="Post New Job"
           >
-            {/* Icon - Always Visible */}
             <div className="flex items-center justify-center">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className={`w-6 h-6 transition-all duration-300 ${
-                  isMenuOpen ? "w-6 h-6" : "w-10 h-10" // Increase size when collapsed
+                className={`transition-all duration-300 ${
+                  isMenuOpen ? "w-6 h-6" : "w-8 h-10"
                 }`}
                 fill="none"
                 viewBox="0 0 24 24"
@@ -130,8 +141,6 @@ function Dashboard() {
                 />
               </svg>
             </div>
-
-            {/* Text - Only Visible When Sidebar is Open */}
             <span
               className={`ml-3 transition-opacity duration-300 ${
                 isMenuOpen ? "opacity-100" : "opacity-0 w-0 overflow-hidden"
@@ -143,9 +152,9 @@ function Dashboard() {
         </div>
       </nav>
 
-      {/* Main Content */}
+      {/* Main Content Outlet */}
       <main className="flex-1 p-6 overflow-y-auto transition-all duration-300">
-        {activeButton === "overview" ? <DashboardContent /> : <Jobpost />}
+        <Outlet />
       </main>
     </div>
   );

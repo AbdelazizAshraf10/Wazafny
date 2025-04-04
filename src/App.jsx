@@ -1,6 +1,6 @@
 import { AuthProvider } from "./Contexts/Authenticate";
 import "./App.css";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
 
 // Import all components
 import Register from "./components/Register/Register";
@@ -18,25 +18,19 @@ import Welcome from "./components/home/welcome/welcome";
 import Company from "./components/home/NavIcons/company-nav";
 import UserProfile from "./components/home/NavIcons/PROFILE/profile/ProfilePage-1";
 import Dashboard from "./components/Dashboard-Company/Dashboard";
-
+import ViewApplicationJon from "./components/Dashboard-Company/ViewApplicationJon";
+import ViewAppSeeker from "./components/Dashboard-Company/ViewAppSeeker"; // ✅ Import the missing component
 import DashboardContent from "./components/Dashboard-Company/dashboard-content";
 import Jobpost from "./components/Dashboard-Company/jobpost";
 
 const router = createBrowserRouter([
-
-  // welcome landing page route
   {
     path: "/",
-    element: <Welcome />, 
+    element: <Welcome />,
   },
-
-
-
-
-  // login and sign up route
   {
     path: "/",
-    element: <Layout />, // Main layout for normal routes
+    element: <Layout />,
     children: [
       { path: "Register", element: <Register /> },
       { path: "Login", element: <Login /> },
@@ -50,10 +44,6 @@ const router = createBrowserRouter([
       { path: "*", element: <NotFound /> },
     ],
   },
-
-
-  // seeker home page rout when click on find new job
-
   {
     path: "/Home",
     element: <Company />,
@@ -62,16 +52,15 @@ const router = createBrowserRouter([
     path: "/profile",
     element: <UserProfile />,
   },
-
-
-  // Dashboard when click on post new job route
-
   {
     path: "/Dashboard",
-    element: <Dashboard />, // Dashboard should be the main container
+    element: <Dashboard />,
     children: [
+      { path: "", element: <Navigate to="Overview" replace /> }, // Default redirect
       { path: "Overview", element: <DashboardContent /> },
       { path: "Jobpost", element: <Jobpost /> },
+      { path: "view-applications/:jobId", element: <ViewApplicationJon /> },
+      { path: "application/:id", element: <ViewAppSeeker /> }, // ✅ Added Route for Viewing Individual Applications
       { path: "*", element: <NotFound /> },
     ],
   },
