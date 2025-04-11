@@ -1,9 +1,9 @@
 import React from 'react'
 
-function JobPostEdit() {
+function PostNewJob() {
   return (
     <div>JobPostEdit</div>
   )
 }
 
-export default JobPostEdit
+export default PostNewJob

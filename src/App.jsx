@@ -19,9 +19,15 @@ import Company from "./components/home/NavIcons/company-nav";
 import UserProfile from "./components/home/NavIcons/PROFILE/profile/ProfilePage-1";
 import Dashboard from "./components/Dashboard-Company/Dashboard";
 import ViewApplicationJon from "./components/Dashboard-Company/ViewApplicationJon";
-import ViewAppSeeker from "./components/Dashboard-Company/ViewAppSeeker"; // ✅ Import the missing component
+import ViewAppSeeker from "./components/Dashboard-Company/ViewAppSeeker";
 import DashboardContent from "./components/Dashboard-Company/dashboard-content";
 import Jobpost from "./components/Dashboard-Company/jobpost";
+import BasicInfo from "./components/Dashboard-Company/post-new-job-modal/BasicInfo";
+import Skills from "./components/Dashboard-Company/post-new-job-modal/Skills";
+import ExtraSections from "./components/Dashboard-Company/post-new-job-modal/ExtraSections";
+import Questions from "./components/Dashboard-Company/post-new-job-modal/Questions";
+import Preview from "./components/Dashboard-Company/post-new-job-modal/Preview";
+import CompanyProfile from "./components/Dashboard-Company/Company-Profile/CompanyProfile";
 
 const router = createBrowserRouter([
   {
@@ -58,9 +64,20 @@ const router = createBrowserRouter([
     children: [
       { path: "", element: <Navigate to="Overview" replace /> }, // Default redirect
       { path: "Overview", element: <DashboardContent /> },
-      { path: "Jobpost", element: <Jobpost /> },
+      {
+        path: "Jobpost",
+        element: <Jobpost />,
+        children: [
+          { path: "basic-info", element: <BasicInfo /> }, // Route for BasicInfo
+          { path: "skills", element: <Skills /> }, // Route for Skills
+          { path: "extra-sections", element: <ExtraSections /> }, // Route for Extra Sections
+          { path: "questions", element: <Questions /> }, // Route for Questions
+          { path: "preview", element: <Preview /> }, // Route for Preview
+        ],
+      },
       { path: "view-applications/:jobId", element: <ViewApplicationJon /> },
-      { path: "application/:id", element: <ViewAppSeeker /> }, // ✅ Added Route for Viewing Individual Applications
+      { path: "application/:id", element: <ViewAppSeeker /> },
+      { path: "profile-company", element: <CompanyProfile /> }, // Add route for FirstSection
       { path: "*", element: <NotFound /> },
     ],
   },

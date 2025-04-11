@@ -1,4 +1,5 @@
 import React from "react";
+import { motion } from "framer-motion"; // Import Framer Motion
 import HeaderCompany from "./HeaderCompany";
 import Time from "../../assets/company/time.svg";
 import Person from "../../assets/company/person.png";
@@ -94,8 +95,46 @@ function DashboardContent() {
     },
   ];
 
+  // Animation variants
+  const statVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: (i) => ({
+      opacity: 1,
+      y: 0,
+      transition: { delay: i * 0.1, duration: 0.4, ease: "easeOut" },
+    }),
+  };
+
+  const applicationVariants = {
+    hidden: { opacity: 0, x: -20 },
+    visible: (i) => ({
+      opacity: 1,
+      x: 0,
+      transition: { delay: i * 0.1, duration: 0.4, ease: "easeOut" },
+    }),
+  };
+
+  const jobPostVariants = {
+    hidden: { opacity: 0, x: 20 },
+    visible: (i) => ({
+      opacity: 1,
+      x: 0,
+      transition: { delay: i * 0.1, duration: 0.4, ease: "easeOut" },
+    }),
+  };
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { duration: 0.5 } },
+  };
+
   return (
-    <div className="flex flex-col px-6 py-4">
+    <motion.div
+      className="flex flex-col px-6 py-4"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
       {/* Header */}
       <div>
         <HeaderCompany />
@@ -108,27 +147,24 @@ function DashboardContent() {
         <div className="col-span-2 space-y-6">
           {/* Stats Section */}
           <div className="bg-white rounded-xl p-6 shadow-sm border grid grid-cols-4 text-left">
-            <div>
-              <p className="text-gray-400">Total Job Posted</p>
-              <span className="text-4xl font-bold">68</span>
-            </div>
-            <div>
-              <p className="text-gray-400">Total Followers</p>
-              <span className="text-4xl font-bold">1.2k</span>
-            </div>
-            <div>
-              <p className="text-gray-400">Total Active Jobs</p>
-              <span className="text-4xl font-bold">5</span>
-            </div>
-            <div>
-              <p className="text-gray-400">Total Applications Received</p>
-              <span className="text-4xl font-bold">103</span>
-            </div>
+            {[
+              { label: "Total Job Posted", value: "68" },
+              { label: "Total Followers", value: "1.2k" },
+              { label: "Total Active Jobs", value: "5" },
+              { label: "Total Applications Received", value: "103" },
+            ].map((stat, index) => (
+              <motion.div
+                key={index}
+                custom={index}
+                variants={statVariants}
+                initial="hidden"
+                animate="visible"
+              >
+                <p className="text-gray-400">{stat.label}</p>
+                <span className="text-4xl font-bold">{stat.value}</span>
+              </motion.div>
+            ))}
           </div>
-
-
-
-
 
           {/* Latest Applications */}
           <div className="bg-white rounded-xl p-6 shadow-sm border">
@@ -137,7 +173,7 @@ function DashboardContent() {
             </p>
 
             {/* Table Header */}
-            <div className="flex justify-between font-bold my-4  pb-2">
+            <div className="flex justify-between font-bold my-4 pb-2">
               <p>Applicant Name</p>
               <p>Job Post Title</p>
               <img src={Time} className="" alt="Time Icon" />
@@ -145,8 +181,12 @@ function DashboardContent() {
 
             {/* Applications List */}
             {users.map((user, index) => (
-              <div
+              <motion.div
                 key={user.id}
+                custom={index}
+                variants={applicationVariants}
+                initial="hidden"
+                animate="visible"
                 className={`flex justify-between py-3 ${
                   index !== users.length - 1 ? "border-b" : ""
                 }`}
@@ -164,33 +204,36 @@ function DashboardContent() {
                 </div>
 
                 {/* Job Post Title */}
-                <p className="w-1/3 text-[#6A0DAD] ml-5 font-extrabold solid  underline cursor-pointer text-sm">
+                <p className="w-1/3 text-[#6A0DAD] ml-5 font-extrabold underline cursor-pointer text-sm">
                   {user.jobpost}
                 </p>
 
                 {/* Time */}
                 <p className="text-gray-500">{user.Time}</p>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
 
-
-
-
         {/* Right Section - Latest Jobs Posted */}
-        <div className="bg-white rounded-xl p-6 shadow-sm ">
-          <p className="text-xl text-[#201A23] text-center font-extrabold mb-4">Latest jobs posted</p>
+        <div className="bg-white rounded-xl p-6 shadow-sm">
+          <p className="text-xl text-[#201A23] text-center font-extrabold mb-4">
+            Latest jobs posted
+          </p>
 
           {/* Job Posts List */}
           <div className="space-y-4 text-sm text-gray-800">
-            {LatestJobPost.map((job,index) => (
-              <div
-              key={LatestJobPost.id}
-              className={`flex justify-between py-3 ${
-                index !== users.length - 1 ? "border-b" : ""
-              }`}
-            >
+            {LatestJobPost.map((job, index) => (
+              <motion.div
+                key={job.id} // Fixed to use job.id instead of LatestJobPost.id
+                custom={index}
+                variants={jobPostVariants}
+                initial="hidden"
+                animate="visible"
+                className={`flex justify-between py-3 ${
+                  index !== LatestJobPost.length - 1 ? "border-b" : ""
+                }`}
+              >
                 {/* Job Details (Left Side) */}
                 <div className="space-y-2">
                   <p className="font-bold text-base">{job.jobpost}</p>
@@ -199,12 +242,12 @@ function DashboardContent() {
 
                 {/* Time (Right Side) */}
                 <p className="text-gray-400 text-xs">{job.Time}</p>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
