@@ -1,0 +1,117 @@
+/* search box start */
+
+.search {
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center; 
+    width: 400px !important; 
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 0 10px;
+    margin-left: auto; 
+    margin-right: auto; 
+    border: #d3cfcf solid 1px !important;
+    box-shadow: 0 0 3px #d3cfcf;
+}
+.search img {
+    width: 15px;
+}
+
+.search input {
+    width: 100%;
+    border: 0;
+    outline: none;
+    background: transparent;
+    padding: 8px;
+    font-size:18px;
+}
+@media screen and (max-width: 768px) {
+    .search {
+        width: 95%; /* Adjust width for tablets */
+        max-width: 350px;
+    }
+
+    .search input {
+        font-size: 16px; /* Adjust font size for smaller screens */
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .search {
+        width: 100%; /* Adjust width for mobile devices */
+        max-width: 300px !important;
+    }
+
+    .search input {
+        font-size: 14px; /* Adjust font size for smaller screens */
+    }
+}
+/* search box end */
+
+/* search box end */
+
+/* container of sidebar start */
+
+.container {
+    padding: 30px 7%;
+}
+
+/* starts sidebar */
+
+/* left sidebar start */
+
+.sidebar-left {
+   
+       border: #d3cfcf solid 1px;
+    border-radius: 20px;
+    background-color: #ffffff;
+    padding: 20px;
+}
+
+.company-experience-item {
+    background: rgb(255, 255, 255);
+    padding: 10px 20px;
+    width: 100%;
+}
+
+.company-experience-info hr {
+    margin: 20px 0;
+}
+
+.company-logo {
+    display: flex;
+    align-items: start;
+    justify-content: space-between;
+}
+
+.company-logo .companys-logo {
+    display: flex;
+    align-items: center;
+}
+
+.companys-logo img {
+    width: 50px;
+    height: 50px;
+    padding-right: 4px;
+    border-radius: 20%;
+}
+.companys-logo h5 {
+    font-size: 20px;
+    font-weight: 400;
+    color: #333;
+    margin: 0;
+}
+
+.company-experience-item .company-info h3 {
+    font-size: 20px;
+    font-weight: 600;
+    margin-top: 10px;
+}
+.company-experience-item .company-info p{
+    font-size: 17px;
+    color: #333;
+    margin-top: 10px;
+} 
+
+/* left sidebar end */

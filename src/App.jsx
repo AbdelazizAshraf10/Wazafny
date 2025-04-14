@@ -28,6 +28,12 @@ import ExtraSections from "./components/Dashboard-Company/post-new-job-modal/Ext
 import Questions from "./components/Dashboard-Company/post-new-job-modal/Questions";
 import Preview from "./components/Dashboard-Company/post-new-job-modal/Preview";
 import CompanyProfile from "./components/Dashboard-Company/Company-Profile/CompanyProfile";
+import EmailConfirm from "./components/EmailConfirmation/EmailConfirm";
+import Home from "./components/home/homee/Home";
+import CompanyDesc from "./components/home/homee/companydesc/companydesc";
+import MainContent from "./components/home/homee/content/MainContent";
+import CompanyClick from "./components/home/homee/content/Sidebar";
+import MyApplication from "./components/home/homee/my application/all";
 
 const router = createBrowserRouter([
   {
@@ -40,6 +46,7 @@ const router = createBrowserRouter([
     children: [
       { path: "Register", element: <Register /> },
       { path: "Login", element: <Login /> },
+      { path: "EmailConfirm", element: <EmailConfirm /> },
       { path: "SignUpCompany", element: <SignUpCompany /> },
       { path: "LoginCompany", element: <LoginCompany /> },
       { path: "Forget", element: <Forget /> },
@@ -53,6 +60,16 @@ const router = createBrowserRouter([
   {
     path: "/Home",
     element: <Company />,
+    children: [
+      { path: "", element: <Navigate to="Welcome" replace /> }, // Default redirect
+      { path: "Welcome", element: <Welcome /> },
+      { path: "home", element: <Home /> }, // Changed path to "home" to avoid conflict
+      { path: "companydesc/:id", element: <CompanyDesc /> },
+      { path: "maincontent/:id", element: <MainContent /> },
+      { path: "companyclick", element: <CompanyClick /> },
+      { path: "myapplication", element: <MyApplication /> },
+      { path: "*", element: <NotFound /> },
+    ],
   },
   {
     path: "/profile",
@@ -62,22 +79,22 @@ const router = createBrowserRouter([
     path: "/Dashboard",
     element: <Dashboard />,
     children: [
-      { path: "", element: <Navigate to="Overview" replace /> }, // Default redirect
+      { path: "", element: <Navigate to="Overview" replace /> },
       { path: "Overview", element: <DashboardContent /> },
       {
         path: "Jobpost",
         element: <Jobpost />,
         children: [
-          { path: "basic-info", element: <BasicInfo /> }, // Route for BasicInfo
-          { path: "skills", element: <Skills /> }, // Route for Skills
-          { path: "extra-sections", element: <ExtraSections /> }, // Route for Extra Sections
-          { path: "questions", element: <Questions /> }, // Route for Questions
-          { path: "preview", element: <Preview /> }, // Route for Preview
+          { path: "basic-info", element: <BasicInfo /> },
+          { path: "skills", element: <Skills /> },
+          { path: "extra-sections", element: <ExtraSections /> },
+          { path: "questions", element: <Questions /> },
+          { path: "preview", element: <Preview /> },
         ],
       },
       { path: "view-applications/:jobId", element: <ViewApplicationJon /> },
       { path: "application/:id", element: <ViewAppSeeker /> },
-      { path: "profile-company", element: <CompanyProfile /> }, // Add route for FirstSection
+      { path: "profile-company", element: <CompanyProfile /> },
       { path: "*", element: <NotFound /> },
     ],
   },

@@ -1,10 +1,49 @@
-// src/components/Welcome/Welcome.jsx
 import React, { useContext } from "react";
 import logo from "../../../assets/Photo.png";
 import back from "../../../assets/BG.png";
 import Nav from "./nav";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../../../Contexts/Authenticate";
+import { motion } from "framer-motion";
+
+// Animation variants for the container
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      duration: 0.5,
+      when: "beforeChildren", // Animate children after the container
+      staggerChildren: 0.2, // Stagger child animations
+    },
+  },
+};
+
+// Animation variants for text elements (heading, subheading, buttons)
+const textVariants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.5, ease: "easeOut" },
+  },
+};
+
+// Animation variants for the image
+const imageVariants = {
+  hidden: { opacity: 0, x: 50 },
+  visible: {
+    opacity: 1,
+    x: 0,
+    transition: { duration: 0.7, ease: "easeOut" },
+  },
+};
+
+// Animation variants for buttons (hover/tap effect)
+const buttonVariants = {
+  hover: { scale: 1.05, transition: { duration: 0.3 } },
+  tap: { scale: 0.95 },
+};
 
 const Welcome = () => {
   const { isLoggedIn } = useContext(AuthContext); // Access authentication state
@@ -28,48 +67,71 @@ const Welcome = () => {
       <Nav />
       <hr className="border-t-2 border-gray-300 my-4 sm:my-6 md:my-7" />
 
-      <div className="flex lg:flex-row items-center justify-between px-4 sm:px-8 md:px-16 lg:px-1 py-10">
+      <motion.div
+        className="flex lg:flex-row items-center justify-between px-4 sm:px-8 md:px-16 lg:px-1 py-10"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
         {/* Left Side: Text Content */}
         <div className="text-center lg:text-left mb-8 ml-12">
-          <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-semibold text-[#242645] leading-tight">
+          <motion.h1
+            className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-semibold text-[#242645] leading-tight"
+            variants={textVariants}
+          >
             Find Your Dream Job or <br />
             Hire the Best Talent
-          </h1>
+          </motion.h1>
 
-          <p className="text-xl sm:text-2xl md:text-4xl lg:text-5xl font-semibold text-[#6A0DAD] mt-6 sm:mt-8 md:mt-12">
+          <motion.p
+            className="text-xl sm:text-2xl md:text-4xl lg:text-5xl font-semibold text-[#6A0DAD] mt-6 sm:mt-8 md:mt-12"
+            variants={textVariants}
+          >
             WAZAFNY connects job seekers and employers for the perfect match.
-          </p>
+          </motion.p>
 
           {/* Responsive Buttons */}
-          <div className="mt-8 sm:mt-12 md:mt-16 lg:mt-20 flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-6 justify-center lg:justify-start">
+          <motion.div
+            className="mt-8 sm:mt-12 md:mt-16 lg:mt-20 flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-6 justify-center lg:justify-start"
+            variants={textVariants}
+          >
             <Link to="/Home">
-              <button className="bg-[#6a0dad] text-white px-4 sm:px-6 py-2 sm:py-3.5 rounded-xl font-bold text-base sm:text-xl md:text-2xl transition duration-300 hover:bg-[#5c0bb8]">
+              <motion.button
+                className="bg-[#6a0dad] text-white px-4 sm:px-6 py-2 sm:py-3.5 rounded-xl font-bold text-base sm:text-xl md:text-2xl transition duration-300 hover:bg-[#5c0bb8]"
+                variants={buttonVariants}
+                whileHover="hover"
+                whileTap="tap"
+              >
                 Find Jobs Now
-              </button>
+              </motion.button>
             </Link>
 
             <Link to="/Dashboard">
-              <button
+              <motion.button
                 onClick={handlePostJobClick} // Handle button click
                 className="border-4 border-[#242645] text-[#242645] px-4 sm:px-8 sm:py-2.5 rounded-xl font-bold text-base sm:text-xl md:text-2xl transition duration-300 hover:bg-gray-300"
+                variants={buttonVariants}
+                whileHover="hover"
+                whileTap="tap"
               >
                 Post a Job
-              </button>
+              </motion.button>
             </Link>
-            
-
-          </div>
+          </motion.div>
         </div>
 
         {/* Right Side: Responsive Image */}
-        <div className="flex items-center justify-end lg:w-3/4 mt-8 lg:mt-0">
+        <motion.div
+          className="flex items-center justify-end lg:w-3/4 mt-8 lg:mt-0"
+          variants={imageVariants}
+        >
           <img
             src={logo}
             alt="Job Search Illustration"
             className="w-full sm:w-5/6 lg:w-11/12 h-auto object-cover rounded-lg sm:ml-4 md:ml-9 lg:ml-8"
           />
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </div>
   );
 };
