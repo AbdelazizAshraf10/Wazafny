@@ -95,7 +95,7 @@ const Welcome = () => {
             className="mt-8 sm:mt-12 md:mt-16 lg:mt-20 flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-6 justify-center lg:justify-start"
             variants={textVariants}
           >
-            <Link to="/Home">
+            <Link to="/seeker/JopsPage">
               <motion.button
                 className="bg-[#6a0dad] text-white px-4 sm:px-6 py-2 sm:py-3.5 rounded-xl font-bold text-base sm:text-xl md:text-2xl transition duration-300 hover:bg-[#5c0bb8]"
                 variants={buttonVariants}

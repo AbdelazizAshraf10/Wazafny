@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ScrollText } from "lucide-react";
 import logoVodafone from "../../../assets/vodafone.png";
 import logoBlink22 from "../../../assets/blink22.png";
+import { useNavigate } from "react-router-dom";
 
 // Job Applications List
 const jobApplications = [
@@ -27,7 +28,7 @@ const jobApplications = [
 
 const JobApplicationDropdown = ({ applications }) => {
   const [open, setOpen] = useState(false);
-
+  const navigate = useNavigate();
   return (
     <div className="relative">
       {/* Briefcase Icon */}
@@ -117,7 +118,7 @@ const JobApplicationDropdown = ({ applications }) => {
 
           {/* View All Button */}
           <div className="p-4 text-center border-t border-gray-200">
-            <button className="text-black font-bold hover:underline">
+            <button onClick={() => navigate("/seeker/Applications")} className="text-black font-bold hover:underline">
               View all
             </button>
           </div>

@@ -15,7 +15,7 @@ import ResetPassword from "./components/ResetPassword/ResetPassword";
 import Location from "./components/Location/Location";
 import Info from "./components/Info/Info";
 import Welcome from "./components/home/welcome/welcome";
-import Company from "./components/home/NavIcons/company-nav";
+
 import UserProfile from "./components/home/NavIcons/PROFILE/profile/ProfilePage-1";
 import Dashboard from "./components/Dashboard-Company/Dashboard";
 import ViewApplicationJon from "./components/Dashboard-Company/ViewApplicationJon";
@@ -29,12 +29,13 @@ import Questions from "./components/Dashboard-Company/post-new-job-modal/Questio
 import Preview from "./components/Dashboard-Company/post-new-job-modal/Preview";
 import CompanyProfile from "./components/Dashboard-Company/Company-Profile/CompanyProfile";
 import EmailConfirm from "./components/EmailConfirmation/EmailConfirm";
-import Home from "./components/home/homee/Home";
-import CompanyDesc from "./components/home/homee/companydesc/companydesc";
-import MainContent from "./components/home/homee/content/MainContent";
-import CompanyClick from "./components/home/homee/content/Sidebar";
-import MyApplication from "./components/home/homee/my application/all";
 
+import CompanyNav from "./components/home/NavIcons/company-nav";
+import JopsPage from "./components/home/jobs/JopsPage";
+import CompanyJobs from "./components/home/companyjobs/CompanyJobs"
+import Apply from "./components/home/apply/apply"
+import CompanyOverview from "./components/home/companyjobs/CompanyOverview";
+import ViewApplications from "./components/home/ViewApplications/ViewApplications";
 const router = createBrowserRouter([
   {
     path: "/",
@@ -57,24 +58,24 @@ const router = createBrowserRouter([
       { path: "*", element: <NotFound /> },
     ],
   },
-  {
-    path: "/Home",
-    element: <Company />,
-    children: [
-      { path: "", element: <Navigate to="Welcome" replace /> }, // Default redirect
-      { path: "Welcome", element: <Welcome /> },
-      { path: "home", element: <Home /> }, // Changed path to "home" to avoid conflict
-      { path: "companydesc/:id", element: <CompanyDesc /> },
-      { path: "maincontent/:id", element: <MainContent /> },
-      { path: "companyclick", element: <CompanyClick /> },
-      { path: "myapplication", element: <MyApplication /> },
-      { path: "*", element: <NotFound /> },
-    ],
-  },
-  {
-    path: "/profile",
-    element: <UserProfile />,
-  },
+
+  // Seeker home with a unique base path
+   {
+     path: "/seeker",
+     element: <CompanyNav />,
+     children: [
+       { path: "", element: <Navigate to="JopsPage" replace /> }, // Redirect /seeker to /seeker/Home
+       { path: "JopsPage", element: <JopsPage /> },
+       { path: "companypage", element: <CompanyJobs /> }, // Route for /seeker/company
+       { path: "companyOverview", element: <CompanyOverview /> }, // Route for /seeker/company
+       { path: "profile", element: <UserProfile /> },
+       { path: "Applications", element: <ViewApplications /> },
+       { path: "apply", element: <Apply /> },
+       
+ 
+     ],
+   },
+  
   {
     path: "/Dashboard",
     element: <Dashboard />,

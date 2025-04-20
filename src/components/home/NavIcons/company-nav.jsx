@@ -1,12 +1,34 @@
 import logo from "../../../assets/wazafny.png";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import NotificationDropdown from "./notofication";
 import UserProfileDropdown from "./PROFILE/profile/ProfileIcon";
 import Application from "./Application";
-import Home from "../homee/Home";
+import { Outlet } from "react-router-dom";
 
 function CompanyNav() {
-  const [activeTab, setActiveTab] = useState("Jobs"); // Default active tab
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [activeTab, setActiveTab] = useState("Jobs");
+
+  // Update activeTab based on the current URL
+  useEffect(() => {
+    if (location.pathname === "/seeker/JopsPage") {
+      setActiveTab("Jobs");
+    } else if (location.pathname === "/seeker/companypage") {
+      setActiveTab("Company");
+    }
+  }, [location.pathname]);
+
+  const handleJobsClick = () => {
+    setActiveTab("Jobs");
+    navigate("/seeker/JopsPage");
+  };
+
+  const handleCompanyClick = () => {
+    setActiveTab("Company");
+    navigate("/seeker/companypage");
+  };
 
   return (
     <div>
@@ -19,7 +41,7 @@ function CompanyNav() {
         {/* Job and company select in the middle */}
         <div className="flex items-center gap-x-40 text-2xl font-bold mt-3 ml-4">
           <button
-            onClick={() => setActiveTab("Jobs")}
+            onClick={handleJobsClick}
             className={`relative pb-2 ${
               activeTab === "Jobs"
                 ? "text-[#6A0DAD] font-bold after:content-[''] after:absolute after:left-0 after:bottom-[-3px] after:w-full after:h-[4px] after:bg-[#6A0DAD]"
@@ -30,7 +52,7 @@ function CompanyNav() {
           </button>
 
           <button
-            onClick={() => setActiveTab("Company")}
+            onClick={handleCompanyClick}
             className={`relative pb-2 ${
               activeTab === "Company"
                 ? "text-[#6A0DAD] font-bold after:content-[''] after:absolute after:left-0 after:bottom-[-3px] after:w-full after:h-[4px] after:bg-[#6A0DAD]"
@@ -62,8 +84,7 @@ function CompanyNav() {
 
       <hr className="border border-[#D9D9D9] mt-0.5" />
 
-      {/* Conditionally render Home component when activeTab is "Jobs" */}
-      {activeTab === "Jobs" && <Home />}
+      <Outlet /> {/* Let the Outlet render the child routes */}
     </div>
   );
 }

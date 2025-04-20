@@ -1,48 +1,31 @@
-import { useState } from "react";
-import CompanyNav from "../../company-nav";
+
 import EditProfile from "./edit-pencil";
-import PropTypes from "prop-types";
+import Email from "../../../../../assets/seeker/email.svg"
 import Cover from "../../../../../assets/profile-banner.png";
 import CoverDefault from "../../../../../assets/coverimagedefault.png";
 import Modal from "./Modal";
-
 import About from "../about/about";
 import Resume from "../resume/resume";
 import Experince from "../experince/Experince";
 import Skill from "../skills/skill";
 import Education from "../education/Education";
 import Following from "./Following-Modal";
-const UserProfile = ({
-  FirstName = "Youssef",
-  LastName = "Ahmed",
-  Headline = "Intern Flutter Developer @DEPI",
-  Location = "Benha, Al Qalyubiyah, Egypt",
-}) => {
-  // set Cover photo
+import { useState } from "react";
+
+const UserProfile = () => {
+  // Static user data
+  const userProfileData = {
+    name: "Youssef Ahmed",
+    following: 150,
+    Headline: "Intern Flutter Developer @DEPI",
+    location: "Benha, Al Qalyubiyah, Egypt",
+  };
+
   const [coverPhoto, setCoverPhoto] = useState(null);
-
   const [isFollowingModalOpen, setIsFollowingModalOpen] = useState(false);
-
-  // set profile photo
   const [profilePhoto, setProfilePhoto] = useState(null);
-
-  // check modal is open or not
   const [isCoverModalOpen, setIsCoverModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-
-  UserProfile.propTypes = {
-    FirstName: PropTypes.string.isRequired,
-    LastName: PropTypes.string.isRequired,
-    Headline: PropTypes.string.isRequired,
-    Location: PropTypes.string.isRequired,
-  };
-
-  const user = {
-    name: `${FirstName} ${LastName}`,
-    following: 150,
-    Headline: Headline,
-    location: Location,
-  };
 
   const handleCoverPhotoChange = (event) => {
     const file = event.target.files[0];
@@ -70,10 +53,9 @@ const UserProfile = ({
 
   return (
     <>
-      <CompanyNav />
-      <div className="flex justify-center mt-5 mb-2 max-h-[80vh] sm:max-h-[80vh] md:max-h-[80vh] lg:max-h-[80vh] xl:max-h-[80vh] 2xl:max-h-[80vh] 3xl:max-h-[80vh] 4xl:max-h-[80vh] ">
-        <div className="bg-white border  border-[#D9D9D9] rounded-xl w-[900px] pb-4">
-          {/* Cover Photo */}
+      
+      <div className="flex justify-center mt-5 mb-2 max-h-[80vh] sm:max-h-[80vh] md:max-h-[80vh] lg:max-h-[80vh] xl:max-h-[80vh] 2xl:max-h-[80vh] 3xl:max-h-[80vh] 4xl:max-h-[80vh]">
+        <div className="bg-white border border-[#D9D9D9] rounded-xl w-[900px] pb-4">
           <div
             className="relative h-32 w-full cursor-pointer"
             onClick={() => setIsCoverModalOpen(true)}
@@ -86,10 +68,8 @@ const UserProfile = ({
             <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 transition duration-300"></div>
           </div>
 
-          {/* Profile Section */}
           <div className="px-6 relative">
             <div className="flex items-start">
-              {/* Profile Picture */}
               <div
                 className="w-20 h-20 rounded-full border-4 border-white bg-gray-200 flex items-center justify-center overflow-hidden shadow-lg -mt-10 cursor-pointer"
                 onClick={() => setIsProfileModalOpen(true)}
@@ -115,38 +95,43 @@ const UserProfile = ({
               </div>
             </div>
 
-            {/* User Info */}
-            <div className="mt-2">
-              <h2 className="text-xl font-bold text-black">{user.name}</h2>
-              {/* Other UserProfile code */}
+            <div className="flex gap-3 mt-2">
+              <h2 className="text-xl font-bold text-black">
+                {userProfileData.name}
+              </h2>
               <button
-                onClick={() => setIsFollowingModalOpen(true)} // Open the modal on click
+                onClick={() => setIsFollowingModalOpen(true)}
                 className="text-left bg-transparent border-none cursor-pointer"
               >
-                <p className="text-[#6A0DAD] font-medium">
-                  {user.following} Following
+                <p className="text-[#6A0DAD] text-lg font-semibold">
+                  {userProfileData.following} Following
                 </p>
               </button>
 
-              {/* Render the Following Modal */}
               <Following
                 isOpen={isFollowingModalOpen}
                 onClose={() => setIsFollowingModalOpen(false)}
               />
             </div>
 
-            {/* Headline and Location */}
-            <div className="mt-1 text-sm">
-              <p className="text-[#201A23]">{user.Headline}</p>
-              <p className="text-[#A1A1A1]">{user.location}</p>
+            <div className="mt-1 space-y-2 text-md">
+              <p className="text-[#201A23]">{userProfileData.Headline}</p>
+              <p className="text-[#A1A1A1]">{userProfileData.location}</p>
             </div>
+            
+            
+            <div className="flex gap-2  mt-2 text-sm">
+
+              <p className="text-[#6A0DAD] text-lg font-bold">Links</p>
+              <img src={Email} alt="" />
+            </div>
+
+
           </div>
         </div>
       </div>
 
-      {/* another sectionsssss */}
-
-      <div className="flex justify-center ">
+      <div className="flex justify-center">
         <About />
       </div>
 
@@ -166,10 +151,6 @@ const UserProfile = ({
         <Education />
       </div>
 
-      {/* end of another sectionsss */}
-
-      {/* cover photo modal */}
-
       <Modal
         isOpen={isCoverModalOpen}
         onClose={() => setIsCoverModalOpen(false)}
@@ -187,7 +168,7 @@ const UserProfile = ({
               </button>
             </div>
 
-            <div className="w-full h-60 border-2 border-solid border-[#000000] rounded-xl  flex items-center justify-center overflow-hidden">
+            <div className="w-full h-60 border-2 border-solid border-[#000000] rounded-xl flex items-center justify-center overflow-hidden">
               {coverPhoto ? (
                 <img
                   src={coverPhoto || CoverDefault}
@@ -208,7 +189,6 @@ const UserProfile = ({
 
             <div className="flex justify-center mt-4">
               {coverPhoto ? (
-                // If cover photo exists: Show both "Select photo" and "Delete" buttons
                 <>
                   <label className="cursor-pointer px-5 py-2 bg-black text-white font-bold rounded-lg inline-block">
                     Select photo
@@ -227,7 +207,6 @@ const UserProfile = ({
                   </button>
                 </>
               ) : (
-                // If no cover photo: Show only "Select photo" button (smaller size)
                 <label className="cursor-pointer px-5 py-2 bg-black text-white font-bold rounded-lg inline-block">
                   Select photo
                   <input
@@ -243,8 +222,6 @@ const UserProfile = ({
         </div>
       </Modal>
 
-      {/* image photo modal */}
-
       <Modal
         isOpen={isProfileModalOpen}
         onClose={() => setIsProfileModalOpen(false)}
@@ -255,7 +232,7 @@ const UserProfile = ({
             <div className="flex justify-between mb-4">
               <h2 className="text-xl font-bold">Profile photo</h2>
               <button
-                className="text-gray-500 hover:text-black scale-150 "
+                className="text-gray-500 hover:text-black scale-150"
                 onClick={() => setIsProfileModalOpen(false)}
               >
                 ✖
@@ -279,7 +256,6 @@ const UserProfile = ({
 
             <div className="flex justify-center mt-4">
               {profilePhoto ? (
-                // If a profile photo exists, show both "Select photo" and "Delete" buttons
                 <>
                   <label className="cursor-pointer px-5 py-2 bg-black text-white font-bold rounded-lg inline-block">
                     Select photo
@@ -298,7 +274,6 @@ const UserProfile = ({
                   </button>
                 </>
               ) : (
-                // If no profile photo, show only the "Select photo" button (smaller size)
                 <label className="cursor-pointer px-5 py-2 bg-black text-white font-bold rounded-lg inline-block">
                   Select photo
                   <input
