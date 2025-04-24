@@ -407,7 +407,7 @@ function Jobpost() {
                             <td className="py-3 px-4">{job.id}</td>
                             <td className="py-8 px-4 font-bold text-[#201A23] truncate transition-colors duration-300 hover:text-[#6A0DAD] hover:underline">
                               <Link
-                                to={`/jobpost/${job.id}`}
+                                to={`/Dashboard/JobOverview/${job.id}`}
                                 onClick={() => handleSelectJob(job.id)}
                               >
                                 {job.title}

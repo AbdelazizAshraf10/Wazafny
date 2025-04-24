@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { Toilet } from "lucide-react";
+import { Link } from "react-router-dom";
 
 let role = "seeker";
 localStorage.setItem("Role", role);
@@ -103,10 +104,11 @@ function DashboardContent() {
         if (response.status === 204) {
           setlatestApplication([]);
         } else {
-          const mappedApplications = response.data.applications.map(app => ({
+          const mappedApplications = response.data.applications.map((app) => ({
             id: app.application_id,
             applicationName: `${app.seeker.first_name} ${app.seeker.last_name}`,
             jobpost: app.job.job_title,
+            jobId: app.job.job_id || null, // Ensure jobId is null if not present
             Time: app.time_ago,
             profileImg: app.seeker.profile_img,
           }));
@@ -160,8 +162,7 @@ function DashboardContent() {
         if (response.status === 204) {
           setLatestJob([]);
         } else {
-          // Map the response data to the expected structure
-          const mappedJobs = response.data.map(job => ({
+          const mappedJobs = response.data.map((job) => ({
             id: job.job_id,
             jobpost: job.job_title,
             location: `${job.job_city} (${job.job_type})`,
@@ -250,6 +251,9 @@ function DashboardContent() {
     visible: { opacity: 1, transition: { duration: 0.5 } },
   };
 
+  
+  
+
   return (
     <motion.div
       className="flex flex-col px-6 py-4"
@@ -273,10 +277,7 @@ function DashboardContent() {
               { label: "Total Job Posted", value: jobs_count },
               { label: "Total Followers", value: followers_count },
               { label: "Total Active Jobs", value: active_jobs_count },
-              {
-                label: "Total Applications Received",
-                value: applications_count,
-              },
+              { label: "Total Applications Received", value: applications_count },
             ].map((stat, index) => (
               <motion.div
                 key={index}
@@ -327,7 +328,9 @@ function DashboardContent() {
                         src={application.profileImg}
                         alt="Profile"
                         className="w-9 h-9 rounded-full"
-                        onError={(e) => (e.target.src = "https://via.placeholder.com/28")} // Fallback image on error
+                        onError={(e) =>
+                          (e.target.src = "https://via.placeholder.com/28")
+                        }
                       />
                     </div>
                     <p className="font-bold cursor-pointer">
@@ -336,8 +339,22 @@ function DashboardContent() {
                   </div>
 
                   {/* Job Post Title */}
-                  <p className="w-1/3 text-[#6A0DAD] ml-5 font-extrabold underline cursor-pointer text-sm">
-                    {application.jobpost}
+                  <p
+                    className={`w-1/3 ml-5 mt-2.5 font-extrabold text-sm ${
+                      application.jobId
+                        ? "text-[#6A0DAD] underline cursor-pointer"
+                        : "text-gray-500 cursor-not-allowed"
+                    }`}
+                  >
+                    {application.jobId ? (
+                      <Link
+                        to={`/Dashboard/JobOverview/${application.jobId}`}
+                      >
+                        {application.jobpost}
+                      </Link>
+                    ) : (
+                      <span>{application.jobpost} (Invalid Job ID)</span>
+                    )}
                   </p>
 
                   {/* Time */}
@@ -370,13 +387,10 @@ function DashboardContent() {
                     index !== latestJob.length - 1 ? "border-b" : ""
                   }`}
                 >
-                  {/* Job Details (Left Side) */}
                   <div className="space-y-2">
                     <p className="font-bold text-base">{job.jobpost}</p>
                     <p className="text-gray-500">{job.location}</p>
                   </div>
-
-                  {/* Time (Right Side) */}
                   <p className="text-gray-400 text-xs">{job.Time}</p>
                 </motion.div>
               ))
