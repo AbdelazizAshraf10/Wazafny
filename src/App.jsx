@@ -32,10 +32,11 @@ import EmailConfirm from "./components/EmailConfirmation/EmailConfirm";
 
 import CompanyNav from "./components/home/NavIcons/company-nav";
 import JopsPage from "./components/home/jobs/JopsPage";
-import CompanyJobs from "./components/home/companyjobs/CompanyJobs"
-import Apply from "./components/home/apply/apply"
+import CompanyJobs from "./components/home/companyjobs/CompanyJobs";
+import Apply from "./components/home/apply/apply";
 import CompanyOverview from "./components/home/companyjobs/CompanyOverview";
 import ViewApplications from "./components/home/ViewApplications/ViewApplications";
+
 const router = createBrowserRouter([
   {
     path: "/",
@@ -60,22 +61,20 @@ const router = createBrowserRouter([
   },
 
   // Seeker home with a unique base path
-   {
-     path: "/seeker",
-     element: <CompanyNav />,
-     children: [
-       { path: "", element: <Navigate to="JopsPage" replace /> }, // Redirect /seeker to /seeker/Home
-       { path: "JopsPage", element: <JopsPage /> },
-       { path: "companypage", element: <CompanyJobs /> }, // Route for /seeker/company
-       { path: "companyOverview", element: <CompanyOverview /> }, // Route for /seeker/company
-       { path: "profile", element: <UserProfile /> },
-       { path: "Applications", element: <ViewApplications /> },
-       { path: "apply", element: <Apply /> },
-       
- 
-     ],
-   },
-  
+  {
+    path: "/seeker",
+    element: <CompanyNav />,
+    children: [
+      { path: "", element: <Navigate to="JopsPage" replace /> },
+      { path: "JopsPage", element: <JopsPage /> },
+      { path: "companypage", element: <CompanyJobs /> },
+      { path: "companyOverview", element: <CompanyOverview /> },
+      { path: "profile", element: <UserProfile /> },
+      { path: "Applications", element: <ViewApplications /> },
+      { path: "apply", element: <Apply /> },
+    ],
+  },
+
   {
     path: "/Dashboard",
     element: <Dashboard />,
@@ -86,11 +85,24 @@ const router = createBrowserRouter([
         path: "Jobpost",
         element: <Jobpost />,
         children: [
+          // Routes for creating a new job post
           { path: "basic-info", element: <BasicInfo /> },
           { path: "skills", element: <Skills /> },
           { path: "extra-sections", element: <ExtraSections /> },
           { path: "questions", element: <Questions /> },
           { path: "preview", element: <Preview /> },
+          // Routes for editing an existing job post
+          {
+            path: ":jobId",
+            children: [
+              { path: "", element: <BasicInfo /> }, // /Dashboard/Jobpost/:jobId
+              { path: "basic-info", element: <BasicInfo /> }, // /Dashboard/Jobpost/:jobId/basic-info
+              { path: "skills", element: <Skills /> }, // /Dashboard/Jobpost/:jobId/skills
+              { path: "extra-sections", element: <ExtraSections /> }, // /Dashboard/Jobpost/:jobId/extra-sections
+              { path: "questions", element: <Questions /> }, // /Dashboard/Jobpost/:jobId/questions
+              { path: "preview", element: <Preview /> }, // /Dashboard/Jobpost/:jobId/preview
+            ],
+          },
         ],
       },
       { path: "view-applications/:jobId", element: <ViewApplicationJon /> },

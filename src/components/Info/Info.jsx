@@ -80,7 +80,7 @@ export default function Info() {
               type="text"
               name="Headline"
               id="Headline"
-              className="block py-2.5 px-0 w-full text-sm text-[#201A23] bg-transparent border-0 border-b-2 border-[#D9D9D9] appearance-none dark:border-[#D9D9D9] dark:focus:border-black focus:outline-none focus:ring-0 focus:border-black peer"
+              className="block py-2.5 px-0 w-full text-sm text-[#201A23] bg-transparent border-0 border-b border-[#D9D9D9] appearance-none dark:border-[#D9D9D9] focus:outline-none focus:ring-0  peer"
               placeholder=" "
               required
             />

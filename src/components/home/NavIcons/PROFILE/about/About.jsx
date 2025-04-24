@@ -2,7 +2,7 @@ import { Pencil } from "lucide-react";
 import { useState } from "react";
 import Modal from "../profile/Modal";
 
-function About() {
+function About({ userRole }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [aboutText, setAboutText] = useState(""); // Stores the entered text
   const [savedText, setSavedText] = useState(""); // Stores the saved text
@@ -34,10 +34,12 @@ function About() {
         {/* Title with Pencil Icon in the Top Right */}
         <div className="flex justify-between items-center">
           <h3 className="text-lg md:text-xl font-bold text-[#201A23]">About</h3>
-          <Pencil
-            className="w-5 h-5 text-gray-600 cursor-pointer hover:text-black"
-            onClick={() => setIsModalOpen(true)}
-          />
+          {userRole !== "Company" && (
+            <Pencil
+              className="w-5 h-5 text-gray-600 cursor-pointer hover:text-black"
+              onClick={() => setIsModalOpen(true)}
+            />
+          )}
         </div>
 
         {/* Display Saved Text or Default Message */}

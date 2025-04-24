@@ -92,12 +92,9 @@ const OTPInput = ({ length = 6 }) => {
         if (status === 400) {
           setMessage({ text: 'Invalid or Expired OTP.', type: 'error' });
         } else if (status === 422) {
-          setMessage({
-            text: data.message || 'Email or OTP is invalid.',
-            type: 'error',
-          });
+          console.log("'Email or OTP is invalid.'", data.errors);
         } else {
-          setMessage({ text: 'An error occurred. Please try again.', type: 'error' });
+          console.log("'An error occurred. Please try again.'");
         }
       } else {
         setMessage({

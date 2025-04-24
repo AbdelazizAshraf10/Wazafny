@@ -52,11 +52,9 @@ const Welcome = () => {
   // Function to handle "Post a Job" button click
   const handlePostJobClick = () => {
     if (!isLoggedIn) {
-      alert("You need to log in to post a job!"); // Optional alert
+      
       navigate("/Login"); // Redirect to login page
-    } else {
-      alert("You are logged in! Posting a job..."); // Replace with actual job posting logic
-    }
+    } 
   };
 
   return (
@@ -95,7 +93,7 @@ const Welcome = () => {
             className="mt-8 sm:mt-12 md:mt-16 lg:mt-20 flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-6 justify-center lg:justify-start"
             variants={textVariants}
           >
-            <Link to="/seeker/JopsPage">
+            <Link to="/Login">
               <motion.button
                 className="bg-[#6a0dad] text-white px-4 sm:px-6 py-2 sm:py-3.5 rounded-xl font-bold text-base sm:text-xl md:text-2xl transition duration-300 hover:bg-[#5c0bb8]"
                 variants={buttonVariants}
@@ -106,7 +104,7 @@ const Welcome = () => {
               </motion.button>
             </Link>
 
-            <Link to="/Dashboard">
+            <Link to="/LoginCompany">
               <motion.button
                 onClick={handlePostJobClick} // Handle button click
                 className="border-4 border-[#242645] text-[#242645] px-4 sm:px-8 sm:py-2.5 rounded-xl font-bold text-base sm:text-xl md:text-2xl transition duration-300 hover:bg-gray-300"

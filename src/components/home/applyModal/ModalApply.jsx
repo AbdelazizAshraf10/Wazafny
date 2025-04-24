@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import cv from "../../../assets/seeker/cv.png";
 import trash from "../../../assets/seeker/trash1.svg";
+import PhoneInput from "react-phone-input-2";
+import 'react-phone-input-2/lib/style.css';
 
 function ModalApply({ onClose, jobTitle = "Mobile Software Engineer", companyName = "Blink22" }) {
   const [step, setStep] = useState(1);
@@ -17,39 +19,169 @@ function ModalApply({ onClose, jobTitle = "Mobile Software Engineer", companyNam
     graduationYear: "",
     mobileDevExperience: "",
   });
-  const [isPhoneDropdownOpen, setIsPhoneDropdownOpen] = useState(false);
   const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
   const [isCityDropdownOpen, setIsCityDropdownOpen] = useState(false);
-  const [selectedCountryCode, setSelectedCountryCode] = useState("+20");
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [errors, setErrors] = useState({
+    firstName: "",
+    lastName: "",
+    phoneNumber: "",
+    email: "",
+    country: "",
+    city: "",
+    resume: "",
+    expectedSalary: "", // Added for Step 3 validation
+    graduationYear: "", // Added for Step 3 validation
+    mobileDevExperience: "", // Added for Step 3 validation
+  });
+
+  const phoneRegex = /^[+0-9]+$/; // Regex to allow only + and digits
+  const maxPhoneLength = 20; // Maximum length for phone number (including country code)
+  const maxFileSize = 5 * 1024 * 1024; // 5MB in bytes
+  const currentYear = new Date().getFullYear(); // 2025
+
+  // Static list of countries and their cities
+  const countryCitiesMap = {
+    Egypt: ["Cairo", "Alexandria", "Giza"],
+    "United States": ["New York", "Los Angeles", "Chicago"],
+    "United Kingdom": ["London", "Manchester", "Birmingham"],
+    Canada: ["Toronto", "Vancouver", "Montreal"],
+    Australia: ["Sydney", "Melbourne", "Brisbane"],
+  };
+
+  const countries = Object.keys(countryCitiesMap);
+  const cities = formData.country ? countryCitiesMap[formData.country] || [] : [];
+
+  const validateStep = () => {
+    let newErrors = {};
+    let isValid = true;
+
+    if (step === 1) {
+      // Step 1 validations (all fields required, including city)
+      if (!formData.firstName.trim()) {
+        newErrors.firstName = "First name is required.";
+        isValid = false;
+      }
+      if (!formData.lastName.trim()) {
+        newErrors.lastName = "Last name is required.";
+        isValid = false;
+      }
+      if (!formData.phoneNumber || !phoneRegex.test(formData.phoneNumber)) {
+        newErrors.phoneNumber = "Phone number can only contain digits and a plus sign.";
+        isValid = false;
+      } else if (formData.phoneNumber.length > maxPhoneLength) {
+        newErrors.phoneNumber = `Phone number cannot exceed ${maxPhoneLength} characters.`;
+        isValid = false;
+      }
+      if (!formData.email.trim()) {
+        newErrors.email = "Email is required.";
+        isValid = false;
+      } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+        newErrors.email = "Please enter a valid email address.";
+        isValid = false;
+      }
+      if (!formData.country) {
+        newErrors.country = "Country is required.";
+        isValid = false;
+      }
+      if (!formData.city) {
+        newErrors.city = "City is required.";
+        isValid = false;
+      }
+    } else if (step === 2) {
+      // Step 2 validations (resume required)
+      if (!formData.resume) {
+        newErrors.resume = "Resume is required.";
+        isValid = false;
+      }
+    } else if (step === 3) {
+      // Step 3 validations (all fields required)
+      // Expected Salary: Must be a positive number
+      if (!formData.expectedSalary.trim()) {
+        newErrors.expectedSalary = "Required.";
+        isValid = false;
+      } else {
+        const salary = parseFloat(formData.expectedSalary.replace(/[^0-9.-]+/g, ""));
+        if (isNaN(salary) || salary <= 0) {
+          newErrors.expectedSalary = "Required.";
+          isValid = false;
+        }
+      }
+
+      // Graduation Year: Must be a valid year between 1900 and 2025
+      if (!formData.graduationYear.trim()) {
+        newErrors.graduationYear = "Required.";
+        isValid = false;
+      } 
+
+      
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
 
   const handleNext = () => {
-    if (step < totalSteps) {
-      setStep(step + 1);
-    } else {
-      console.log("Form submitted:", formData);
-      setIsSubmitted(true);
+    if (validateStep()) {
+      if (step < totalSteps) {
+        setStep(step + 1);
+        setErrors({}); // Clear errors when moving to the next step
+      } else {
+        console.log("Form submitted:", formData);
+        setIsSubmitted(true);
+      }
     }
   };
 
   const handleBack = () => {
     if (step > 1) {
       setStep(step - 1);
+      setErrors({}); // Clear errors when going back
     }
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
+    // Clear error for the field being edited
+    setErrors({ ...errors, [name]: "" });
   };
 
   const handleFileChange = (e) => {
-    setFormData({ ...formData, resume: e.target.files[0] });
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > maxFileSize) {
+        setErrors({ ...errors, resume: "File size exceeds 5MB limit." });
+        setFormData({ ...formData, resume: null });
+      } else {
+        setFormData({ ...formData, resume: file });
+        setErrors({ ...errors, resume: "" });
+      }
+    }
   };
 
-  const handleCountryCodeSelect = (code) => {
-    setSelectedCountryCode(code);
-    setIsPhoneDropdownOpen(false);
+  const handlePhoneChange = (phone) => {
+    setFormData({ ...formData, phoneNumber: phone });
+    // Validate phone number as the user types
+    if (!phoneRegex.test(phone) && phone !== "") {
+      setErrors({ ...errors, phoneNumber: "Phone number can only contain digits and a plus sign." });
+    } else if (phone.length > maxPhoneLength) {
+      setErrors({ ...errors, phoneNumber: `Phone number cannot exceed ${maxPhoneLength} characters.` });
+    } else {
+      setErrors({ ...errors, phoneNumber: "" });
+    }
+  };
+
+  const handleCountrySelect = (country) => {
+    setFormData({ ...formData, country, city: "" }); // Reset city when country changes
+    setErrors({ ...errors, country: "", city: "" }); // Clear errors for country and city
+    setIsCountryDropdownOpen(false);
+  };
+
+  const handleCitySelect = (city) => {
+    setFormData({ ...formData, city });
+    setErrors({ ...errors, city: "" });
+    setIsCityDropdownOpen(false);
   };
 
   const renderStepContent = () => {
@@ -91,7 +223,7 @@ function ModalApply({ onClose, jobTitle = "Mobile Software Engineer", companyNam
       case 1:
         return (
           <div className="px-24 pt-2 pb-3 space-y-5">
-            <h3 className="text-xl font-bold text-center mt-">Add your contact information</h3>
+            <h3 className="text-xl font-bold text-center">Add your contact information</h3>
             <div className="space-y-2">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1 text-left">
@@ -105,6 +237,9 @@ function ModalApply({ onClose, jobTitle = "Mobile Software Engineer", companyNam
                   className="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-[#6A0DAD] text-gray-600 box-border"
                   placeholder="Yousef"
                 />
+                {errors.firstName && (
+                  <p className="text-red-500 text-xs mt-1 text-left">{errors.firstName}</p>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1 text-left">
@@ -118,55 +253,27 @@ function ModalApply({ onClose, jobTitle = "Mobile Software Engineer", companyNam
                   className="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-[#6A0DAD] text-gray-600 box-border"
                   placeholder="Elsherif"
                 />
+                {errors.lastName && (
+                  <p className="text-red-500 text-xs mt-1 text-left">{errors.lastName}</p>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1 text-left">
                   Phone Number*
                 </label>
-                <div className="flex items-center border border-gray-300 rounded-md">
-                  <div className="relative w-1/4 border-r border-gray-300">
-                    <button
-                      type="button"
-                      onClick={() => setIsPhoneDropdownOpen(!isPhoneDropdownOpen)}
-                      className="flex items-center w-full p-2.5 bg-white border-none cursor-pointer text-gray-600"
-                    >
-                      <span className="mr-2">🇪🇬 {selectedCountryCode}</span>
-                      <svg
-                        className="w-4 h-4 text-[#6A0DAD] absolute right-2.5 top-1/2 transform -translate-y-1/2"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M19 9l-7 7-7-7"
-                        />
-                      </svg>
-                    </button>
-                    {isPhoneDropdownOpen && (
-                      <ul className="absolute top-full left-0 w-[150px] bg-white border border-gray-300 rounded-md shadow-md z-10 p-1.5 list-none">
-                        <li
-                          onClick={() => handleCountryCodeSelect("+20")}
-                          className="flex items-center p-2.5 cursor-pointer hover:bg-gray-100 text-gray-600"
-                        >
-                          🇪🇬 +20
-                        </li>
-                        {/* Add more country codes as needed */}
-                      </ul>
-                    )}
-                  </div>
-                  <input
-                    type="text"
-                    name="phoneNumber"
-                    value={formData.phoneNumber}
-                    onChange={handleInputChange}
-                    className="w-3/4 p-2.5 border-none rounded-r-md focus:outline-none text-gray-600 box-border"
-                    placeholder="1234567890"
-                  />
-                </div>
+                <PhoneInput
+                  country={'eg'} // Default to Egypt
+                  value={formData.phoneNumber}
+                  onChange={handlePhoneChange}
+                  inputClass="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-[#6A0DAD] text-gray-600 box-border"
+                  buttonClass="border-r border-gray-300"
+                  dropdownClass="border border-gray-300 rounded-md shadow-md z-10"
+                  inputStyle={{ width: '100%', paddingLeft: '50px' }}
+                  buttonStyle={{ padding: '0 5px' }}
+                />
+                {errors.phoneNumber && (
+                  <p className="text-red-500 text-xs mt-1 text-left">{errors.phoneNumber}</p>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1 text-left">
@@ -180,6 +287,9 @@ function ModalApply({ onClose, jobTitle = "Mobile Software Engineer", companyNam
                   className="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-[#6A0DAD] text-gray-600 box-border"
                   placeholder="Yourname@email.com"
                 />
+                {errors.email && (
+                  <p className="text-red-500 text-xs mt-1 text-left">{errors.email}</p>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1 text-left">
@@ -208,30 +318,33 @@ function ModalApply({ onClose, jobTitle = "Mobile Software Engineer", companyNam
                     </svg>
                   </button>
                   {isCountryDropdownOpen && (
-                    <select
-                      value={formData.country}
-                      onChange={(e) => {
-                        setFormData({ ...formData, country: e.target.value });
-                        setIsCountryDropdownOpen(false);
-                      }}
-                      className="absolute top-full left-0 w-full bg-white border border-gray-300 rounded-md shadow-md z-10 p-1.5 appearance-none text-gray-600"
-                    >
-                      <option value="">Select Country</option>
-                      <option value="Egypt">Egypt</option>
-                      {/* Add more countries as needed */}
-                    </select>
+                    <ul className="absolute top-full left-0 w-full max-h-[200px] overflow-y-auto bg-white border border-gray-300 rounded-md shadow-md z-10 p-1.5 list-none">
+                      {countries.map((country, index) => (
+                        <li
+                          key={index}
+                          onClick={() => handleCountrySelect(country)}
+                          className="p-2.5 cursor-pointer hover:bg-gray-100 text-gray-600"
+                        >
+                          {country}
+                        </li>
+                      ))}
+                    </ul>
                   )}
                 </div>
+                {errors.country && (
+                  <p className="text-red-500 text-xs mt-1 text-left">{errors.country}</p>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1 text-left">
-                  City (optional)
+                  City*
                 </label>
                 <div className="relative w-full border border-gray-300 rounded-md">
                   <button
                     type="button"
                     onClick={() => setIsCityDropdownOpen(!isCityDropdownOpen)}
                     className="w-full text-left p-2.5 border-none bg-transparent text-gray-600 cursor-pointer"
+                    disabled={!formData.country}
                   >
                     {formData.city || "Select City"}
                     <svg
@@ -249,21 +362,23 @@ function ModalApply({ onClose, jobTitle = "Mobile Software Engineer", companyNam
                       />
                     </svg>
                   </button>
-                  {isCityDropdownOpen && (
-                    <select
-                      value={formData.city}
-                      onChange={(e) => {
-                        setFormData({ ...formData, city: e.target.value });
-                        setIsCityDropdownOpen(false);
-                      }}
-                      className="absolute top-full left-0 w-full bg-white border border-gray-300 rounded-md shadow-md z-10 p-1.5 appearance-none text-gray-600"
-                    >
-                      <option value="">Select City</option>
-                      <option value="Cairo">Cairo</option>
-                      {/* Add more cities as needed */}
-                    </select>
+                  {isCityDropdownOpen && formData.country && (
+                    <ul className="absolute top-full left-0 w-full max-h-[200px] overflow-y-auto bg-white border border-gray-300 rounded-md shadow-md z-10 p-1.5 list-none">
+                      {cities.map((city, index) => (
+                        <li
+                          key={index}
+                          onClick={() => handleCitySelect(city)}
+                          className="p-2.5 cursor-pointer hover:bg-gray-100 text-gray-600"
+                        >
+                          {city}
+                        </li>
+                      ))}
+                    </ul>
                   )}
                 </div>
+                {errors.city && (
+                  <p className="text-red-500 text-xs mt-1 text-left">{errors.city}</p>
+                )}
               </div>
             </div>
           </div>
@@ -273,7 +388,7 @@ function ModalApply({ onClose, jobTitle = "Mobile Software Engineer", companyNam
           <div className="px-12 py-5">
             <h3 className="text-lg font-bold text-left mb-4">Resume*</h3>
             <p className="text-sm text-gray-600 mb-4 text-left">
-              Be sure to upload updated resume
+              Be sure to upload updated resume (max 5MB)
             </p>
             <div className="border-2 border-black rounded-[20px] p-8 text-center h-[185px] w-full mb-0 flex items-center justify-center">
               {formData.resume ? (
@@ -307,6 +422,9 @@ function ModalApply({ onClose, jobTitle = "Mobile Software Engineer", companyNam
                 </label>
               )}
             </div>
+            {errors.resume && (
+              <p className="text-red-500 text-xs mt-1 text-left">{errors.resume}</p>
+            )}
           </div>
         );
       case 3:
@@ -326,6 +444,9 @@ function ModalApply({ onClose, jobTitle = "Mobile Software Engineer", companyNam
                   className="w-full p-3 border border-gray-300 rounded-[9px] focus:outline-none focus:ring-2 focus:ring-[#6A0DAD] text-gray-600 box-border"
                   placeholder="12,000 LE"
                 />
+                {errors.expectedSalary && (
+                  <p className="text-red-500 text-xs mt-1 text-left">{errors.expectedSalary}</p>
+                )}
               </div>
               <div>
                 <label className="block text-base font-medium text-gray-700 mb-1 text-left">
@@ -339,6 +460,9 @@ function ModalApply({ onClose, jobTitle = "Mobile Software Engineer", companyNam
                   className="w-full p-3 border border-gray-300 rounded-[9px] focus:outline-none focus:ring-2 focus:ring-[#6A0DAD] text-gray-600 box-border"
                   placeholder="2021"
                 />
+                {errors.graduationYear && (
+                  <p className="text-red-500 text-xs mt-1 text-left">{errors.graduationYear}</p>
+                )}
               </div>
               <div>
                 <label className="block text-base font-medium text-gray-700 mb-1 text-left">
@@ -352,6 +476,9 @@ function ModalApply({ onClose, jobTitle = "Mobile Software Engineer", companyNam
                   className="w-full p-3 border border-gray-300 rounded-[9px] focus:outline-none focus:ring-2 focus:ring-[#6A0DAD] text-gray-600 box-border"
                   placeholder="3"
                 />
+                {errors.mobileDevExperience && (
+                  <p className="text-red-500 text-xs mt-1 text-left">{errors.mobileDevExperience}</p>
+                )}
               </div>
             </div>
           </div>

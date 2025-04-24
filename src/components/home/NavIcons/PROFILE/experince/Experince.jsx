@@ -2,12 +2,11 @@ import { Pencil, Plus, Trash } from "lucide-react";
 import { useState } from "react";
 import Modal from "../profile/Modal";
 import { InputField, SelectField } from "../profile/my-component";
-
 import Logo from "../../../../../assets/companyExpLogo.png";
 
-function Experience() {
+function Experience({ userRole }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isModalِaddOpen, setIsModaladdOpen] = useState(false);
+  const [isModalAddOpen, setIsModalAddOpen] = useState(false);
   const [experienceList, setExperienceList] = useState([]); // Store experiences
   const [editingIndex, setEditingIndex] = useState(null);
 
@@ -73,7 +72,7 @@ function Experience() {
 
     // Close the modal after saving
     setIsModalOpen(false);
-    setIsModaladdOpen(false);
+    setIsModalAddOpen(false);
 
     // Reset form fields
     setFormInputs({
@@ -90,7 +89,7 @@ function Experience() {
     const experienceToEdit = experienceList[index];
     setFormInputs(experienceToEdit);
     setEditingIndex(index);
-    setIsModaladdOpen(true);
+    setIsModalAddOpen(true);
     setIsModalOpen(false);
   };
 
@@ -100,22 +99,23 @@ function Experience() {
 
   return (
     <div className="max-h-[80vh] sm:max-h-[80vh] md:max-h-[80vh] lg:max-h-[80vh] xl:max-h-[80vh] 2xl:max-h-[80vh] 3xl:max-h-[80vh] 4xl:max-h-[80vh] ">
-      <div className="flex  mt-2 ">
-        <div className="bg-white border border-[#D9D9D9] rounded-xl w-[900px] p-6 ">
+      <div className="flex mt-2">
+        <div className="bg-white border border-[#D9D9D9] rounded-xl w-[900px] p-6">
           {/* Header with Icon */}
-          <div className="flex justify-between  ">
+          <div className="flex justify-between">
             <h3 className="text-xl font-bold text-[#201A23]">Experience</h3>
-            <div className="flex gap-4 ">
-              <Plus
-                className="w-5 h-5 text-gray-600 cursor-pointer hover:text-black"
-                onClick={() => setIsModaladdOpen(true)}
-              />
-
-              <Pencil
-                className="w-5 h-5 text-gray-600 cursor-pointer hover:text-black"
-                onClick={() => setIsModalOpen(true)}
-              />
-            </div>
+            {userRole !== "Company" && (
+              <div className="flex gap-4">
+                <Plus
+                  className="w-5 h-5 text-gray-600 cursor-pointer hover:text-black"
+                  onClick={() => setIsModalAddOpen(true)}
+                />
+                <Pencil
+                  className="w-5 h-5 text-gray-600 cursor-pointer hover:text-black"
+                  onClick={() => setIsModalOpen(true)}
+                />
+              </div>
+            )}
           </div>
 
           {/* Display Experience List or Placeholder */}
@@ -128,12 +128,16 @@ function Experience() {
             experienceList.map((exp, index) => (
               <div
                 key={index}
-                className="text-left flex mt-4 border-t pt-4  gap-4"
+                className="text-left flex mt-4 border-t pt-4 gap-4"
               >
                 <img src={Logo} className="w-[48px] h-[54px] mt-2.5" />
                 <div>
                   <h4 className="font-bold text-lg">{exp.Title}</h4>
-                  <p className="text-gray-600">
+                  <p
+                    className="text-gray
+
+-600"
+                  >
                     {exp.Company} - {exp.EmploymentType}
                   </p>
                   <p className="text-[#A1A1A1]">
@@ -148,15 +152,15 @@ function Experience() {
           )}
         </div>
 
-        {/* modal for edit Experience */}
+        {/* Modal for Edit Experience */}
         <Modal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
-          title="edit Experience"
+          title="Edit Experience"
         >
-          <div className="fixed inset-0 flex items-center  justify-center bg-black bg-opacity-50">
+          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
             <form
-              className="bg-white p-6 rounded-lg shadow-lg w-[700px] text-left relative overflow-y-auto max-h-[80vh] sm:max-h-[80vh] md:max-h-[80vh] lg:max-h-[80vh] xl:max-h-[80vh] 2xl:max-h-[80vh] 3xl:max-h-[80vh] 4xl:max-h-[80vh] "
+              className="bg-white p-6 rounded-lg shadow-lg w-[700px] text-left relative overflow-y-auto max-h-[80vh] sm:max-h-[80vh] md:max-h-[80vh] lg:max-h-[80vh] xl:max-h-[80vh] 2xl:max-h-[80vh] 3xl:max-h-[80vh] 4xl:max-h-[80vh]"
               onSubmit={() => setIsModalOpen(false)}
             >
               <div className="flex justify-between items-center mb-3 relative">
@@ -196,7 +200,7 @@ function Experience() {
                       </div>
                       <div className="flex gap-6">
                         <Trash
-                          className="w-5 h-5  fill-[#201A23] cursor-pointer "
+                          className="w-5 h-5 fill-[#201A23] cursor-pointer"
                           onClick={() => handleDelete(index)}
                         />
                         <Pencil
@@ -213,10 +217,10 @@ function Experience() {
               <hr className="border-t-2 border-gray-300 my-[17px]" />
 
               <button
-                onClick={() => setIsModaladdOpen(true)}
-                className="flex items-center gap-2 text-[#6A0DAD]  hover:text-black"
+                onClick={() => setIsModalAddOpen(true)}
+                className="flex items-center gap-2 text-[#6A0DAD] hover:text-black"
               >
-                <span className="text-2xl">+</span> Add new Experience
+                <span className="text-2xl">+</span> Add New Experience
               </button>
 
               {/* Save Button */}
@@ -232,10 +236,10 @@ function Experience() {
           </div>
         </Modal>
 
-        {/* Modal for ADD Experience */}
+        {/* Modal for Add Experience */}
         <Modal
-          isOpen={isModalِaddOpen}
-          onClose={() => setIsModaladdOpen(false)}
+          isOpen={isModalAddOpen}
+          onClose={() => setIsModalAddOpen(false)}
           title="Edit Experience"
         >
           <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
@@ -248,7 +252,7 @@ function Experience() {
                 <h2 className="text-xl font-bold">Experience</h2>
                 <button
                   className="text-gray-500 hover:text-black"
-                  onClick={() => setIsModaladdOpen(false)}
+                  onClick={() => setIsModalAddOpen(false)}
                 >
                   ✖
                 </button>
@@ -272,7 +276,7 @@ function Experience() {
               />
 
               {/* Employment Type */}
-              <InputField
+              <SelectField
                 label="Employment Type"
                 name="EmploymentType"
                 value={formInputs.EmploymentType}
@@ -282,6 +286,12 @@ function Experience() {
                     EmploymentType: e.target.value,
                   })
                 }
+                options={[
+                  "Full-time",
+                  "Part-time",
+                  
+                  "Remote",
+                ]}
                 required
                 className="w-full mb-4"
               />

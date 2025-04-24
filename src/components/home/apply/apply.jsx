@@ -42,7 +42,7 @@ function JobsPage() {
             </div>
             <button
               onClick={() => setIsModalOpen(true)}
-              className="bg-[#6F2EB5] text-white font-semibold px-7 py-2 rounded-[9px] hover:bg-[#5B2494] transition-all duration-200"
+              className="bg-[#6A0DAD] text-white font-semibold px-7 py-2 rounded-[9px] hover:bg-[#5B2494] transition-all duration-200"
             >
               Apply Now
             </button>

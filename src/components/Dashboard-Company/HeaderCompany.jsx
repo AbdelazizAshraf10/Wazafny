@@ -1,19 +1,67 @@
-import { useState } from "react";
-import { Link } from "react-router-dom"; // Import Link for navigation
-import { User, LogOut } from "lucide-react"; // Import icons
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { User, LogOut } from "lucide-react";
+import axios from "axios";
 
 function HeaderCompany() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [profilePhoto, setProfilePhoto] = useState(
-    "https://via.placeholder.com/150"
-  );
+  const [companyName, setCompanyName] = useState("Loading...");
+  const [profilePhoto, setProfilePhoto] = useState("");
 
-  const initials = "VE";
-  const nameParts = "Vodafone Egypt";
+  const navigate = useNavigate();
 
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);
   };
+
+  // Helper: Extract initials from company name
+  const getInitials = (name) => {
+    return name
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase())
+      .join("")
+      .slice(0, 2); // Only first 2 initials
+  };
+
+  useEffect(() => {
+    const fetchCompanyProfile = async () => {
+      const token = localStorage.getItem("token");
+      const companyId = localStorage.getItem("company_id");
+
+      try {
+        const response = await axios.get(
+          `https://wazafny.online/api/show-company-profile/${companyId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+
+        const { company_name, profile_img } = response.data;
+
+        setCompanyName(company_name);
+        setProfilePhoto(profile_img); // empty string is fine if there's no image
+
+        localStorage.setItem("company_name", company_name);
+        localStorage.setItem("Profile_img" , profile_img)
+
+      } catch (error) {
+        console.error("Error fetching company profile:", error);
+        if (error.response?.status === 401) {
+          console.log("Unauthorized. Please log in again.");
+          navigate("/LoginCompany");
+        }else if (error.response?.status === 500) {
+          console.log("Server error. Please try again later.");
+        }
+      }
+    };
+
+    fetchCompanyProfile();
+  }, [navigate]);
+
+  const initials = getInitials(companyName);
 
   return (
     <div className="relative flex items-center justify-between">
@@ -21,7 +69,7 @@ function HeaderCompany() {
       <div className="items-center">
         <h6 className="font-bold">Welcome</h6>
         <span className="text-2xl font-extrabold text-[#201A23]">
-          {nameParts}
+          {companyName}
         </span>
       </div>
 
@@ -38,7 +86,7 @@ function HeaderCompany() {
               className="w-full h-full object-cover rounded-full"
             />
           ) : (
-            initials
+            <span>{initials}</span>
           )}
           {isDropdownOpen && (
             <span className="absolute top-0 right-0 w-2 h-2 bg-purple-600 rounded-full border-2 border-white"></span>
@@ -50,7 +98,6 @@ function HeaderCompany() {
       {isDropdownOpen && (
         <div className="absolute top-12 right-2 mt-1 w-60 bg-white rounded-xl shadow-lg border border-gray-200 z-50">
           <div className="flex flex-col items-center p-4">
-            {/* Profile Circle */}
             <div className="w-12 h-12 flex items-center justify-center rounded-full bg-black text-[#FFFFFF] text-xl font-bold overflow-hidden">
               {profilePhoto ? (
                 <img
@@ -59,13 +106,12 @@ function HeaderCompany() {
                   className="w-full h-full object-cover rounded-full"
                 />
               ) : (
-                initials
+                <span>{initials}</span>
               )}
             </div>
 
-            {/* Username */}
             <p className="mt-2 text-lg text-[#201A23] font-semibold">
-              {nameParts}
+              {companyName}
             </p>
           </div>
 

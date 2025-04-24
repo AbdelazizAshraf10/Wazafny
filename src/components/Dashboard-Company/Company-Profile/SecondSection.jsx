@@ -1,33 +1,80 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion'; // Import framer-motion
-
-function SecondSection() {
-  // State to manage modal visibility
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import axios from 'axios';
+import { Navigate } from 'react-router-dom';
+function SecondSection({ companyId, about, industry, companySize, headquarters, founded, country, city }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [message, setMessage] = useState({ text: "", type: "" });
 
-  // State to manage form data
+  useEffect(() => {
+    if (message.text) {
+      const timer = setTimeout(() => {
+        setMessage({ text: "", type: "" });
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [message]);
+
   const [formData, setFormData] = useState({
-    about: `The Vodafone Tech Innovation Center Dresden is Vodafone’s new global center for innovation and co-creation with other top tech world-wide companies, universities and research institutes. The scope of this new hub is to improve people’s lives by innovating communications and empower businesses for a digital and sustainable future.
-
-We use newest technologies such as 5G, 6G, Augmented Reality, Artificial Intelligence, Data Analytics and Security by Design in order to build new products and propositions for health, industry, transport, automotive, agriculture and many more.
-
-Dresden is a dynamically growing high tech region in the heart of Europe with a strong industrial focus, excellent research landscape. At the same time Dresden is a great place to live with manifold culture, unspoiled nature and an international and family friendly environment. The ideal spot for creativity and innovation.`,
-    industry: 'TELECOMMUNICATIONS',
-    companySize: '201-500 employees',
-    headquarters: 'Dresden, Saxony',
-    founded: '2021',
-    country: 'Egypt',
-    city: 'Cairo',
+    about: about || "",
+    industry: industry || "",
+    companySize: companySize || "",
+    headquarters: headquarters || "",
+    founded: founded || "",
+    country: country || "",
+    city: city || "",
   });
 
-  // State to manage word count for the "About" textarea
+  const [errors, setErrors] = useState({
+    about: '',
+    industry: '',
+    companySize: '',
+    headquarters: '',
+    founded: '',
+    country: '',
+    city: '',
+  });
+
   const [wordCount, setWordCount] = useState(
     formData.about.trim().split(/\s+/).filter(Boolean).length
   );
 
-  // Handle form input changes
+  const validateField = (name, value) => {
+    switch (name) {
+      case 'about':
+        return !value.trim() ? 'About is required' : '';
+      case 'industry':
+        if (!value.trim()) return 'Industry is required';
+        if (value.length > 100) return 'Industry must be 100 characters or less';
+        return '';
+      case 'companySize':
+        if (!value.trim()) return 'Company size is required';
+        if (value.length > 100) return 'Company size must be 100 characters or less';
+        return '';
+      case 'headquarters':
+        if (!value.trim()) return 'Headquarters is required';
+        if (value.length > 100) return 'Headquarters must be 100 characters or less';
+        return '';
+      case 'country':
+        if (!value.trim()) return 'Country is required';
+        if (value.length > 100) return 'Country must be 100 characters or less';
+        return '';
+      case 'city':
+        if (!value.trim()) return 'City is required';
+        if (value.length > 100) return 'City must be 100 characters or less';
+        return '';
+      case 'founded':
+        if (!value.trim()) return 'Founded year is required';
+        if (!/^\d{4}$/.test(value)) return 'Please enter a valid year (YYYY)';
+        return '';
+      default:
+        return '';
+    }
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+
     if (name === 'about') {
       const words = value.trim().split(/\s+/).filter(Boolean);
       if (words.length <= 300) {
@@ -37,58 +84,155 @@ Dresden is a dynamically growing high tech region in the heart of Europe with a 
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
+
+    setErrors((prev) => ({
+      ...prev,
+      [name]: validateField(name, value),
+    }));
   };
 
-  // Handle form submission
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsModalOpen(false); // Close modal after saving
+
+    const newErrors = {
+      about: validateField('about', formData.about),
+      industry: validateField('industry', formData.industry),
+      companySize: validateField('companySize', formData.companySize),
+      headquarters: validateField('headquarters', formData.headquarters),
+      founded: validateField('founded', formData.founded),
+      country: validateField('country', formData.country),
+      city: validateField('city', formData.city),
+    };
+
+    setErrors(newErrors);
+
+    const hasErrors = Object.values(newErrors).some((error) => error);
+    if (!hasErrors) {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          setMessage({
+            text: "No authentication token found. Please log in.",
+            type: "error",
+          });
+          return;
+        }
+
+        const payload = {
+          company_id: companyId,
+          about: formData.about,
+          company_industry: formData.industry,
+          company_size: formData.companySize,
+          company_heads: formData.headquarters,
+          company_founded: formData.founded,
+          company_country: formData.country,
+          company_city: formData.city,
+        };
+
+        await axios.post('https://wazafny.online/api/update-extra-info', payload, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        setMessage({ text: "Extra info updated successfully", type: "success" });
+        setIsModalOpen(false);
+      } catch (err) {
+        console.error('Error updating extra info:', err);
+        if (err.response?.status === 401) {
+          setMessage({
+            text: "Unauthorized. Please log in again.",
+            type: "error",
+          });
+          Navigate("/LoginCompany");
+        } else if (err.response?.status === 422) {
+          console.log("Invalid data provided. Please check your inputs.");
+        }else if (err.response?.status === 500) {
+          console.log("Internal server error");
+        }else if (err.response?.status === 404) {
+          console.log("Company not found id company not correct.");
+        } else {
+          setMessage({
+            text: "Failed to update extra info. Please try again later.",
+            type: "error",
+          });
+        }
+      }
+    }
   };
 
-  // Animation variants for the heading and edit icon
   const headerVariants = {
     hidden: { opacity: 0, x: -20 },
-    visible: {
-      opacity: 1,
-      x: 0,
-      transition: {
-        duration: 0.5,
-        ease: 'easeOut',
-      },
-    },
+    visible: { opacity: 1, x: 0, transition: { duration: 0.5, ease: 'easeOut' } },
   };
 
-  // Animation variants for the about paragraph
   const paragraphVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.5,
-        delay: 0.2,
-        ease: 'easeOut',
-      },
-    },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5, delay: 0.2, ease: 'easeOut' } },
   };
 
-  // Animation variants for the details section (staggered effect)
   const detailVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: (i) => ({
       opacity: 1,
       y: 0,
-      transition: {
-        delay: i * 0.2, // Staggered delay for each detail
-        duration: 0.5,
-        ease: 'easeOut',
-      },
+      transition: { delay: i * 0.2, duration: 0.5, ease: 'easeOut' },
     }),
   };
 
   return (
-    <div className="w-[1225px] mx-auto p-6 boder-[#D9D9D9] border-2 bg-white rounded-[15.47px] ">
-      {/* Header with Edit Icon */}
+    <div className="w-[1225px] mx-auto p-6 border-[#D9D9D9] border-2 bg-white rounded-[15.47px]">
+      {message.text && (
+        <div
+          className={`floating-message ${message.type} ${
+            !message.text ? "hide" : ""
+          }`}
+        >
+          {message.text}
+        </div>
+      )}
+      <style>
+        {`
+          @keyframes slideIn {
+            0% { transform: translateY(-20px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+          }
+
+          @keyframes slideOut {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-20px); opacity: 0; }
+          }
+
+          .floating-message {
+            position: fixed;
+            top: 20px;
+            left: 40%;
+            transform: translateX(-50%);
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            z-index: 1000;
+            animation: slideIn 0.3s ease-out forwards;
+          }
+
+          .floating-message.success {
+            background-color: #4caf50;
+            color: white;
+          }
+
+          .floating-message.error {
+            background-color: #f44336;
+            color: white;
+          }
+
+          .floating-message.hide {
+            animation: slideOut 0.3s ease-out forwards;
+          }
+        `}
+      </style>
+
       <motion.div
         className="flex justify-between items-center mb-6"
         variants={headerVariants}
@@ -114,9 +258,8 @@ Dresden is a dynamically growing high tech region in the heart of Europe with a 
         </button>
       </motion.div>
 
-      {/* About Section */}
       <motion.p
-        className="text-gray-700 mb-4"
+        className="text-[#000000] text-justify text-balance mb-4"
         variants={paragraphVariants}
         initial="hidden"
         animate="visible"
@@ -124,85 +267,43 @@ Dresden is a dynamically growing high tech region in the heart of Europe with a 
         {formData.about}
       </motion.p>
 
-      {/* Details Section */}
       <motion.div className="mt-6" initial="hidden" animate="visible">
-        <motion.h2
-          className="text-lg font-semibold"
-          custom={0}
-          variants={detailVariants}
-        >
+        <motion.h2 className="text-lg font-semibold" custom={0} variants={detailVariants}>
           Industry
         </motion.h2>
-        <motion.p
-          className="text-gray-600 mb-4"
-          custom={1}
-          variants={detailVariants}
-        >
+        <motion.p className="text-gray-600 mb-4" custom={1} variants={detailVariants}>
           {formData.industry}
         </motion.p>
 
-        <motion.h2
-          className="text-lg font-semibold"
-          custom={2}
-          variants={detailVariants}
-        >
+        <motion.h2 className="text-lg font-semibold" custom={2} variants={detailVariants}>
           Company size
         </motion.h2>
-        <motion.p
-          className="text-gray-600 mb-4"
-          custom={3}
-          variants={detailVariants}
-        >
+        <motion.p className="text-gray-600 mb-4" custom={3} variants={detailVariants}>
           {formData.companySize}
         </motion.p>
 
-        <motion.h2
-          className="text-lg font-semibold"
-          custom={4}
-          variants={detailVariants}
-        >
+        <motion.h2 className="text-lg font-semibold" custom={4} variants={detailVariants}>
           Headquarters
         </motion.h2>
-        <motion.p
-          className="text-gray-600 mb-4"
-          custom={5}
-          variants={detailVariants}
-        >
+        <motion.p className="text-gray-600 mb-4" custom={5} variants={detailVariants}>
           {formData.headquarters}
         </motion.p>
 
-        <motion.h2
-          className="text-lg font-semibold"
-          custom={6}
-          variants={detailVariants}
-        >
+        <motion.h2 className="text-lg font-semibold" custom={6} variants={detailVariants}>
           Founded
         </motion.h2>
-        <motion.p
-          className="text-gray-600 mb-4"
-          custom={7}
-          variants={detailVariants}
-        >
+        <motion.p className="text-gray-600 mb-4" custom={7} variants={detailVariants}>
           {formData.founded}
         </motion.p>
 
-        <motion.h2
-          className="text-lg font-semibold"
-          custom={8}
-          variants={detailVariants}
-        >
+        <motion.h2 className="text-lg font-semibold" custom={8} variants={detailVariants}>
           Location
         </motion.h2>
-        <motion.p
-          className="text-gray-600 mb-4"
-          custom={9}
-          variants={detailVariants}
-        >
+        <motion.p className="text-gray-600 mb-4" custom={9} variants={detailVariants}>
           {formData.country}, {formData.city}
         </motion.p>
       </motion.div>
 
-      {/* Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <motion.div
@@ -233,7 +334,6 @@ Dresden is a dynamically growing high tech region in the heart of Europe with a 
             </div>
 
             <form onSubmit={handleSubmit}>
-              {/* About */}
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   About<span className="text-red-500">*</span>
@@ -242,16 +342,18 @@ Dresden is a dynamically growing high tech region in the heart of Europe with a 
                   name="about"
                   value={formData.about}
                   onChange={handleInputChange}
-                  className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 ${
+                    errors.about ? 'border-red-500' : 'border-gray-300'
+                  } focus:ring-purple-500`}
                   rows="4"
                 />
-                <p className="text-right text-xs text-gray-500 mt-1">
-                  {wordCount}/300
-                </p>
+                <p className="text-right text-xs text-gray-500 mt-1">{wordCount}/300</p>
+                {errors.about && (
+                  <p className="text-red-500 text-xs mt-1">{errors.about}</p>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                {/* Industry */}
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Industry<span className="text-red-500">*</span>
@@ -261,11 +363,15 @@ Dresden is a dynamically growing high tech region in the heart of Europe with a 
                     name="industry"
                     value={formData.industry}
                     onChange={handleInputChange}
-                    className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 ${
+                      errors.industry ? 'border-red-500' : 'border-gray-300'
+                    } focus:ring-purple-500`}
                   />
+                  {errors.industry && (
+                    <p className="text-red-500 text-xs mt-1">{errors.industry}</p>
+                  )}
                 </div>
 
-                {/* Headquarters */}
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Headquarters<span className="text-red-500">*</span>
@@ -275,11 +381,15 @@ Dresden is a dynamically growing high tech region in the heart of Europe with a 
                     name="headquarters"
                     value={formData.headquarters}
                     onChange={handleInputChange}
-                    className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 ${
+                      errors.headquarters ? 'border-red-500' : 'border-gray-300'
+                    } focus:ring-purple-500`}
                   />
+                  {errors.headquarters && (
+                    <p className="text-red-500 text-xs mt-1">{errors.headquarters}</p>
+                  )}
                 </div>
 
-                {/* Company Size */}
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Company size<span className="text-red-500">*</span>
@@ -289,11 +399,15 @@ Dresden is a dynamically growing high tech region in the heart of Europe with a 
                     name="companySize"
                     value={formData.companySize}
                     onChange={handleInputChange}
-                    className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 ${
+                      errors.companySize ? 'border-red-500' : 'border-gray-300'
+                    } focus:ring-purple-500`}
                   />
+                  {errors.companySize && (
+                    <p className="text-red-500 text-xs mt-1">{errors.companySize}</p>
+                  )}
                 </div>
 
-                {/* Founded */}
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Founded<span className="text-red-500">*</span>
@@ -303,12 +417,17 @@ Dresden is a dynamically growing high tech region in the heart of Europe with a 
                     name="founded"
                     value={formData.founded}
                     onChange={handleInputChange}
-                    className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 ${
+                      errors.founded ? 'border-red-500' : 'border-gray-300'
+                    } focus:ring-purple-500`}
+                    placeholder="YYYY"
                   />
+                  {errors.founded && (
+                    <p className="text-red-500 text-xs mt-1">{errors.founded}</p>
+                  )}
                 </div>
               </div>
 
-              {/* Location */}
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Location<span className="text-red-500">*</span>
@@ -318,27 +437,36 @@ Dresden is a dynamically growing high tech region in the heart of Europe with a 
                     name="country"
                     value={formData.country}
                     onChange={handleInputChange}
-                    className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 ${
+                      errors.country ? 'border-red-500' : 'border-gray-300'
+                    } focus:ring-purple-500`}
                   >
                     <option value="">Country</option>
+                    <option value="USA">USA</option>
                     <option value="Egypt">Egypt</option>
-                    {/* Add more countries as needed */}
                   </select>
+                  {errors.country && (
+                    <p className="text-red-500 text-xs mt-1">{errors.country}</p>
+                  )}
                   <select
                     name="city"
                     value={formData.city}
                     onChange={handleInputChange}
-                    className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 ${
+                      errors.city ? 'border-red-500' : 'border-gray-300'
+                    } focus:ring-purple-500`}
                   >
                     <option value="">City</option>
+                    <option value="Wall St.">Wall St.</option>
                     <option value="Cairo">Cairo</option>
-                    {/* Add more cities as needed */}
                   </select>
+                  {errors.city && (
+                    <p className="text-red-500 text-xs mt-1">{errors.city}</p>
+                  )}
                 </div>
               </div>
 
               <div className="text-end">
-                {/* Save Button */}
                 <button
                   type="submit"
                   className="w-24 bg-black text-white py-2 rounded-md hover:bg-gray-900"

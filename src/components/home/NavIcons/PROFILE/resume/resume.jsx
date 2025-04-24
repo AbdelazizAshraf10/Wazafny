@@ -1,9 +1,9 @@
 import { Pencil } from "lucide-react";
 import { useState } from "react";
 import Modal from "../profile/Modal";
-import upload1 from "../../../../../assets/upload-file.png";
+import upload1 from "../../../../../assets/ressssssss.svg";
 
-function Resume() {
+function Resume({ userRole }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [file, setFile] = useState(null);
   const [dragging, setDragging] = useState(false);
@@ -13,12 +13,18 @@ function Resume() {
   const handleFileChange = (event) => {
     const selectedFile = event.target.files[0];
 
-    // Validate file type
-    if (selectedFile && /\.(pdf|doc|docx)$/i.test(selectedFile.name)) {
+    // Validate file type and size
+    if (
+      selectedFile &&
+      /\.(pdf|doc|docx)$/i.test(selectedFile.name) &&
+      selectedFile.size <= 5 * 1024 * 1024
+    ) {
       setFile(selectedFile);
       setErrorMessage(""); // Clear any previous error
     } else {
-      setErrorMessage("Invalid file type. Only PDF, DOC, and DOCX files are allowed.");
+      setErrorMessage(
+        "Invalid file type or size. Only PDF, DOC, and DOCX files up to 5MB are allowed."
+      );
       setFile(null); // Reset file state
     }
   };
@@ -44,7 +50,9 @@ function Resume() {
       setFile(droppedFile);
       setErrorMessage(""); // Clear any previous error
     } else {
-      setErrorMessage("Invalid file type. Only PDF, DOC, and DOCX files are allowed.");
+      setErrorMessage(
+        "Invalid file type. Only PDF, DOC, and DOCX files are allowed."
+      );
       setFile(null); // Reset file state
     }
   };
@@ -55,24 +63,32 @@ function Resume() {
       <div className="bg-white border border-[#D9D9D9] rounded-xl w-full max-w-[900px] p-6 md:p-8 relative">
         {/* Title with Pencil Icon in the Top Right */}
         <div className="flex justify-between items-center">
-          <h3 className="text-lg md:text-xl font-bold text-[#201A23]">Resume</h3>
-          <Pencil
-            className="w-5 h-5 text-gray-600 cursor-pointer hover:text-black"
-            onClick={() => setIsModalOpen(true)}
-          />
+          <h3 className="text-lg md:text-xl font-bold text-[#201A23]">
+            Resume
+          </h3>
+          {userRole !== "Company" && (
+            <Pencil
+              className="w-5 h-5 text-gray-600 cursor-pointer hover:text-black"
+              onClick={() => setIsModalOpen(true)}
+            />
+          )}
         </div>
 
-        {/* Display Uploaded File Name */}
-        <div className="flex items-center justify-center mt-4 ml-2">
+        {/* Display Uploaded File Name or Placeholder Message */}
+        <div
+          className={`flex items-center mt-4 ${
+            file ? "justify-start" : "justify-center"
+          }`}
+        >
           {file ? (
-            <>
+            <div className="flex items-center ml-2">
               <img src={upload1} alt="Upload Icon" className="w-12 h-8 mr-3" />
               <p className="text-[#201A23] font-semibold text-sm md:text-base">
                 {file.name}
               </p>
-            </>
+            </div>
           ) : (
-            <p className="text-[#A1A1A1] text-center text-sm md:text-base">
+            <p className="text-[#A1A1A1] text-sm md:text-base">
               Upload your resume here to showcase your skills and experience.
             </p>
           )}

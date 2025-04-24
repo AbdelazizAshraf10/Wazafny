@@ -1,6 +1,6 @@
 
 
-export const InputField = ({ label, name, value, onChange, placeholder, required = false }) => {
+export const InputField = ({ label, name, value, onChange, placeholder, required}) => {
   return (
     <div className="w-full">
       <label className=" text-sm font-medium text-gray-700 ">

@@ -31,14 +31,20 @@ export default function Register() {
         }
       );
       localStorage.setItem("userEmail", values.Email);
+      
 
       console.log("Response:", response.status, response.data);
 
       if (response.status === 201) {
+        localStorage.removeItem("token", response.data.token);
+        localStorage.removeItem("user_id", response.data.user_id);
+        localStorage.removeItem("role", response.data.role);
+        localStorage.removeItem("company_id", response.data.role_id);
+
         localStorage.setItem("token", response.data.token);
         localStorage.setItem("user_id", response.data.user_id);
         localStorage.setItem("role", response.data.role);
-        localStorage.setItem("seeker_id", response.data.role_id);
+        localStorage.setItem("company_id", response.data.role_id);
         setMessage({ text: "Registration successful! Redirecting...", type: "success" });
         setTimeout(() => navigate("/EmailConfirm"), 1000); // Delay navigation to show message
       } else {
@@ -55,7 +61,7 @@ export default function Register() {
       if (error.response) {
         const { status } = error.response;
         if (status === 422) {
-          setMessage({ text: "Invalid or missing data", type: "error" });
+          console.log({ text: "Invalid or missing data mshkela 3ndk ysta", type: "error" });
         } else if (status === 400) {
           setMessage({ text: "Email has been taken", type: "error" });
         } else {
@@ -439,7 +445,7 @@ export default function Register() {
               <p className="font-bold">
                 Already have an account?{" "}
                 <Link
-                  to={"/Login"}
+                  to={"/LoginCompany"}
                   className="text-[#6A0DAD] font-bold hover:underline"
                 >
                   Login

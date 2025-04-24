@@ -36,6 +36,12 @@ export default function Register() {
       console.log("Response:", response.status, response.data);
 
       if (response.status === 201) {
+        localStorage.removeItem("token", response.data.token);
+        localStorage.removeItem("user_id", response.data.user_id);
+        localStorage.removeItem("role", response.data.role);
+        localStorage.removeItem("seeker_id", response.data.role_id);
+
+
         localStorage.setItem("token", response.data.token);
         localStorage.setItem("user_id", response.data.user_id);
         localStorage.setItem("role", response.data.role);

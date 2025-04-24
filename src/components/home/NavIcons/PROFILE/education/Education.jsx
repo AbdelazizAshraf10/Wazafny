@@ -4,18 +4,17 @@ import Modal from "../profile/Modal";
 import { InputField, SelectField } from "../profile/my-component";
 import Logo from "../../../../../assets/Education.png";
 
-function Education() {
+function Education({ userRole }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isModalAddOpen, setIsModalAddOpen] = useState(false);
-  const [educationList, setEducationList] = useState([]); // Renamed from experienceList
+  const [educationList, setEducationList] = useState([]);
   const [editingIndex, setEditingIndex] = useState(null);
   const [formInputs, setFormInputs] = useState({
-    Degree: "", // Renamed from Title
-    EducationType: "", // Renamed from EmploymentType
-    Institution: "", // Renamed from Company
+    University: "",
+    College: "",
     StartDate: { Month: "", Year: "" },
     EndDate: { Month: "", Year: "" },
-    CurrentlyStudying: false, // Renamed from WorkingRole
+    CurrentlyStudying: false,
   });
 
   const Month = [
@@ -75,6 +74,7 @@ function Education() {
       College: "",
       StartDate: { Month: "", Year: "" },
       EndDate: { Month: "", Year: "" },
+      CurrentlyStudying: false,
     });
   };
 
@@ -97,24 +97,24 @@ function Education() {
           {/* Header with Icon */}
           <div className="flex justify-between">
             <h3 className="text-xl font-bold text-[#201A23]">Education</h3>
-            <div className="flex gap-4">
-              {/* Conditionally show Plus button */}
-              <Plus
-                className={`w-5 h-5 text-gray-600 cursor-pointer hover:text-black ${
-                  educationList.length > 0 ? "hidden" : ""
-                }`}
-                onClick={() => setIsModalAddOpen(true)}
-              />
-              {/* Conditionally disable Pencil button */}
-              <Pencil
-                className={`w-5 h-5 text-gray-600 cursor-pointer hover:text-black ${
-                  educationList.length === 0
-                    ? "cursor-not-allowed opacity-50"
-                    : ""
-                }`}
-                onClick={() => educationList.length > 0 && setIsModalOpen(true)}
-              />
-            </div>
+            {userRole !== "Company" && (
+              <div className="flex gap-4">
+                <Plus
+                  className={`w-5 h-5 text-gray-600 cursor-pointer hover:text-black ${
+                    educationList.length > 0 ? "hidden" : ""
+                  }`}
+                  onClick={() => setIsModalAddOpen(true)}
+                />
+                <Pencil
+                  className={`w-5 h-5 text-gray-600 cursor-pointer hover:text-black ${
+                    educationList.length === 0
+                      ? "cursor-not-allowed opacity-50"
+                      : ""
+                  }`}
+                  onClick={() => educationList.length > 0 && setIsModalOpen(true)}
+                />
+              </div>
+            )}
           </div>
 
           {/* Display Education List or Placeholder */}
@@ -178,9 +178,7 @@ function Education() {
                       <div className="flex gap-4">
                         <img src={Logo} className="w-[48px] h-[54px] mt-2.5" />
                         <div>
-                          <h4 className="font-bold text-lg">
-                            {edu.University}
-                          </h4>
+                          <h4 className="font-bold text-lg">{edu.University}</h4>
                           <p className="text-gray-600">{edu.College}</p>
                           <p className="text-[#A1A1A1]">
                             {edu.StartDate.Month} {edu.StartDate.Year} -{" "}
@@ -248,7 +246,7 @@ function Education() {
               <p className="text-[#A1A1A1] mb-3">
                 Add your education details here.
               </p>
-              {/* Degree */}
+              {/* University */}
               <InputField
                 label="University"
                 name="University"
@@ -259,7 +257,7 @@ function Education() {
                 required
                 className="w-full mb-4"
               />
-              {/* Education Type */}
+              {/* College */}
               <InputField
                 label="College"
                 name="College"
@@ -355,13 +353,35 @@ function Education() {
                     }
                     options={Year}
                     disabled={formInputs.CurrentlyStudying}
+                    required={!formInputs.CurrentlyStudying}
                     className={`w-1/2 ${
-                      formInputs.WorkingRole
+                      formInputs.CurrentlyStudying
                         ? "bg-[#EFF0F2] cursor-not-allowed"
                         : ""
                     }`}
                   />
                 </div>
+              </div>
+
+              {/* Currently Studying Checkbox */}
+              <div className="flex items-center gap-2 mt-3">
+                <input
+                  type="checkbox"
+                  checked={formInputs.CurrentlyStudying}
+                  onChange={(e) =>
+                    setFormInputs({
+                      ...formInputs,
+                      CurrentlyStudying: e.target.checked,
+                      ...(e.target.checked && {
+                        EndDate: { Month: "", Year: "" },
+                      }),
+                    })
+                  }
+                  className="size-5 accent-black"
+                />
+                <label className="text-sm font-medium text-gray-700">
+                  I am currently studying
+                </label>
               </div>
 
               {/* Save Button */}

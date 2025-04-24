@@ -7,9 +7,9 @@ import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 
 export default function Forget() {
-  const [message, setMessage] = useState({ text: "", type: "" }); // State for floating message
+  
   const navigate = useNavigate();
-
+  const [message, setMessage] = useState({ text: "", type: "" }); // State for floating message
   // Auto-dismiss message after 3 seconds
   useEffect(() => {
     if (message.text) {
@@ -62,9 +62,9 @@ export default function Forget() {
       if (error.response) {
         const { status } = error.response;
         if (status === 404 || status === 422) {
-          setMessage({ text: "Invalid Email", type: "error" });
+          console.log("invalid email");
         } else {
-          setMessage({ text: "An error occurred. Please try again.", type: "error" });
+          console.log("An error occurred. Please try again.");
         }
       } else {
         setMessage({

@@ -3,7 +3,7 @@ import { Pencil, Plus, X } from "lucide-react";
 import Modal from "../profile/Modal";
 import Search from "../../../../../assets/searchhh.png";
 
-function Skill() {
+function Skill({ userRole }) {
   const [isModalOpen, setIsModalOpen] = useState(false); // State for editing skills
   const [isModalAddOpen, setIsModalAddOpen] = useState(false); // State for adding skills
   const [skills, setSkills] = useState([]); // State to store the list of skills
@@ -13,7 +13,7 @@ function Skill() {
 
   // Function to handle adding a new skill
   const handleAddSkill = () => {
-    if (searchTerm.trim() !== "") {
+    if (searchTerm.trim() !== "" && searchTerm.trim().length <= 50) {
       setSkills((prevSkills) => [...prevSkills, searchTerm.trim()]);
       setSearchTerm(""); // Clear the search bar after adding
     }
@@ -41,22 +41,24 @@ function Skill() {
   return (
     <div className="flex justify-center mt-4 w-full">
       {/* Main Container */}
-      <div className="bg-white border border-[#D9D9D9] rounded-xl w-full max-w-[900px]   relative">
+      <div className="bg-white border border-[#D9D9D9] rounded-xl w-full max-w-[900px] relative">
         {/* Title with Pencil Icon in the Top Right */}
         <div className="flex justify-between items-center">
           <h3 className="text-lg md:text-xl font-bold mt-5 ml-6 text-[#201A23]">
             Skills
           </h3>
-          <div className="flex gap-4 mr-6">
-            <Plus
-              className="w-5 h-5 text-gray-600 cursor-pointer hover:text-black"
-              onClick={() => setIsModalAddOpen(true)}
-            />
-            <Pencil
-              className="w-5 h-5 text-gray-600 cursor-pointer hover:text-black"
-              onClick={() => setIsModalOpen(true)}
-            />
-          </div>
+          {userRole !== "Company" && (
+            <div className="flex gap-4 mr-6">
+              <Plus
+                className="w-5 h-5 text-gray-600 cursor-pointer hover:text-black"
+                onClick={() => setIsModalAddOpen(true)}
+              />
+              <Pencil
+                className="w-5 h-5 text-gray-600 cursor-pointer hover:text-black"
+                onClick={() => setIsModalOpen(true)}
+              />
+            </div>
+          )}
         </div>
 
         {/* Displaying the list of skills */}
@@ -80,6 +82,7 @@ function Skill() {
                       onBlur={() => setEditingSkillIndex(null)}
                       autoFocus
                       className="border-none outline-none bg-transparent w-full"
+                      maxLength={50}
                     />
                   ) : (
                     <span className="ml-6 font-bold text-md">{skill}</span>
@@ -181,7 +184,6 @@ function Skill() {
                 <h2 className="text-lg md:text-xl font-bold text-[#201A23]">
                   Edit Skills
                 </h2>
-
                 <button
                   className="text-gray-500 hover:text-black text-lg"
                   onClick={() => setIsModalOpen(false)}
@@ -229,7 +231,7 @@ function Skill() {
                         type="text"
                         value={skill}
                         onChange={(e) => handleEditSkill(index, e.target.value)}
-                        className="border-none outline-none bg-transparent  text-white px-1 text-xs md:text-sm"
+                        className="border-none outline-none bg-transparent text-white px-1 text-xs md:text-sm"
                       />
                       <X
                         className="w-3 h-3 ml-1 text-white hover:text-red-400 cursor-pointer"
@@ -243,7 +245,7 @@ function Skill() {
                   </p>
                 )}
               </div>
-                  
+
               {/* Save Button with increased spacing */}
               <div className="flex justify-end mt-4 md:mt-8">
                 <button
