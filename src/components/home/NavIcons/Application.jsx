@@ -1,34 +1,95 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ScrollText } from "lucide-react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import logoVodafone from "../../../assets/vodafone.png";
 import logoBlink22 from "../../../assets/blink22.png";
-import { useNavigate } from "react-router-dom";
 
-// Job Applications List
-const jobApplications = [
-  {
-    id: 1,
-    company: "Vodafone Egypt",
-    position: "Flutter Mobile App Developer",
-    location: "Egypt (Remote)",
-    status: "Pending",
-    daysAgo: 2,
-    logo: logoVodafone,
-  },
-  {
-    id: 2,
-    company: "Blink22",
-    position: "Mobile Software Engineer",
-    location: "Cairo, Egypt (Remote)",
-    status: "Not qualified",
-    daysAgo: 4,
-    logo: logoBlink22,
-  },
-];
+// Fallback logo mapping based on company name
+const getFallbackLogo = (companyName) => {
+  switch (companyName) {
+    case "Blink22":
+      return logoBlink22;
+    case "Vodafone Egypt":
+      return logoVodafone;
+    default:
+      return logoVodafone; // Default fallback
+  }
+};
 
-const JobApplicationDropdown = ({ applications }) => {
+const JobApplicationDropdown = () => {
   const [open, setOpen] = useState(false);
+  const [applications, setApplications] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
+
+  // Retrieve seeker_id and token from localStorage
+  const seekerId = localStorage.getItem("seeker_id");
+  const token = localStorage.getItem("token");
+
+  // Fetch latest applications from API
+  useEffect(() => {
+    const fetchApplications = async () => {
+      if (!seekerId || !token) {
+        setError("Missing seeker ID or token. Please log in again.");
+        setLoading(false);
+        setTimeout(() => navigate("/Login"), 2000);
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const response = await axios.get(
+          `https://wazafny.online/api/show-lastest-application-seeker/${seekerId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        console.log("Latest Applications API Response:", response.data);
+
+        if (response.status === 204 || !response.data.applications) {
+          setApplications([]);
+        } else {
+          // Map API response to the component's expected format
+          const mappedApplications = response.data.applications.map((app) => ({
+            id: app.application_id,
+            company: app.job.company.company_name,
+            position: app.job.job_title,
+            location: `${app.job.job_city}, ${app.job.job_country} (${app.job.job_type})`,
+            status: app.status,
+            daysAgo: (app.time_ago), // Convert time_ago to days
+            logo: app.job.company.profile_img || getFallbackLogo(app.job.company.company_name),
+          }));
+          setApplications(mappedApplications);
+        }
+      } catch (err) {
+        console.error("Error fetching latest applications:", err);
+        if (err.response?.status === 401) {
+          setError("Unauthorized. Please log in again.");
+          setTimeout(() => navigate("/Login"), 2000);
+        } else if (err.response?.status === 404) {
+          setError("No applications found.");
+        } else if (err.response?.status === 500) {
+          setError("Server error. Please try again later.");
+        } else {
+          setError("Failed to load applications. Please try again later.");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchApplications();
+  }, [seekerId, token, navigate]);
+
+  // Helper function to parse time_ago (e.g., "9m" to days)
+ 
+
   return (
     <div className="relative">
       {/* Briefcase Icon */}
@@ -56,7 +117,15 @@ const JobApplicationDropdown = ({ applications }) => {
           </div>
 
           <div className="max-h-80 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200">
-            {applications.length > 0 ? (
+            {loading ? (
+              <p className="p-6 text-center text-lg font-semibold text-gray-400">
+                Loading applications...
+              </p>
+            ) : error ? (
+              <p className="p-6 text-center text-lg font-semibold text-red-500">
+                {error}
+              </p>
+            ) : applications.length > 0 ? (
               applications.map(
                 ({
                   id,
@@ -72,15 +141,15 @@ const JobApplicationDropdown = ({ applications }) => {
                     className="p-4 flex justify-between items-center border-b border-gray-200 last:border-none"
                   >
                     {/* Left Section (Logo + Company Name) */}
-
-                    <div className="  items-center  rtl:space-x-reverse">
+                    <div className="items-center rtl:space-x-reverse">
                       <div className="flex items-center gap-2">
                         <img
                           src={logo}
                           alt={`${company} Logo`}
                           className="w-8 h-8 rounded-md"
+                          onError={(e) => (e.target.src = getFallbackLogo(company))}
                         />
-                        <p className="text-sm font-semibold text-[#201A23] ">
+                        <p className="text-sm font-semibold text-[#201A23]">
                           {company}
                         </p>
                       </div>
@@ -95,12 +164,14 @@ const JobApplicationDropdown = ({ applications }) => {
 
                     {/* Right Section (Days Ago & Status) */}
                     <div className="flex flex-col items-end space-y-9">
-                      <p className="text-xs text-gray-400">{daysAgo}d</p>
+                      <p className="text-xs text-gray-400">{daysAgo}</p>
                       <span
                         className={`text-sm font-semibold ${
                           status === "Pending"
                             ? "text-yellow-500"
-                            : "text-red-500"
+                            : status === "Not qualified"
+                            ? "text-red-500"
+                            : "text-red-500" // Default for other statuses
                         }`}
                       >
                         {status}
@@ -118,7 +189,10 @@ const JobApplicationDropdown = ({ applications }) => {
 
           {/* View All Button */}
           <div className="p-4 text-center border-t border-gray-200">
-            <button onClick={() => navigate("/seeker/Applications")} className="text-black font-bold hover:underline">
+            <button
+              onClick={() => navigate("/seeker/Applications")}
+              className="text-black font-bold hover:underline"
+            >
               View all
             </button>
           </div>
@@ -130,7 +204,7 @@ const JobApplicationDropdown = ({ applications }) => {
 
 // Usage
 const App = () => {
-  return <JobApplicationDropdown applications={jobApplications} />;
+  return <JobApplicationDropdown />;
 };
 
 export default App;

@@ -1,41 +1,111 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { motion } from "framer-motion";
 import search from "../../../assets/seeker/search.png";
 import loc from "../../../assets/seeker/location.png";
-import ibm from "../../../assets/seeker/ibm.png";
-import vod from "../../../assets/seeker/vod.png";
-
 import { useNavigate } from "react-router-dom";
+
+// Counter component to animate numbers
+const Counter = ({ target, duration = 230 }) => {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    let start = 0;
+    const end = parseInt(target, 10);
+    if (start === end) return;
+
+    const incrementTime = duration / end;
+    const step = () => {
+      start += 1;
+      setCount(start);
+      if (start < end) {
+        setTimeout(step, incrementTime);
+      }
+    };
+
+    step();
+  }, [target, duration]);
+
+  // Format the number (e.g., 6900 -> 6.9K)
+  const formatNumber = (num) => {
+    if (num >= 1000) {
+      return (num / 1000).toFixed(1) + "K";
+    }
+    return num.toString();
+  };
+
+  return <span>{formatNumber(count)}</span>;
+};
+
 function JobsPage() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [companies, setCompanies] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  const companies = [
-    {
-      company: "Vodafone Egypt",
-      logo: vod,
-      followers: "6.9K",
-      jobs: "46",
-      description:
-        "Here at Vodafone, we do amazing things to empower everybody to be confidently connected, and that could be providing superfast network speeds to smartphones...",
-      location: "Cairo, Cairo Governorate",
-    },
-    {
-      company: "IBM",
-      logo: ibm,
-      followers: "1.8K",
-      jobs: "24",
-      description:
-        "IBM works to design, advance, and scale the technologies that define each era. Restlessly reinventing since 1911, we are one of the largest technology, consulting and rese...",
-      location: "Armonk, NY1",
-    },
-  ];
+  // Fetch companies from API using axios
+  useEffect(() => {
+    const fetchCompanies = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          throw new Error("No token found in localStorage");
+        }
 
+        const response = await axios.get("https://wazafny.online/api/show-compaines", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        setCompanies(response.data.companies || []);
+      } catch (err) {
+        setError(err.response?.data?.message || err.message || "Failed to fetch companies");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCompanies();
+  }, []);
+
+  // Filter companies based on search term
   const filteredCompanies = companies.filter((company) =>
-    company.company.toLowerCase().includes(searchTerm.toLowerCase())
+    company.company_name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Animation variants for the card
+  const cardVariants = {
+    hidden: { opacity: 0, x: -20 },
+    visible: (index) => ({
+      opacity: 1,
+      x: 0,
+      transition: {
+        duration: 0.5,
+        ease: "easeOut",
+        delay: index * 0.2, // Stagger the cards
+        staggerChildren: 0.1, // Stagger the children within each card
+      },
+    }),
+  };
+
+  // Animation variants for the child elements within the card
+  const childVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.3,
+        ease: "easeOut",
+      },
+    },
+  };
+
   return (
-    <div className="min-h-screen  ">
+    <div className="min-h-screen">
       {/* Search Bar */}
       <div className="w-[30%] mx-auto px-4 py-6">
         <div className="relative">
@@ -56,50 +126,88 @@ function JobsPage() {
 
       {/* Company Cards */}
       <div className="max-w-6xl border-2 rounded-[16px] border-[#D9D9D9] mx-auto px-4 p-10 bg-white">
-        {filteredCompanies.length > 0 ? (
+        {loading ? (
+          <p className="text-center text-gray-500 p-6">Loading...</p>
+        ) : error ? (
+          <p className="text-center text-red-500 p-6">Error: {error}</p>
+        ) : filteredCompanies.length > 0 ? (
           filteredCompanies.map((company, index) => (
-            <div key={index}>
-              <div
-                onClick={() => navigate("/seeker/companyOverview")}
+            <div key={company.company_id}>
+              <motion.div
+                onClick={() =>
+                  navigate("/seeker/companyOverview", {
+                    state: { companyId: company.company_id },
+                  })
+                }
                 className="p-6 rounded-lg transition-all duration-200 hover:bg-gray-100 hover:scale-[1.01] hover:shadow-md cursor-pointer"
+                variants={cardVariants}
+                initial="hidden"
+                animate="visible"
+                custom={index} // Pass the index to stagger the card animation
               >
                 {/* Top Row */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
+                <motion.div
+                  className="flex items-center justify-between"
+                  variants={childVariants}
+                >
+                  <motion.div
+                    className="flex items-center gap-4"
+                    variants={childVariants}
+                  >
                     <img
-                      src={company.logo}
-                      alt={`${company.company} logo`}
+                      src={company.profile_img}
+                      alt={`${company.company_name} logo`}
                       className="w-10 h-10 rounded-md object-contain"
                     />
                     <p className="text-xl font-bold text-[#201A23]">
-                      {company.company}
+                      {company.company_name}
                     </p>
-                  </div>
+                  </motion.div>
 
-                  <div className="flex gap-20 text-sm font-semibold  text-center text-[#201A23]">
-                    <div>
-                      <p className="text-base">{company.followers}</p>
+                  <motion.div
+                    className="flex gap-20 text-sm font-semibold text-center text-[#201A23]"
+                    variants={childVariants}
+                  >
+                    <motion.div variants={childVariants}>
+                      <p className="text-base">
+                        <Counter target={company.followers_count} />
+                      </p>
                       <p className="text-gray-500">Followers</p>
-                    </div>
-                    <div>
-                      <p className="text-base">{company.jobs}</p>
+                    </motion.div>
+                    <motion.div variants={childVariants}>
+                      <p className="text-base">
+                        <Counter target={company.jobs_count} />
+                      </p>
                       <p className="text-gray-500">Jobs</p>
-                    </div>
-                  </div>
-                </div>
+                    </motion.div>
+                  </motion.div>
+                </motion.div>
 
                 {/* About Section */}
-                <p className="mt-4 text-xl font-bold text-[#201A23]">About</p>
-                <p className="mt-2 text-lg text-[#201A23]">
-                  {company.description}
-                </p>
+                <motion.p
+                  className="mt-4 text-xl font-bold text-[#201A23]"
+                  variants={childVariants}
+                >
+                  About
+                </motion.p>
+                <motion.p
+                  className="mt-2 text-lg text-[#201A23] line-clamp-2"
+                  variants={childVariants}
+                >
+                  {company.about}
+                </motion.p>
 
                 {/* Location */}
-                <div className="flex items-center gap-2 mt-5 text-md text-[#201A23]">
+                <motion.div
+                  className="flex items-center gap-2 mt-5 text-md text-[#201A23]"
+                  variants={childVariants}
+                >
                   <img src={loc} alt="location icon" className="w-4 h-4" />
-                  <span>{company.location}</span>
-                </div>
-              </div>
+                  <span>
+                    {company.company_city}, {company.company_country}
+                  </span>
+                </motion.div>
+              </motion.div>
 
               {/* Divider */}
               {index !== filteredCompanies.length - 1 && (
@@ -108,7 +216,7 @@ function JobsPage() {
             </div>
           ))
         ) : (
-          <p className="text-center text-gray-500 p-6">No jobs found.</p>
+          <p className="text-center text-gray-500 p-6">No companies found.</p>
         )}
       </div>
     </div>

@@ -1,14 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import cv from "../../../assets/seeker/cv.png";
 import trash from "../../../assets/seeker/trash1.svg";
 import PhoneInput from "react-phone-input-2";
 import 'react-phone-input-2/lib/style.css';
 
-function EditAppModal({ isOpen, onClose, jobTitle = "Mobile Software Engineer", companyName = "Blink22" }) {
+function EditAppModal({ isOpen, onClose, jobTitle = "Mobile Software Engineer", companyName = "Blink22", applicationId }) {
   if (!isOpen) return null;
 
   const [step, setStep] = useState(1);
-  const totalSteps = 3;
+  const [totalSteps, setTotalSteps] = useState(2);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -17,10 +18,9 @@ function EditAppModal({ isOpen, onClose, jobTitle = "Mobile Software Engineer", 
     country: "",
     city: "",
     resume: null,
-    expectedSalary: "",
-    graduationYear: "",
-    mobileDevExperience: "",
   });
+  const [questions, setQuestions] = useState([]);
+  const [answers, setAnswers] = useState({});
   const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
   const [isCityDropdownOpen, setIsCityDropdownOpen] = useState(false);
   const [errors, setErrors] = useState({
@@ -31,16 +31,16 @@ function EditAppModal({ isOpen, onClose, jobTitle = "Mobile Software Engineer", 
     country: "",
     city: "",
     resume: "",
-    expectedSalary: "",
-    graduationYear: "",
-    mobileDevExperience: "",
   });
+  const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(null);
+  const [submitError, setSubmitError] = useState(null);
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const phoneRegex = /^[+0-9]+$/; // Regex to allow only + and digits
-  const maxPhoneLength = 20; // Maximum length for phone number (including country code)
-  const maxFileSize = 5 * 1024 * 1024; // 5MB in bytes
+  const phoneRegex = /^[+0-9]+$/;
+  const maxPhoneLength = 20;
+  const maxFileSize = 2 * 1024 * 1024;
 
-  // Static list of countries and their cities
   const countryCitiesMap = {
     Egypt: ["Cairo", "Alexandria", "Giza"],
     "United States": ["New York", "Los Angeles", "Chicago"],
@@ -52,12 +52,76 @@ function EditAppModal({ isOpen, onClose, jobTitle = "Mobile Software Engineer", 
   const countries = Object.keys(countryCitiesMap);
   const cities = formData.country ? countryCitiesMap[formData.country] || [] : [];
 
+  useEffect(() => {
+    const fetchApplicationDetails = async () => {
+      const token = localStorage.getItem("token");
+      if (!token || !applicationId) {
+        setFetchError("Missing token or application ID. Please log in again.");
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const response = await axios.get(
+          `https://wazafny.online/api/show-application-seeker/${applicationId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        const data = response.data;
+        setFormData({
+          firstName: data.first_name || "",
+          lastName: data.last_name || "",
+          phoneNumber: data.phone || "",
+          email: data.email || "",
+          country: data.country || "",
+          city: data.city || "",
+          resume: data.resume ? { name: "Existing Resume", url: data.resume } : null,
+        });
+
+        if (data.questions && data.questions.length > 0) {
+          setQuestions(data.questions);
+          setTotalSteps(3);
+          const initialAnswers = {};
+          data.questions.forEach((q) => {
+            initialAnswers[q.question_id] = q.answer || "";
+          });
+          setAnswers(initialAnswers);
+        } else {
+          setQuestions([]);
+          setTotalSteps(2);
+        }
+      } catch (err) {
+        console.error("Error fetching application details:", err);
+        if (err.response?.status === 401) {
+          setFetchError("Unauthorized. Please log in again.");
+        } else if (err.response?.status === 404) {
+          setFetchError("Application not found.");
+        } else if (err.response?.status === 500) {
+          setFetchError("Server error. Please try again later.");
+        } else {
+          setFetchError("Failed to load application details. Please try again later.");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (isOpen) {
+      fetchApplicationDetails();
+    }
+  }, [isOpen, applicationId]);
+
   const validateStep = () => {
     let newErrors = {};
     let isValid = true;
 
     if (step === 1) {
-      // Step 1 validations (all fields required, including city)
       if (!formData.firstName.trim()) {
         newErrors.firstName = "First name is required.";
         isValid = false;
@@ -89,47 +153,118 @@ function EditAppModal({ isOpen, onClose, jobTitle = "Mobile Software Engineer", 
         isValid = false;
       }
     } else if (step === 2) {
-      // Step 2 validations (resume required)
       if (!formData.resume) {
         newErrors.resume = "Resume is required.";
         isValid = false;
       }
-    } else if (step === 3) {
-      // Step 3 validations (all fields required, no additional validation)
-      if (!formData.expectedSalary.trim()) {
-        newErrors.expectedSalary = "Expected salary is required.";
-        isValid = false;
-      }
-      if (!formData.graduationYear.trim()) {
-        newErrors.graduationYear = "Graduation year is required.";
-        isValid = false;
-      }
-      if (!formData.mobileDevExperience.trim()) {
-        newErrors.mobileDevExperience = "Mobile development experience is required.";
-        isValid = false;
-      }
+    } else if (step === 3 && totalSteps === 3) {
+      questions.forEach((q) => {
+        if (!answers[q.question_id] || !answers[q.question_id].trim()) {
+          newErrors[q.question_id] = "This question is required.";
+          isValid = false;
+        }
+      });
     }
 
+    console.log("Validation result:", { isValid, errors: newErrors });
     setErrors(newErrors);
     return isValid;
   };
 
-  const handleNext = () => {
-    if (validateStep()) {
+  const handleNext = async () => {
+    const isValid = validateStep();
+    console.log("handleNext called, step:", step, "isValid:", isValid);
+
+    if (isValid) {
       if (step < totalSteps) {
         setStep(step + 1);
-        setErrors({}); // Clear errors when moving to the next step
+        setErrors({});
       } else {
-        console.log("Form submitted:", formData);
-        onClose(); // Close the modal on submit
+        const token = localStorage.getItem("token");
+        if (!token || !applicationId) {
+          setSubmitError("Missing token or application ID. Please log in again.");
+          return;
+        }
+
+        const formDataToSubmit = new FormData();
+        formDataToSubmit.append("first_name", formData.firstName);
+        formDataToSubmit.append("last_name", formData.lastName);
+        formDataToSubmit.append("email", formData.email);
+        formDataToSubmit.append("country", formData.country);
+        formDataToSubmit.append("city", formData.city);
+        formDataToSubmit.append("phone", formData.phoneNumber);
+
+        // Handle resume: Only send the resume if a new file is uploaded
+        if (formData.resume instanceof File) {
+          formDataToSubmit.append("resume", formData.resume);
+        }
+
+        // Handle answers
+        if (totalSteps === 3 && questions.length > 0) {
+          Object.keys(answers).forEach((questionId, index) => {
+            formDataToSubmit.append(`answers[${index}]`, answers[questionId]);
+          });
+        } else {
+          for (let i = 0; i < 10; i++) {
+            formDataToSubmit.append(`answers[${i}]`, "no");
+          }
+        }
+
+        console.log("FormData contents:");
+        for (let [key, value] of formDataToSubmit.entries()) {
+          console.log(`${key}: ${value instanceof File ? value.name : value}`);
+        }
+
+        setLoading(true);
+        setSubmitError(null);
+
+        try {
+          const response = await axios.post(
+            `https://wazafny.online/api/update-application/${applicationId}`,
+            formDataToSubmit,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "multipart/form-data",
+              },
+            }
+          );
+
+          console.log("Update Application API Response:", response.data);
+          setIsSubmitted(true);
+          setTimeout(() => {
+            onClose();
+          }, 2000);
+        } catch (err) {
+          console.error("Error updating application:", err);
+          console.error("Error response:", err.response?.data);
+          if (err.response?.status === 401) {
+            setSubmitError("Unauthorized. Please log in again.");
+          } else if (err.response?.status === 404) {
+            setSubmitError("Application not found.");
+          } else if (err.response?.status === 500) {
+            setSubmitError("Server error. Please try again later.");
+          } else if (err.response?.status === 422) {
+            setSubmitError("Validation error: " + (err.response?.data?.message || "Invalid data provided."));
+          }
+          else if (err.response?.status === 400) {
+            console.log("the application is already submitted accept or reject " );
+          }  else {
+            setSubmitError("Failed to update application: " + (err.response?.data?.message || "Please try again later."));
+          }
+        } finally {
+          setLoading(false);
+        }
       }
+    } else {
+      console.log("Validation failed, API call skipped.");
     }
   };
 
   const handleBack = () => {
     if (step > 1) {
       setStep(step - 1);
-      setErrors({}); // Clear errors when going back
+      setErrors({});
     }
   };
 
@@ -143,7 +278,10 @@ function EditAppModal({ isOpen, onClose, jobTitle = "Mobile Software Engineer", 
     const file = e.target.files[0];
     if (file) {
       if (file.size > maxFileSize) {
-        setErrors({ ...errors, resume: "File size exceeds 5MB limit." });
+        setErrors({ ...errors, resume: "File size exceeds 2MB limit." });
+        setFormData({ ...formData, resume: null });
+      } else if (!["application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"].includes(file.type)) {
+        setErrors({ ...errors, resume: "Invalid file type. Only PDF, DOC, and DOCX are allowed." });
         setFormData({ ...formData, resume: null });
       } else {
         setFormData({ ...formData, resume: file });
@@ -175,7 +313,51 @@ function EditAppModal({ isOpen, onClose, jobTitle = "Mobile Software Engineer", 
     setIsCityDropdownOpen(false);
   };
 
+  const handleAnswerChange = (questionId, value) => {
+    setAnswers({ ...answers, [questionId]: value });
+    setErrors({ ...errors, [questionId]: "" });
+  };
+
   const renderStepContent = () => {
+    if (isSubmitted) {
+      return (
+        <div className="text-center p-6">
+          <svg
+            className="w-16 h-16 text-green-500 mx-auto"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M5 13l4 4L19 7"
+            />
+          </svg>
+          <p className="text-green-500 text-lg font-semibold mt-4">Submitted Successfully!</p>
+        </div>
+      );
+    }
+
+    if (loading) {
+      return (
+        <div className="text-center p-6">
+          <div className="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mx-auto"></div>
+          <p className="text-gray-600 mt-4">Loading...</p>
+        </div>
+      );
+    }
+
+    if (fetchError) {
+      return <div className="text-center text-red-500 p-6">Error: {fetchError}</div>;
+    }
+
+    if (submitError) {
+      return <div className="text-center text-red-500 p-6">Error: {submitError}</div>;
+    }
+
     switch (step) {
       case 1:
         return (
@@ -219,7 +401,7 @@ function EditAppModal({ isOpen, onClose, jobTitle = "Mobile Software Engineer", 
                   Phone Number*
                 </label>
                 <PhoneInput
-                  country={'eg'} // Default to Egypt
+                  country={'eg'}
                   value={formData.phoneNumber}
                   onChange={handlePhoneChange}
                   inputClass="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-[#6A0DAD] text-gray-600 box-border"
@@ -345,15 +527,21 @@ function EditAppModal({ isOpen, onClose, jobTitle = "Mobile Software Engineer", 
           <div className="px-12 py-5">
             <h3 className="text-lg font-bold text-left mb-4">Resume*</h3>
             <p className="text-sm text-gray-600 mb-4 text-left">
-              Be sure to upload updated resume (max 5MB)
+              Be sure to upload updated resume (max 2MB)
             </p>
             <div className="border-2 border-black rounded-[20px] p-8 text-center h-[185px] w-full mb-0 flex items-center justify-center">
               {formData.resume ? (
                 <div className="flex items-center justify-between w-full rounded-[10px] p-4">
                   <img src={cv} alt="CV Icon" className="w-10 h-10 mr-4" />
-                  <span className="text-base font-medium text-black flex-grow text-left">
+                  <a
+                    href={formData.resume.url || URL.createObjectURL(formData.resume)}
+                    download
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-base font-medium text-blue-600 underline cursor-pointer flex-grow text-left hover:text-blue-800"
+                  >
                     {formData.resume.name}
-                  </span>
+                  </a>
                   <img
                     src={trash}
                     alt="Delete Icon"
@@ -367,7 +555,7 @@ function EditAppModal({ isOpen, onClose, jobTitle = "Mobile Software Engineer", 
                   <span className="text-black text-base font-semibold mt-2 block">
                     Upload Resume
                   </span>
-                  <span className="text-sm text-gray-400 block">
+                  <span className="text-sm text-gray-600 block">
                     Accepted file types are PDF, DOC, DOCX
                   </span>
                   <input
@@ -389,54 +577,27 @@ function EditAppModal({ isOpen, onClose, jobTitle = "Mobile Software Engineer", 
           <div className="px-20 pt-2 pb-3">
             <h3 className="text-xl font-bold text-center mb-4">Additional Questions</h3>
             <div className="space-y-4">
-              <div>
-                <label className="block text-base font-medium text-gray-700 mb-1 text-left">
-                  Expected Monthly Salary*
-                </label>
-                <input
-                  type="text"
-                  name="expectedSalary"
-                  value={formData.expectedSalary}
-                  onChange={handleInputChange}
-                  className="w-full p-3 border border-gray-300 rounded-[9px] focus:outline-none focus:ring-2 focus:ring-[#6A0DAD] text-gray-600 box-border"
-                  placeholder="12,000 LE"
-                />
-                {errors.expectedSalary && (
-                  <p className="text-red-500 text-xs mt-1 text-left">{errors.expectedSalary}</p>
-                )}
-              </div>
-              <div>
-                <label className="block text-base font-medium text-gray-700 mb-1 text-left">
-                  Graduation Year*
-                </label>
-                <input
-                  type="text"
-                  name="graduationYear"
-                  value={formData.graduationYear}
-                  onChange={handleInputChange}
-                  className="w-full p-3 border border-gray-300 rounded-[9px] focus:outline-none focus:ring-2 focus:ring-[#6A0DAD] text-gray-600 box-border"
-                  placeholder="2021"
-                />
-                {errors.graduationYear && (
-                  <p className="text-red-500 text-xs mt-1 text-left">{errors.graduationYear}</p>
-                )}
-              </div>
-              <div>
-                <label className="block text-base font-medium text-gray-700 mb-1 text-left">
-                  Number of Year Experience in Mobile Development*
-                </label>
-                <input
-                  type="text"
-                  name="mobileDevExperience"
-                  value={formData.mobileDevExperience}
-                  onChange={handleInputChange}
-                  className="w-full p-3 border border-gray-300 rounded-[9px] focus:outline-none focus:ring-2 focus:ring-[#6A0DAD] text-gray-600 box-border"
-                  placeholder="3"
-                />
-                {errors.mobileDevExperience && (
-                  <p className="text-red-500 text-xs mt-1 text-left">{errors.mobileDevExperience}</p>
-                )}
-              </div>
+              {questions.length > 0 ? (
+                questions.map((q) => (
+                  <div key={q.question_id}>
+                    <label className="block text-base font-medium text-gray-700 mb-1 text-left">
+                      {q.question_text}*
+                    </label>
+                    <input
+                      type="text"
+                      value={answers[q.question_id] || ""}
+                      onChange={(e) => handleAnswerChange(q.question_id, e.target.value)}
+                      className="w-full p-3 border border-gray-300 rounded-[9px] focus:outline-none focus:ring-2 focus:ring-[#6A0DAD] text-gray-600 "
+                      placeholder="Your answer"
+                    />
+                    {errors[q.question_id] && (
+                      <p className="text-red-500 text-xs mt-1 text-left">{errors[q.question_id]}</p>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <p className="text-center text-gray-600">No additional questions available.</p>
+              )}
             </div>
           </div>
         );
@@ -447,8 +608,7 @@ function EditAppModal({ isOpen, onClose, jobTitle = "Mobile Software Engineer", 
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-10 overflow-auto pt-2.5">
-      <div className="bg-white mx-auto my-[5%] p-4 border border-gray-300 w-4/5 max-w-[600px] text-center relative rounded-[10px] box-border">
-        {/* Close Button */}
+      <div className="bg-white mx-auto my-auto p-4 border border-gray-300 w-4/5 max-w-[600px] text-center relative rounded-[10px] box-border">
         <button
           onClick={onClose}
           className="absolute top-2.5 right-2.5 mr-5 mt-3.5 text-gray-400 hover:text-black text-2xl font-bold cursor-pointer"
@@ -469,7 +629,6 @@ function EditAppModal({ isOpen, onClose, jobTitle = "Mobile Software Engineer", 
           </svg>
         </button>
 
-        {/* Progress Bar */}
         <div className="pt-3">
           <div className="w-[70%] bg-white mx-auto mt-2.5 border-2 border-[#cecdcd] rounded-[15px]">
             <div
@@ -485,26 +644,27 @@ function EditAppModal({ isOpen, onClose, jobTitle = "Mobile Software Engineer", 
           <hr className="mt-2 border-solid border border-[#D9D9D9]" />
         </div>
 
-        {/* Step Content */}
         {renderStepContent()}
 
-        {/* Navigation Buttons */}
-        <div className="flex justify-between my-4">
-          {step > 1 && (
+        {!isSubmitted && (
+          <div className="flex justify-between my-4">
+            {step > 1 && (
+              <button
+                onClick={handleBack}
+                className="bg-white text-[#6A0DAD] font-extrabold px-7 py-2.5 rounded-[20px] text-lg cursor-pointer mx-5"
+              >
+                Back
+              </button>
+            )}
             <button
-              onClick={handleBack}
-              className="bg-white text-[#6A0DAD] font-extrabold px-7 py-2.5 rounded-[20px] text-lg cursor-pointer mx-5"
+              onClick={handleNext}
+              className="bg-[#6A0DAD] text-white px-7 py-2.5 rounded-[20px] text-lg cursor-pointer mx-5 ml-auto"
+              disabled={loading}
             >
-              Back
+              {step === totalSteps ? (loading ? "Saving..." : "Save") : "Next"}
             </button>
-          )}
-          <button
-            onClick={handleNext}
-            className="bg-[#6A0DAD] text-white px-7 py-2.5 rounded-[20px] text-lg cursor-pointer mx-5 ml-auto"
-          >
-            {step === totalSteps ? "Save" : "Next"}
-          </button>
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -30,19 +30,25 @@ export default function Login() {
       console.log("Response:", response.status, response.data);
 
       if (response.status === 200) {
-        localStorage.removeItem("token", response.data.token);
-        localStorage.removeItem("user_id", response.data.user_id);
-        localStorage.removeItem("role", response.data.role);
-        localStorage.removeItem("seeker_id", response.data.role_id);
+        // Clear previous storage
+        localStorage.removeItem("token");
+        localStorage.removeItem("user_id");
+        localStorage.removeItem("role");
+        localStorage.removeItem("seeker_id");
 
-
-
+        // Set new storage
         localStorage.setItem("token", response.data.token);
         localStorage.setItem("user_id", response.data.user_id);
         localStorage.setItem("role", response.data.role);
         localStorage.setItem("seeker_id", response.data.role_id);
+
         setMessage({ text: "Login successful! Redirecting...", type: "success" });
-        setTimeout(() => navigate("/Home"), 1000);
+
+        // Check if API provides a job ID or related data
+        const jobId = response.data.jobId; // Adjust based on actual API response
+        const redirectPath = jobId ? `/seeker/JopsPage/${jobId}` : "/seeker/JopsPage";
+
+        setTimeout(() => navigate(redirectPath), 1000);
       } else {
         console.warn("Unexpected status:", response.status);
         setMessage({ text: "Unexpected response. Please try again.", type: "error" });

@@ -1,132 +1,388 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import axios from "axios";
+import { motion } from "framer-motion";
 import profile from "../../../assets/seeker/profile-banner.png";
-import follow from "../../../assets/seeker/follow.png";
 import vod from "../../../assets/seeker/vod.png";
 import email from "../../../assets/seeker/email.svg";
 import CompanyAbout from "./CompanyAbout";
 import CompanyPost from "./CompanyPost";
+import { Navigate } from "react-router-dom";
+
 function CompanyOverview() {
   const [activeTab, setActiveTab] = useState("overview");
+  const [companyData, setCompanyData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const location = useLocation();
+  const navigate = useNavigate();
 
+  // Retrieve companyId from location state
+  const companyId = location.state?.companyId;
+
+  // Retrieve seeker_id and token from localStorage
+  const seekerId = localStorage.getItem("seeker_id");
+  const token = localStorage.getItem("token");
+
+  // Log the extracted companyId for debugging
+  console.log("Extracted companyId from location state:", companyId);
+
+  // Fetch company profile data
   useEffect(() => {
-    // This effect can be used to perform actions when the active tab changes.
-    // For now, it's just setting the initial tab to 'overview' which is already handled by useState.
-    // You can add additional logic here if needed, e.g., fetching data for the active tab.
-  }, [activeTab]);
+    const fetchCompanyProfile = async () => {
+      // Check for missing parameters
+      if (!companyId) {
+        console.error("Company ID is undefined. Check navigation state.");
+        setError("Missing company ID. Please select a company.");
+        setLoading(false);
+        setTimeout(() => navigate("/seeker/jobs"), 2000); // Redirect to jobs page
+        return;
+      }
+
+      if (!seekerId || !token) {
+        console.error(
+          "Seeker ID or token is missing. Seeker ID:",
+          seekerId,
+          "Token:",
+          token
+        );
+        setError("Missing required parameters. Please log in again.");
+        setLoading(false);
+        setTimeout(() => navigate("/login"), 2000); // Redirect to login page
+        return;
+      }
+
+      setLoading(true);
+      try {
+        console.log(
+          `Fetching company profile for ID: ${companyId}, Seeker ID: ${seekerId}`
+        );
+        const response = await axios.get(
+          `https://wazafny.online/api/show-company-profile/${companyId}/${seekerId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        console.log("API Response:", response.data); // Log the entire API response
+        setCompanyData(response.data);
+      } catch (err) {
+        if (err.response?.status === 401) {
+          setError("Unauthorized. Please log in again.");
+          Navigate("/LoginCompany");
+        } else if (err.response?.status === 404) {
+          console.log("Company profile not found.");
+        } else if (err.response?.status === 500) {
+          console.log("Internal server Error");
+        } else {
+          console.error("Error fetching company profile:", err);
+          setError(
+            err.response?.data?.message ||
+              err.message ||
+              "Failed to fetch company profile"
+          );
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCompanyProfile();
+  }, [companyId, seekerId, token, navigate]);
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
   };
 
+  // Handle follow/unfollow action
+  const handleFollowToggle = async () => {
+    if (!companyData || !seekerId || !companyId || !token) {
+      setError("Missing required parameters. Please try again.");
+      return;
+    }
+
+    const payload = {
+      seeker_id: parseInt(seekerId),
+      company_id: parseInt(companyId),
+    };
+
+    try {
+      if (companyData.followstatus) {
+        // Unfollow: Send DELETE request
+        await axios.delete("https://wazafny.online/api/unfollow", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          data: payload, // DELETE requests can include a body in axios
+        });
+        console.log("Unfollow successful");
+        // Update local state
+        setCompanyData((prev) => ({
+          ...prev,
+          followstatus: false,
+          followers_count: prev.followers_count - 1,
+        }));
+      } else {
+        // Follow: Send POST request
+        await axios.post("https://wazafny.online/api/follow", payload, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+        console.log("Follow successful");
+        // Update local state
+        setCompanyData((prev) => ({
+          ...prev,
+          followstatus: true,
+          followers_count: prev.followers_count + 1,
+        }));
+      }
+    } catch (err) {
+      console.error("Error toggling follow status:", err);
+      if (error.response?.status === 401) {
+        setError("Unauthorized. Please log in again.");
+        navigate("/login");
+      } else if (error.response?.status === 404) {
+        setError("Job posts not found.");
+      } else if (error.response?.status === 500) {
+        setError("Server error. Please try again later.");
+      }
+      setError(
+        err.response?.data?.message ||
+          err.message ||
+          "Failed to update follow status"
+      );
+    }
+  };
+
+  // Animation variants for the container
+  const containerVariants = {
+    hidden: { opacity: 0, x: -20 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: {
+        duration: 0.5,
+        ease: "easeOut",
+        staggerChildren: 0.1, // Stagger the children within the container
+      },
+    },
+  };
+
+  // Animation variants for the child elements
+  const childVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.3,
+        ease: "easeOut",
+      },
+    },
+  };
+
+  // Animation variants for tab buttons
+  const tabVariants = {
+    inactive: { scale: 1, opacity: 0.7 },
+    active: { scale: 1.05, opacity: 1, transition: { duration: 0.2 } },
+  };
+
+  if (loading) {
+    return <div className="text-center p-6">Loading...</div>;
+  }
+
+  if (error) {
+    return <div className="text-center text-red-500 p-6">Error: {error}</div>;
+  }
+
+  if (!companyData) {
+    return <div className="text-center p-6">No company data available.</div>;
+  }
+
+  // Ensure jobPosts is an array, even if jobposts is undefined or null
+  const jobPosts = Array.isArray(companyData.jobposts)
+    ? companyData.jobposts
+    : [];
+
   return (
     <div className="px-8 sm:px-10 md:px-20 lg:px-[16%] py-24">
       {/* Company Info Container */}
-      <div className="bg-white border border-[#D9D9D9] rounded-2xl">
+      <motion.div
+        className="bg-white border border-[#D9D9D9] rounded-2xl"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
         {/* Banner Image */}
-        <div className="w-full h-48 overflow-hidden rounded-t-2xl">
+        <motion.div
+          className="w-full h-48 overflow-hidden rounded-t-2xl"
+          variants={childVariants}
+        >
           <img
-            src={profile}
+            src={companyData.cover_img || profile}
             alt="Banner"
             className="w-full h-full object-cover"
           />
-        </div>
+        </motion.div>
 
         {/* Header Section */}
-        <div className="flex flex-col sm:flex-row justify-between mx-5 items-start sm:items-center p-2 sm:p-8">
+        <motion.div
+          className="flex flex-col sm:flex-row justify-between mx-5 items-start sm:items-center p-2 sm:p-8"
+          variants={childVariants}
+        >
           {/* Company Logo and Details */}
           <div className="">
-            <div className="">
+            <motion.div variants={childVariants}>
               <img
-                src={vod}
+                src={companyData.profile_img || vod}
                 alt="Company Logo"
                 className="w-24 h-24 rounded-2xl sm:-mt-20 object-cover"
               />
-              <div className="my-4">
-                <h4 className="text-2xl sm:text-3xl font-bold ">
-                  Vodafone Egypt
+              <motion.div className="my-4" variants={childVariants}>
+                <h4 className="text-2xl sm:text-3xl font-bold">
+                  {companyData.company_name}
                 </h4>
                 <span className="flex items-center font- text-[#201A23] text-sm sm:text-base">
                   <a
-                    href="https://www.vodafone.com"
+                    href={companyData.company_website_link}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    Together We Can
+                    {companyData.headline}
                   </a>
                 </span>
-                <div className="flex gap-1">
-                  <span className=" items-center font-bold text-purple-700 text-sm sm:text-base">
+                <div className="flex gap-1 mt-3">
+                  <span className="items-center font-bold text-purple-700 text-sm sm:text-base">
                     <a
-                      href="https://www.vodafone.com"
+                      href={companyData.company_website_link}
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      http://www.vodafone.com/
+                      {companyData.company_website_link}
                     </a>
                   </span>
                   <img src={email} alt="Email Icon" className="w-5 h-5 ml-1" />
                 </div>
-              </div>
-            </div>
-            <div className="flex flex-wrap gap-6">
-              <div className="flex items-center ">
-                <div className="flex items-center">
-                  <span className="text-purple-700 font-semibold text-sm sm:text-base">
+              </motion.div>
+            </motion.div>
+            <motion.div
+              className="flex flex-wrap gap-6"
+              variants={childVariants}
+            >
+              <motion.div
+                className="flex flex-col items-center"
+                variants={childVariants}
+              >
+                <div className="flex mt-4 items-center">
+                  <span className="text-purple-700 font-bold text-sm sm:text-base">
                     Email
                   </span>
                   <img src={email} alt="Email Icon" className="w-5 h-5 ml-1" />
                 </div>
-              </div>
-              <div className="flex flex-col font-bold text-lg items-center">
-                <p className="sm:text-base">6.9K</p>
+              </motion.div>
+              <motion.div
+                className="flex flex-col font-bold text-lg items-center"
+                variants={childVariants}
+              >
+                <p className="sm:text-base">{companyData.followers_count}</p>
                 <span className="text-gray-600">Followers</span>
-              </div>
-              <div className="flex flex-col items-center font-bold text-lg">
-                <p className="sm:text-base">46</p>
+              </motion.div>
+              <motion.div
+                className="flex flex-col items-center font-bold text-lg"
+                variants={childVariants}
+              >
+                <p className="sm:text-base">{companyData.jobs_count}</p>
                 <span className="text-gray-600">Jobs</span>
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
           </div>
 
           {/* Follow and Share Buttons */}
-          <div className="flex items-center gap-2 mr-4 sm:mt-0">
-            <button className="bg-black text-white px-6 py-2 rounded-lg font-semibold text-sm sm:text-base hover:bg-gray-800">
-              Follow
+          <motion.div
+            className="flex items-center gap-2 mr-4 sm:mt-0"
+            variants={childVariants}
+          >
+            <button
+              className={`px-6 py-2 rounded-lg font-semibold text-sm sm:text-base text-white ${
+                companyData.followstatus ? "bg-[#A1A1A1]" : "bg-black"
+              } `}
+              onClick={handleFollowToggle}
+            >
+              {companyData.followstatus ? "Following" : "Follow"}
             </button>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
         {/* Tabs */}
-        <div className="flex justify-center border-t-2 border-b-2 space-x-16 border-[#D9D9D9]">
-          <button
-            className={`text-xl font-bold px-5 py-2 ${
-              activeTab === "overview"
-                ? "border-b-4 border-purple-700"
-                : "hover:border-b-4 hover:border-purple-700"
+        <motion.div
+          className="relative flex justify-center border-t-2 border-b-2 space-x-16 border-[#D9D9D9]"
+          variants={childVariants}
+        >
+          <motion.button
+            className={`text-xl font-bold px-5 py-2 relative ${
+              activeTab === "overview" ? "text-purple-700" : "text-gray-700"
             }`}
             onClick={() => handleTabChange("overview")}
+            variants={tabVariants}
+            animate={activeTab === "overview" ? "active" : "inactive"}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
           >
             Overview
-          </button>
-          <button
-            className={`text-xl font-bold px-10 py-2 ${
-              activeTab === "posts"
-                ? "border-b-4 border-purple-700"
-                : "hover:border-b-4 hover:border-purple-700"
+            {activeTab === "overview" && (
+              <motion.div
+                className="absolute bottom-0 left-0 w-full h-1 bg-purple-700"
+                layoutId="underline"
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              />
+            )}
+          </motion.button>
+          <motion.button
+            className={`text-xl font-bold px-10 py-2 relative ${
+              activeTab === "posts" ? "text-purple-700" : "text-gray-700"
             }`}
             onClick={() => handleTabChange("posts")}
+            variants={tabVariants}
+            animate={activeTab === "posts" ? "active" : "inactive"}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
           >
             Posts
-          </button>
-        </div>
+            {activeTab === "posts" && (
+              <motion.div
+                className="absolute bottom-0 left-0 w-full h-1 bg-purple-700"
+                layoutId="underline"
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              />
+            )}
+          </motion.button>
+        </motion.div>
 
         {/* Tab Content */}
         <div className="p-4 sm:p-8">
-          {activeTab === "overview" && <CompanyAbout />}
-          {activeTab === "posts" && <CompanyPost />}
-          
+          {activeTab === "overview" && (
+            <CompanyAbout
+              about={companyData.about}
+              industry={companyData.company_industry}
+              companySize={companyData.company_size}
+              headquarters={companyData.company_heads}
+              founded={companyData.company_founded}
+            />
+          )}
+          {activeTab === "posts" && (
+            <CompanyPost
+              profileImg={companyData.profile_img}
+              jobPosts={jobPosts}
+            />
+          )}
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

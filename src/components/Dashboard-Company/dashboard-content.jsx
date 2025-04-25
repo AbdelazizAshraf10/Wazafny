@@ -4,8 +4,8 @@ import Time from "../../assets/company/time.svg";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { Toilet } from "lucide-react";
 import { Link } from "react-router-dom";
+import profile from "../../assets/company/personnn.svg"; // Ensure this path is correct
 
 let role = "seeker";
 localStorage.setItem("Role", role);
@@ -104,14 +104,18 @@ function DashboardContent() {
         if (response.status === 204) {
           setlatestApplication([]);
         } else {
-          const mappedApplications = response.data.applications.map((app) => ({
-            id: app.application_id,
-            applicationName: `${app.seeker.first_name} ${app.seeker.last_name}`,
-            jobpost: app.job.job_title,
-            jobId: app.job.job_id || null, // Ensure jobId is null if not present
-            Time: app.time_ago,
-            profileImg: app.seeker.profile_img,
-          }));
+          const mappedApplications = response.data.applications.map((app) => {
+            // Log profileImg to debug
+            console.log(`Profile Image for ${app.seeker.first_name}:`, app.seeker.profile_img);
+            return {
+              id: app.application_id,
+              applicationName: `${app.seeker.first_name} ${app.seeker.last_name}`,
+              jobpost: app.job.job_title,
+              jobId: app.job.job_id || null,
+              Time: app.time_ago,
+              profileImg: app.seeker.profile_img || "", // Ensure profileImg is a string
+            };
+          });
           setlatestApplication(mappedApplications);
         }
         console.log("Fetched latest applications:", response.data);
@@ -191,6 +195,9 @@ function DashboardContent() {
     fetchLatestJobs();
   }, [navigate]);
 
+  // Log the profile import to debug
+  console.log("Profile Fallback Image:", profile);
+
   // Combine loading states
   if (statsLoading || applicationsLoading || latestJobLoading) {
     return <div>Loading...</div>;
@@ -251,9 +258,6 @@ function DashboardContent() {
     visible: { opacity: 1, transition: { duration: 0.5 } },
   };
 
-  
-  
-
   return (
     <motion.div
       className="flex flex-col px-6 py-4"
@@ -277,7 +281,7 @@ function DashboardContent() {
               { label: "Total Job Posted", value: jobs_count },
               { label: "Total Followers", value: followers_count },
               { label: "Total Active Jobs", value: active_jobs_count },
-              { label: "Total Applications Received", value: applications_count },
+              { label: "Total Applications ", value: applications_count },
             ].map((stat, index) => (
               <motion.div
                 key={index}
@@ -325,12 +329,13 @@ function DashboardContent() {
                   >
                     <div className="w-10 h-10 flex items-center cursor-pointer justify-center rounded-full bg-gray-200 mr-3">
                       <img
-                        src={application.profileImg}
+                        src={application.profileImg || profile} // Use profile as default if profileImg is falsy
                         alt="Profile"
-                        className="w-9 h-9 rounded-full"
-                        onError={(e) =>
-                          (e.target.src = "https://via.placeholder.com/28")
-                        }
+                        className="w-9 h-9 rounded-full object-cover" // Added object-cover
+                        onError={(e) => {
+                          console.log("Image failed to load, using fallback:", profile);
+                          e.target.src = profile;
+                        }}
                       />
                     </div>
                     <p className="font-bold cursor-pointer">

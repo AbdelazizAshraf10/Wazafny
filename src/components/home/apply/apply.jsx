@@ -1,32 +1,117 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import axios from "axios";
 import loc from "../../../assets/seeker/location.png";
 import blink from "../../../assets/seeker/blink.png";
+import vod from "../../../assets/seeker/vod.png";
 import ModalApply from "../applyModal/ModalApply";
 
-function JobsPage() {
+function JobDetails() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [jobData, setJobData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const { jobId } = useParams(); // Get jobId from URL params
+  const navigate = useNavigate();
 
-  const job = {
-    company: "Blink22",
-    logo: blink,
-    title: "Mobile Software Engineer",
-    location: "Cairo, Egypt",
-    time: "4 d",
-    employmentType: "Full-time",
-    JobType: "Remote",
-    tags: ["Dart", "Kotlin", "Java", "Firebase"],
-    description:
-      "We’re seeking an experienced Mobile Software Engineer with a passion for development and a team-oriented attitude, ready to bring powerful software to life.\n\nAs a Mobile Engineer at Blink22, your role will involve collaborating with various departments within the company, ensure the successful creation and implementation of innovative and streamlined mobile experiences. Additionally, you will actively contribute to enhancing our internal workflows and fostering a culture of continuous improvement and transparency. This position also offers ample opportunities for personal and professional growth as a Mobile Engineer.",
-    requirements:
-      "Required Technical skills:\n- Proficiency in Dart, Kotlin, and Java.\n- Familiarity with Firebase and its services.\n- Experience with mobile app development frameworks and tools.",
-    softSkills:
-      "\n- Strong problem-solving skills and attention to detail.\n- Excellent communication and teamwork abilities.\n- Ability to work independently and manage time effectively.",
-    benefits:
-      "\n- Competitive salary and benefits package.\n- Flexible working hours.\n- Opportunity for career growth and development.",
+  console.log("Job ID from URL params:", jobId);
+
+  // Retrieve token from localStorage
+  const token = localStorage.getItem("token");
+  const seekerId = localStorage.getItem("seeker_id");
+
+  // Fetch job details from API
+  useEffect(() => {
+    const fetchJobDetails = async () => {
+      if (!jobId) {
+        setError("Missing job ID. Please select a job.");
+        setLoading(false);
+        setTimeout(() => navigate("/seeker/JobsPage"), 2000); // Fixed typo: JopsPage -> JobsPage
+        return;
+      }
+
+      if (!token) {
+        setError("Missing authentication token. Please log in again.");
+        setLoading(false);
+        setTimeout(() => navigate("/Login"), 2000);
+        return;
+      }
+      console.log("jobId:", jobId);
+      setLoading(true);
+      try {
+        const response = await axios.get(
+          `https://wazafny.online/api/show-job-post/${jobId}/${seekerId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        console.log("Job Details API Response:", response.data);
+        setJobData(response.data);
+      } catch (err) {
+        if (err.response?.status === 401) {
+          setError("Unauthorized. Please log in again.");
+          setTimeout(() => navigate("/Login"), 2000);
+        } else if (err.response?.status === 404) {
+          setError("Job not found.");
+        } else if (err.response?.status === 500) {
+          setError("Server error. Please try again later.");
+        } else {
+          console.error("Error fetching job details:", err);
+          setError("Failed to load job details. Please try again later.");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchJobDetails();
+  }, [jobId, token, navigate]);
+
+  // Utility function to chunk array into subarrays of specified size
+  const chunkArray = (array, size) => {
+    const result = [];
+    for (let i = 0; i < array.length; i += size) {
+      result.push(array.slice(i, i + size));
+    }
+    return result;
   };
 
+  if (loading) {
+    return <div className="text-center p-6">Loading job details...</div>;
+  }
+
+  if (error) {
+    return <div className="text-center text-red-500 p-6">Error: {error}</div>;
+  }
+
+  if (!jobData) {
+    return <div className="text-center p-6">No job data available.</div>;
+  }
+
+  // Map API response to UI structure with fallbacks
+  const job = {
+    company: jobData.company?.company_name || "Unknown Company",
+    logo: jobData.profile_img || (jobData.company?.company_name === "Blink22" ? blink : vod),
+    title: jobData.jobpost?.job_title || "Untitled Job",
+    location: `${jobData.jobpost?.job_city || "Unknown"}, ${jobData.jobpost?.job_country || "Unknown"}`,
+    time: jobData.time_ago || "Unknown",
+    employmentType: jobData.jobpost?.job_time || "Unknown",
+    JobType: jobData.jobpost?.job_type || "Unknown",
+    tags: jobData.skills?.map((skill) => skill.skill) || [],
+    description: jobData.jobpost?.job_about || "No description available.",
+    sections: jobData.sections || [],
+    applystatus: jobData.applystatus || false, // Extract applystatus with fallback to false
+  };
+
+  // Split tags into chunks of 8
+  const skillChunks = chunkArray(job.tags, 8);
+
   return (
-    <div className="min-h-screen bg-gray-50 mt-10">
+    <div className="min-h-screen mt-10">
       <div className="max-w-7xl mx-auto p-6">
         <div className="bg-white shadow-sm rounded-[16px] p-9 border border-[#D9D9D9]">
           <div className="flex items-center justify-between">
@@ -35,17 +120,25 @@ function JobsPage() {
                 src={job.logo}
                 alt={`${job.company} logo`}
                 className="w-10 h-10 rounded-md object-contain"
+                onError={(e) => (e.target.src = "https://via.placeholder.com/40")}
               />
               <p className="text-lg font-semibold text-[#201A23]">
                 {job.company}
               </p>
             </div>
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="bg-[#6A0DAD] text-white font-semibold px-7 py-2 rounded-[9px] hover:bg-[#5B2494] transition-all duration-200"
-            >
-              Apply Now
-            </button>
+            <div className="flex gap-4">
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className={`font-semibold px-7 py-2 rounded-[9px] transition-all duration-200 ${
+                  job.applystatus
+                    ? "bg-gray-400 text-white cursor-not-allowed" // Disabled style for "Applied"
+                    : "bg-[#6A0DAD] text-white hover:bg-[#5B2494]" // Active style for "Apply Now"
+                }`}
+                disabled={job.applystatus} // Disable button if already applied
+              >
+                {job.applystatus ? "Applied" : "Apply Now"}
+              </button>
+            </div>
           </div>
 
           <h3 className="text-2xl font-semibold text-gray-900 mt-5">
@@ -71,43 +164,63 @@ function JobsPage() {
 
           <div className="mt-4">
             <h4 className="text-xl font-semibold text-gray-900">Skills</h4>
-            <div className="flex items-center gap-4 mt-2">
-              {job.tags.map((tag, idx) => (
-                <span
-                  key={idx}
-                  className="bg-[#F2E9FF] text-[#201A23] text-md font-bold px-6 py-1 rounded-[9px]"
-                >
-                  {tag}
-                </span>
-              ))}
+            <div className="flex flex-col gap-2 mt-2">
+              {job.tags.length > 0 ? (
+                skillChunks.map((chunk, chunkIndex) => (
+                  <div key={chunkIndex} className="flex flex-wrap items-center gap-4">
+                    {chunk.map((tag, idx) => (
+                      <span
+                        key={idx}
+                        className="bg-[#F2E9FF] text-[#201A23] text-md font-bold px-6 py-1 rounded-[9px]"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                ))
+              ) : (
+                <span className="text-gray-500">No skills listed.</span>
+              )}
             </div>
           </div>
 
+          <hr className="border-[#D9D9D9] mt-9 w-[422px] mx-auto" />
+
           <div className="mt-6">
             <h4 className="text-xl font-bold text-gray-900">About the job</h4>
-            <p className="text-base text-[#201A23] mt-2 whitespace-pre-line">
+            <p className="text-base text-[#201A23] whitespace-pre-line">
               {job.description}
             </p>
           </div>
 
-          <div className="mt-6 space-y-9">
-            <h4 className="text-lg font-semibold text-gray-900 whitespace-pre-line">
-              {job.requirements}
-            </h4>
-            <h4 className="text-lg font-semibold text-gray-900 whitespace-pre-line">
-              {job.softSkills}
-            </h4>
-            <h4 className="text-lg font-semibold text-gray-900 whitespace-pre-line">
-              {job.benefits}
-            </h4>
+          <div>
+            {job.sections.length > 0 &&
+              job.sections.map((section, idx) => (
+                <div key={idx} className="mt-12">
+                  <h4 className="text-xl font-bold text-gray-900">
+                    {section.section_name}
+                  </h4>
+                  <p className="text-base text-[#201A23] mt-1 whitespace-pre-line">
+                    {section.section_description}
+                  </p>
+                </div>
+              ))}
           </div>
         </div>
       </div>
 
       {/* Apply Modal */}
-      {isModalOpen && <ModalApply onClose={() => setIsModalOpen(false)} />}
+      {isModalOpen && (
+        <ModalApply
+          onClose={() => setIsModalOpen(false)}
+          jobId={jobId}
+          jobTitle={job.title}
+          companyName={job.company}
+          questions={jobData.questions || []}
+        />
+      )}
     </div>
   );
 }
 
-export default JobsPage;
+export default JobDetails;

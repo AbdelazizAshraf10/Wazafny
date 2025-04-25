@@ -1,7 +1,10 @@
 import { useFormik } from "formik";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import * as Yup from "yup";
 import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { Message } from "../CustomMessage/FloatMessage"; // Adjust the path based on your file structure
 
 // Animation variants for the container
 const containerVariants = {
@@ -12,8 +15,8 @@ const containerVariants = {
     transition: {
       duration: 0.6,
       ease: "easeOut",
-      when: "beforeChildren", // Animate children after the container
-      staggerChildren: 0.2, // Stagger child animations
+      when: "beforeChildren",
+      staggerChildren: 0.2,
     },
   },
 };
@@ -35,12 +38,77 @@ const buttonVariants = {
 };
 
 export default function Info() {
-  function handleLogin(values) {
-    console.log(values);
-  }
+  const navigate = useNavigate();
+  const seekerId = localStorage.getItem("seeker_id");
+
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
+
+  // Clear messages after 3 seconds (already handled by Message, but kept for consistency)
+  useEffect(() => {
+    if (error || success) {
+      const timer = setTimeout(() => {
+        setError(null);
+        setSuccess(null);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [error, success]);
+
+  const handleLogin = async (values) => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      setError("Missing token. Please log in again.");
+      setTimeout(() => navigate("/login"), 2000);
+      return;
+    }
+
+    if (!seekerId) {
+      setError("Missing seeker ID. Please log in again.");
+      setTimeout(() => navigate("/login"), 2000);
+      return;
+    }
+
+    const payload = {
+      seeker_id: parseInt(seekerId),
+      headline: values.Headline,
+    };
+
+    try {
+      const response = await axios.post(
+        "https://wazafny.online/api/create-headline",
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      console.log("API Response:", response.data);
+      setSuccess("Headline saved successfully!");
+      setTimeout(() => navigate("/seeker/JopsPage"), 2000);
+    } catch (error) {
+      console.error("Error saving headline:", error);
+      if (error.response?.status === 401) {
+        setError("Unauthorized. Please log in again.");
+        setTimeout(() => navigate("/login"), 2000);
+      } else if (error.response?.status === 500) {
+        console.log("Server error. Please try again later.");
+      }else if (error.response?.status === 422) {
+        console.log("Validation error. Please check your input.");
+      }else if (error.response?.status === 404) {
+        console.log("Seeker_id not found");
+      } else {
+        setError("Failed to save headline. Please try again.");
+      }
+    }
+  };
 
   let myValidationSchema = Yup.object().shape({
-    Headline: Yup.string().required("headline is required"),
+    Headline: Yup.string().required("Headline is required"),
   });
 
   let formik = useFormik({
@@ -53,6 +121,20 @@ export default function Info() {
 
   return (
     <>
+      {/* Error message */}
+      <Message
+        message={error}
+        type="error"
+        onClose={() => setError(null)}
+      />
+
+      {/* Success message */}
+      <Message
+        message={success}
+        type="success"
+        onClose={() => setSuccess(null)}
+      />
+
       <motion.div
         className="border-2 border-solid border-[#d9d9d9] rounded-3xl p-12 pt-8 w-[61%] mx-auto my-32"
         variants={containerVariants}
@@ -80,7 +162,7 @@ export default function Info() {
               type="text"
               name="Headline"
               id="Headline"
-              className="block py-2.5 px-0 w-full text-sm text-[#201A23] bg-transparent border-0 border-b border-[#D9D9D9] appearance-none dark:border-[#D9D9D9] focus:outline-none focus:ring-0  peer"
+              className="block py-2.5 px-0 w-full text-sm text-[#201A23] bg-transparent border-0 border-b border-[#D9D9D9] appearance-none dark:border-[#D9D9D9] focus:outline-none focus:ring-0 peer"
               placeholder=" "
               required
             />
@@ -112,7 +194,7 @@ export default function Info() {
               whileHover="hover"
               whileTap="tap"
             >
-              <Link to={"/"}>Next</Link>
+              Next
             </motion.button>
           </motion.div>
         </form>

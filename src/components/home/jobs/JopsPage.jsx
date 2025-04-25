@@ -1,5 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { Message } from "../../CustomMessage/FloatMessage";
+import { motion } from "framer-motion";
 import search from "../../../assets/seeker/search.png";
 import loc from "../../../assets/seeker/location.png";
 import blink from "../../../assets/seeker/blink.png";
@@ -7,58 +10,125 @@ import vod from "../../../assets/seeker/vod.png";
 
 function JobsPage() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [jobs, setJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [pending, setpending] = useState(null);
   const navigate = useNavigate();
 
-  const jobs = [
-    {
-      company: "Vodafone Egypt",
-      logo: vod,
-      title: "Flutter Mobile App Developer",
-      description:
-        "We are looking for an experienced Senior Flutter Software Engineer/Developer to join our highly skilled technical team.",
-      location: "Egypt (Remote)",
-      tags: ["iOS", "Flutter", "Mobile App Development", "Firebase"],
-      time: "2d",
-    },
-    {
-      company: "Blink22",
-      logo: blink,
-      title: "Mobile Software Engineer",
-      description:
-        "We’re seeking an experienced Mobile Software Engineer with a passion for development and a team-oriented attitude, ready to bring powerful software to life.",
-      location: "Cairo, Egypt (Remote)",
-      tags: ["Dart", "Mobile App Development", "Firebase", "Flutter"],
-      time: "4d",
-    },
-    {
-      company: "Vodafone Egypt",
-      logo: vod,
-      title: "Mobile Software Engineer",
-      description:
-        "We’re seeking an experienced Mobile Software Engineer with a passion for development and a team-oriented attitude, ready to bring powerful software to life.",
-      location: "Cairo, Egypt (Remote)",
-      tags: ["Dart", "Mobile App Development", "Firebase", "Flutter"],
-      time: "4d",
-    },
-    {
-      company: "Blink22",
-      logo: blink,
-      title: "Mobile Software Engineer",
-      description:
-        "We’re seeking an experienced Mobile Software Engineer with a passion for development and a team-oriented attitude, ready to bring powerful software to life.",
-      location: "Cairo, Egypt (Remote)",
-      tags: ["Dart", "Mobile App Development", "Firebase", "Flutter"],
-      time: "4d",
-    },
-  ];
+  // Retrieve seeker_id and token from localStorage
+  const seekerId = localStorage.getItem("seeker_id");
+  const token = localStorage.getItem("token");
 
-  // Filter jobs based on search term (case-insensitive)
+  // Fetch recommended jobs from the API
+  useEffect(() => {
+    const fetchJobs = async () => {
+      if (!seekerId) {
+        setError("Missing seeker ID. Please log in again.");
+        setTimeout(() => navigate("/login"), 2000);
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const response = await axios.post(
+          "https://wazafny.online/api/recommended-jobs-posts",
+          { seeker_id: parseInt(seekerId) },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        console.log("API Response:", response.data);
+
+        if (response.data.nullskills) {
+          setpending(`
+            To receive tailored job recommendations, please add your professional skills to your profile.
+          `);
+        }
+        if (response.status === 204) {
+          setpending("No jobs available at the moment.");
+        }
+
+        if (response.data.jobs && Array.isArray(response.data.jobs)) {
+          setJobs(response.data.jobs);
+          console.log("Jobs:", response.data.jobs);
+        } else {
+          throw new Error("Unexpected API response format");
+        }
+      } catch (err) {
+        if (err.response?.status === 401) {
+          setError("Unauthorized. Please log in again.");
+          setTimeout(() => navigate("/login"), 2000);
+        } else if (err.response?.status === 500) {
+          console.log("Server error. Please try again later.");
+        } else if (err.response?.status === 422) {
+          console.log("Validation error. Please check your input.");
+        } else if (err.response?.status === 404) {
+          console.log("Seeker_id not found");
+        } else {
+          console.error("Error fetching jobs:", err);
+          setError("Failed to load jobs. Please try again later.");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchJobs();
+  }, [navigate, seekerId]);
+
   const filteredJobs = jobs.filter((job) =>
     job.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Animation variants for the card
+  const cardVariants = {
+    hidden: { opacity: 0, x: -20 },
+    visible: (index) => ({
+      opacity: 1,
+      x: 0,
+      transition: {
+        duration: 0.5,
+        ease: "easeOut",
+        delay: index * 0.2, // Stagger the cards
+        staggerChildren: 0.1, // Stagger the children within each card
+      },
+    }),
+  };
+
+  // Animation variants for the child elements within the card最低: true;
+  const childVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.3,
+        ease: "easeOut",
+      },
+    },
+  };
+
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-white">
+      {/* Floating Message Top Center */}
+      <div className="fixed top-4 left-[460px] transform -translate-x-1/2 z-50 w-full px-4">
+        <Message
+          message={pending}
+          duration={8000}
+          type="pending"
+          onClose={() => setpending(null)}
+        />
+      </div>
+      <div className="fixed top-4 left-[620px] transform -translate-x-1/2 z-50 w-full px-4">
+        <Message message={error} type="error" onClose={() => setError(null)} />
+      </div>
+
       {/* Search Bar Section */}
       <div className="w-[30%] mx-auto px-4 py-6">
         <div className="relative">
@@ -79,63 +149,102 @@ function JobsPage() {
 
       {/* Job Listings Section */}
       <div className="max-w-6xl border-2 rounded-[16px] border-[#D9D9D9] mx-auto px-4 p-12 bg-white">
-        {filteredJobs.length > 0 ? (
+        {loading ? (
+          <p className="text-center text-gray-500 p-6">Loading jobs...</p>
+        ) : filteredJobs.length > 0 ? (
           filteredJobs.map((job, index) => (
-            <div key={index}>
-              <div
+            <div key={job.job_id}>
+              <motion.div
                 className="p-6 rounded-lg transition-all duration-200 hover:bg-gray-100 hover:scale-[1.01] hover:shadow-md cursor-pointer"
-                onClick={() => navigate("/seeker/apply")}
+                onClick={() => navigate(`/seeker/apply/${job.job_id}`)} // Updated to include jobId in URL
+                variants={cardVariants}
+                initial="hidden"
+                animate="visible"
+                custom={index}
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
+                {/* Top Row: Company Name and Time Ago */}
+                <motion.div
+                  className="flex items-center justify-between"
+                  variants={childVariants}
+                >
+                  <motion.div
+                    className="flex items-center gap-4"
+                    variants={childVariants}
+                  >
                     <img
-                      src={job.logo}
-                      alt={`${job.company} logo`}
+                      src={
+                        job.company.profile_img ||
+                        (job.company.company_name === "Blink22" ? blink : vod)
+                      }
+                      alt={`${job.company.company_name} logo`}
                       className="w-10 h-10 rounded-md object-contain"
                     />
                     <p className="text-lg font-semibold text-[#201A23]">
-                      {job.company}
+                      {job.company.company_name}
                     </p>
-                  </div>
-                  <div className="">
-                    <span className="text-sm text-gray-500">{job.time}</span>
-                  </div>
-                </div>
+                  </motion.div>
+                  <motion.div variants={childVariants}>
+                    <span className="text-sm text-gray-500">
+                      {job.time_ago}
+                    </span>
+                  </motion.div>
+                </motion.div>
 
-                <h3 className="text-xl font-semibold mt-3 text-gray-900">
+                {/* Job Title */}
+                <motion.h3
+                  className="text-xl font-semibold mt-3 text-gray-900"
+                  variants={childVariants}
+                >
                   {job.title}
-                </h3>
-                <p className="text-xl font-sans text-[#201A23] mt-3">
-                  {job.description}
-                </p>
+                </motion.h3>
 
-                <div className="flex text-lg justify-between mt-8">
-                  <div className="flex gap-3">
+                {/* Job Description */}
+                <motion.p
+                  className="text-base text-[#201A23] mt-3 line-clamp-2"
+                  variants={childVariants}
+                >
+                  {job.job_about}
+                </motion.p>
+
+                {/* Location and Skills */}
+                <motion.div
+                  className="flex text-lg justify-between mt-4"
+                  variants={childVariants}
+                >
+                  <motion.div
+                    className="flex gap-3"
+                    variants={childVariants}
+                  >
                     <img src={loc} alt="location icon" className="w-4 h-4" />
-                    <span>{job.location}</span>
-                  </div>
+                    <span>
+                      {job.job_city}, {job.job_country} ({job.job_type})
+                    </span>
+                  </motion.div>
 
-                  <div className="flex items-center gap-4 font-bold">
-                    {job.tags.map((tag, idx) => (
-                      <span
+                  <motion.div
+                    className="flex items-center gap-2"
+                    variants={childVariants}
+                  >
+                    {job.skills.slice(0, 4).map((skill, idx) => (
+                      <motion.span
                         key={idx}
-                        className="bg-[#F2E9FF] text-[#201A23] text-md px-4 py-1 rounded-[9px]"
+                        className="bg-[#E6D9FF] text-[#201A23] font-semibold text-sm px-3 py-1 rounded-[8.63px]"
+                        variants={childVariants}
                       >
-                        {tag}
-                      </span>
+                        {skill}
+                      </motion.span>
                     ))}
-                  </div>
-                </div>
-              </div>
+                  </motion.div>
+                </motion.div>
+              </motion.div>
 
-              {/* Horizontal Divider */}
               {index !== filteredJobs.length - 1 && (
-                <hr className="border-t-2 border-[#D9D9D9] mx-6 p-4" />
+                <hr className="border-t border-[#D9D9D9] mx-6 my-4" />
               )}
             </div>
           ))
         ) : (
-          <p className="text-center text-gray-500 p-6">No jobs found.</p>
+          <p className="text-center text-gray-500 p-6">No jobs available.</p>
         )}
       </div>
     </div>
