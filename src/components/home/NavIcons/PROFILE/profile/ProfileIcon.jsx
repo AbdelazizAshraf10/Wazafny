@@ -1,11 +1,9 @@
 import { useState, useEffect } from "react";
-import PropTypes from "prop-types";
 import { User, LogOut } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 
-const UserProfileDropdown = () => {
-  const [open, setOpen] = useState(false);
+const UserProfileDropdown = ({ isOpen, onToggle }) => {
   const [userData, setUserData] = useState({ userName: "Guest", profilePhoto: null });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -99,6 +97,7 @@ const UserProfileDropdown = () => {
 
       // Redirect to login page
       navigate("/Login");
+      onToggle(); // Close dropdown after navigation
     } catch (err) {
       console.error("Error logging out:", err);
       if (err.response?.status === 401) {
@@ -111,12 +110,13 @@ const UserProfileDropdown = () => {
         setError("Failed to log out. Please try again later.");
       }
 
-      // Clear localStorage and redirect even if the API fails (to ensure logout on client-side)
+      // Clear localStorage and redirect even if the API fails (client-side logout)
       localStorage.removeItem("seeker_id");
       localStorage.removeItem("user_id");
       localStorage.removeItem("token");
       localStorage.removeItem("Role");
       navigate("/Login");
+      onToggle(); // Close dropdown after navigation
     }
   };
 
@@ -135,37 +135,44 @@ const UserProfileDropdown = () => {
 
   if (loading) {
     return (
-      <div className="relative w-10 h-10 flex items-center justify-center rounded-full bg-black text-white text-lg font-bold">
-        Loading...
-      </div>
+      <button
+        className="relative w-10 h-10 flex items-center justify-center rounded-full bg-black text-white text-lg font-bold"
+        disabled
+      >
+        ...
+      </button>
     );
   }
 
   if (error) {
     return (
-      <div className="relative w-10 h-10 flex items-center justify-center rounded-full bg-black text-white text-lg font-bold">
-        Error
-      </div>
+      <button
+        className="relative w-10 h-10 flex items-center justify-center rounded-full bg-black text-white text-lg font-bold"
+        disabled
+      >
+        !
+      </button>
     );
   }
 
   return (
     <div className="relative">
       <button
-        onClick={() => setOpen(!open)}
+        onClick={onToggle}
         className="relative w-10 h-10 flex items-center justify-center rounded-full bg-black text-white text-lg font-bold overflow-hidden"
+        aria-label="Open profile menu"
       >
         {profilePhoto ? (
           <img src={profilePhoto} alt="Profile" className="w-full h-full object-cover rounded-full" />
         ) : (
           initials
         )}
-        {open && (
+        {isOpen && (
           <span className="absolute top-0 right-0 w-2 h-2 bg-purple-600 rounded-full border-2 border-white"></span>
         )}
       </button>
 
-      {open && (
+      {isOpen && (
         <div className="absolute right-0 mt-2 w-60 bg-white rounded-xl shadow-lg border border-gray-200 z-50">
           <div className="flex flex-col items-center p-4">
             <div className="w-12 h-12 flex items-center justify-center rounded-full bg-black text-[#FFFFFF] text-xl font-bold overflow-hidden">
@@ -179,7 +186,10 @@ const UserProfileDropdown = () => {
           </div>
 
           <div className="border-t border-gray-200">
-            <Link to="/seeker/profile">
+            <Link
+              to="/seeker/profile"
+              onClick={() => onToggle()} // Close dropdown after navigation
+            >
               <button className="flex items-center w-full px-4 py-3 text-[#201A23] text-left hover:bg-gray-100">
                 <User className="w-5 h-5 mr-3" />
                 View Profile
@@ -198,11 +208,6 @@ const UserProfileDropdown = () => {
       )}
     </div>
   );
-};
-
-UserProfileDropdown.propTypes = {
-  userName: PropTypes.string,
-  profilePhoto: PropTypes.string,
 };
 
 export default UserProfileDropdown;

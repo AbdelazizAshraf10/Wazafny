@@ -4,9 +4,9 @@ import HeaderCompany from "./HeaderCompany";
 import close from "../../assets/company/close.svg";
 import edit from "../../assets/company/edit.svg";
 import Delete from "../../assets/company/delete.svg";
-import Del from "../../assets/company/delete-black.svg";
 import Modal from "../home/NavIcons/PROFILE/profile/Modal";
 import DelCut from "../../assets/company/delete-red-cut.svg";
+import activateIcon from "../../assets/company/activate.png"; // Placeholder; replace with actual icon
 import { Link, useNavigate, useLocation, Outlet } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
@@ -19,10 +19,13 @@ function Jobpost() {
   const [jobToClose, setJobToClose] = useState(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [jobToDelete, setJobToDelete] = useState(null);
+  const [isActivateModalOpen, setIsActivateModalOpen] = useState(false);
+  const [jobToActivate, setJobToActivate] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [closeError, setCloseError] = useState(null);
   const [deleteError, setDeleteError] = useState(null);
+  const [activateError, setActivateError] = useState(null);
   const [selectedJobId, setSelectedJobId] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
@@ -43,7 +46,6 @@ function Jobpost() {
   const fetchJobPosts = async () => {
     const token = localStorage.getItem("token");
     const companyId = localStorage.getItem("company_id");
-
     if (!token || !companyId) {
       setError("Missing token or company ID. Please log in again.");
       setLoading(false);
@@ -108,20 +110,18 @@ function Jobpost() {
 
       return response.data;
     } catch (error) {
-      if(error.status === 500){
-        console.log("internal server error")
-      } else if(error.status === 401){
-        setMessage({text:"Unauthorized. Please log in again." , type:(error)})
+      if (error.status === 500) {
+        console.log("Internal server error");
+      } else if (error.status === 401) {
+        setMessage({ text: "Unauthorized. Please log in again.", type: "error" });
         navigate("/LoginCompany");
-      }else if(error.status === 404){
-        console.log("invalid job post")
+      } else if (error.status === 404) {
+        console.log("Invalid job post");
       }
-
 
       console.error("Error fetching job post details:", error);
       setError("Failed to fetch job post details. Please try again.");
       return null;
-
     }
   };
 
@@ -147,7 +147,7 @@ function Jobpost() {
           }))
         : [];
       const questions = jobData.questions
-        ? jobData.questions.map((question) => question.question) // Store as strings
+        ? jobData.questions.map((question) => question.question)
         : [];
 
       navigate(`/Dashboard/Jobpost/${jobId}`, {
@@ -259,6 +259,55 @@ function Jobpost() {
     setIsDeleteModalOpen(false);
     setJobToDelete(null);
     setDeleteError(null);
+  };
+
+  const handleActivate = async () => {
+    const token = localStorage.getItem("token");
+
+    if (!jobToActivate) {
+      setActivateError("No job selected to activate.");
+      return;
+    }
+
+    try {
+      const response = await axios.put(
+        `https://wazafny.online/api/activate-job-post/${jobToActivate}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      setMessage({ text: "Job activated successfully!", type: "success" });
+      setActivateError(null);
+      setIsActivateModalOpen(false);
+      setJobToActivate(null);
+      await fetchJobPosts();
+    } catch (error) {
+      console.error("Activation error:", error.message);
+      if (error.response?.status === 401) {
+        setActivateError("Unauthorized. Please log in again.");
+        navigate("/LoginCompany");
+      } else if (error.response?.status === 404) {
+        setActivateError("Job not found.");
+      } else if (error.response?.status === 400) {
+        setActivateError("The job is already active.");
+      } else if (error.response?.status === 500) {
+        setActivateError("Server error. Please try again later.");
+      } else if (error.response?.status === 422) {
+        setActivateError("Validation error. Please check your input.");
+      } else {
+        setActivateError("Failed to activate job. Please try again.");
+      }
+    }
+  };
+
+  const handleCancelActivate = () => {
+    setIsActivateModalOpen(false);
+    setJobToActivate(null);
+    setActivateError(null);
   };
 
   const handleSelectJob = (id) => {
@@ -445,23 +494,23 @@ function Jobpost() {
                               {job.date}
                             </td>
                             <td className="py-6 px-4 text-center relative">
-                              {job.status === "Active" ? (
-                                <div>
-                                  <button
-                                    onClick={() =>
-                                      setMenuOpen(
-                                        menuOpen === job.id ? null : job.id
-                                      )
-                                    }
-                                    className="p-2 rounded-full hover:bg-gray-200 transition"
-                                  >
-                                    <MoreVertical className="w-5 h-5" />
-                                  </button>
-                                  {menuOpen === job.id && (
-                                    <div className="absolute right-0 mt-1 font-bold w-32 bg-white shadow-lg rounded-xl z-10">
+                              <div>
+                                <button
+                                  onClick={() =>
+                                    setMenuOpen(
+                                      menuOpen === job.id ? null : job.id
+                                    )
+                                  }
+                                  className="p-2 rounded-full hover:bg-gray-200 transition"
+                                >
+                                  <MoreVertical className="w-5 h-5" />
+                                </button>
+                                {menuOpen === job.id && (
+                                  <div className="absolute right-4 mt-1 w-32 bg-white rounded-xl border border-gray-300 shadow-lg z-[1000]">
+                                    {job.status === "Active" ? (
                                       <ul className="text-gray-700">
                                         <li
-                                          className="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                          className="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer text-[#201A23]"
                                           onClick={() => {
                                             setJobToClose(job.id);
                                             setIsModalOpen(true);
@@ -476,7 +525,7 @@ function Jobpost() {
                                           Close
                                         </li>
                                         <li
-                                          className="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                          className="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer text-[#201A23]"
                                           onClick={() => {
                                             handleEdit(job.id);
                                             setMenuOpen(null);
@@ -490,7 +539,7 @@ function Jobpost() {
                                           Edit
                                         </li>
                                         <li
-                                          className="flex items-center px-4 py-2 text-red-600 hover:bg-gray-100 cursor-pointer"
+                                          className="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer text-red-600"
                                           onClick={() => {
                                             setJobToDelete(job.id);
                                             setIsDeleteModalOpen(true);
@@ -505,24 +554,43 @@ function Jobpost() {
                                           Delete
                                         </li>
                                       </ul>
-                                    </div>
-                                  )}
-                                </div>
-                              ) : (
-                                <button
-                                  onClick={() => {
-                                    setJobToDelete(job.id);
-                                    setIsDeleteModalOpen(true);
-                                  }}
-                                  className="p-2 rounded-full hover:bg-gray-400 transition ease-in-out duration-300"
-                                >
-                                  <img
-                                    src={Del}
-                                    alt="delete"
-                                    className="w-5 h-5"
-                                  />
-                                </button>
-                              )}
+                                    ) : (
+                                      <ul className="text-gray-700">
+                                        <li
+                                          className="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer text-[#201A23]"
+                                          onClick={() => {
+                                            setJobToActivate(job.id);
+                                            setIsActivateModalOpen(true);
+                                            setMenuOpen(null);
+                                          }}
+                                        >
+                                          <img
+                                            src={activateIcon}
+                                            alt="activate"
+                                            className="w-4 h-4 mr-2"
+                                          />
+                                          Activate
+                                        </li>
+                                        <li
+                                          className="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer text-red-600"
+                                          onClick={() => {
+                                            setJobToDelete(job.id);
+                                            setIsDeleteModalOpen(true);
+                                            setMenuOpen(null);
+                                          }}
+                                        >
+                                          <img
+                                            src={Delete}
+                                            alt="delete"
+                                            className="w-4 h-4 mr-2"
+                                          />
+                                          Delete
+                                        </li>
+                                      </ul>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
                             </td>
                           </motion.tr>
                         ))}
@@ -615,6 +683,45 @@ function Jobpost() {
                       onClick={handleDeleteJob}
                     >
                       Delete
+                    </button>
+                  </div>
+                </div>
+              </Modal>
+            )}
+
+            {isActivateModalOpen && (
+              <Modal
+                isOpen={isActivateModalOpen}
+                onClose={handleCancelActivate}
+                showFooter={false}
+              >
+                <div className="flex flex-col items-center p-6">
+                  <img
+                    src={activateIcon}
+                    alt="activate"
+                    className="w-20 h-16 p-2 bg-[#E6F7FA] rounded-2xl mb-4"
+                  />
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    Activate this Job?
+                  </h2>
+                  <p className="text-[#A1A1A1] text-center mt-2">
+                    This will reopen the job for applications.
+                  </p>
+                  {activateError && (
+                    <p className="text-red-500 text-sm mt-2">{activateError}</p>
+                  )}
+                  <div className="mt-6 flex w-full gap-4 text-2xl font-bold">
+                    <button
+                      className="w-1/2 py-2 border border-gray-300 text-[#201A23] rounded-lg hover:bg-[#F4F4F4]"
+                      onClick={handleCancelActivate}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      className="w-1/2 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                      onClick={handleActivate}
+                    >
+                      Activate
                     </button>
                   </div>
                 </div>

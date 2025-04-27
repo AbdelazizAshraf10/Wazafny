@@ -17,8 +17,7 @@ const getFallbackLogo = (companyName) => {
   }
 };
 
-const JobApplicationDropdown = () => {
-  const [open, setOpen] = useState(false);
+const JobApplicationDropdown = ({ isOpen, onToggle }) => {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -62,7 +61,7 @@ const JobApplicationDropdown = () => {
             position: app.job.job_title,
             location: `${app.job.job_city}, ${app.job.job_country} (${app.job.job_type})`,
             status: app.status,
-            daysAgo: (app.time_ago), // Convert time_ago to days
+            daysAgo: app.time_ago, // Use time_ago directly
             logo: app.job.company.profile_img || getFallbackLogo(app.job.company.company_name),
           }));
           setApplications(mappedApplications);
@@ -87,28 +86,25 @@ const JobApplicationDropdown = () => {
     fetchApplications();
   }, [seekerId, token, navigate]);
 
-  // Helper function to parse time_ago (e.g., "9m" to days)
- 
-
   return (
     <div className="relative">
       {/* Briefcase Icon */}
       <button
-        onClick={() => setOpen(!open)}
+        onClick={onToggle}
         className="relative p-2 rounded-full hover:bg-gray-200"
       >
         <ScrollText
           className="w-7 h-8"
           style={{
-            fill: open ? "black" : "none", // Solid black when clicked
-            stroke: "black", // Ensure the outline remains consistent
-            strokeWidth: open ? 0 : 2, // No stroke when filled
+            fill: isOpen ? "black" : "none",
+            stroke: "black",
+            strokeWidth: isOpen ? 0 : 2,
           }}
         />
       </button>
 
       {/* Application Panel */}
-      {open && (
+      {isOpen && (
         <div className="absolute right-4 mt-2 w-96 bg-white rounded-xl border border-gray-300 shadow-lg z-50">
           <div className="p-5 flex justify-center border-b border-gray-200">
             <h2 className="text-xl font-bold text-[#201A23]">
@@ -171,7 +167,7 @@ const JobApplicationDropdown = () => {
                             ? "text-yellow-500"
                             : status === "Not qualified"
                             ? "text-red-500"
-                            : "text-red-500" // Default for other statuses
+                            : "text-red-500"
                         }`}
                       >
                         {status}
@@ -190,7 +186,10 @@ const JobApplicationDropdown = () => {
           {/* View All Button */}
           <div className="p-4 text-center border-t border-gray-200">
             <button
-              onClick={() => navigate("/seeker/Applications")}
+              onClick={() => {
+                navigate("/seeker/Applications");
+                onToggle(); // Close dropdown after navigation
+              }}
               className="text-black font-bold hover:underline"
             >
               View all
@@ -202,9 +201,4 @@ const JobApplicationDropdown = () => {
   );
 };
 
-// Usage
-const App = () => {
-  return <JobApplicationDropdown />;
-};
-
-export default App;
+export default JobApplicationDropdown;

@@ -20,8 +20,7 @@ const getFallbackLogo = (companyName) => {
   }
 };
 
-const NotificationDropdown = () => {
-  const [open, setOpen] = useState(false);
+const NotificationDropdown = ({ isOpen, onToggle }) => {
   const [notificationList, setNotificationList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -61,8 +60,9 @@ const NotificationDropdown = () => {
           // Map API response to the component's expected format
           const mappedNotifications = response.data.notifications.map((notif) => ({
             id: notif.notification_id,
+            jobId: notif.job_id,
             company: notif.company_name,
-            role: extractRole(notif.message), // Extract role from message
+            role: extractRole(notif.message),
             time: notif.time_ago,
             logo: notif.profile_img || getFallbackLogo(notif.company_name),
           }));
@@ -88,10 +88,20 @@ const NotificationDropdown = () => {
     fetchNotifications();
   }, [seekerId, token, navigate]);
 
-  // Helper function to extract role from message (e.g., "posted a new job for : Kotlin Developer")
+  // Helper function to extract role from message
   const extractRole = (message) => {
     const match = message.match(/posted a new job for : (.+)/);
     return match ? match[1] : "Unknown Role";
+  };
+
+  // Function to handle notification click and navigate to job application page
+  const handleNotificationClick = (jobId) => {
+    if (!jobId) {
+      setError("Invalid job ID. Please try again.");
+      return;
+    }
+    navigate(`/seeker/apply/${jobId}`);
+    onToggle(); // Close the dropdown after navigation
   };
 
   // Function to remove a single notification by ID
@@ -169,8 +179,8 @@ const NotificationDropdown = () => {
   return (
     <div className="relative">
       {/* Bell Icon */}
-      <button onClick={() => setOpen(!open)} className="relative p-2 rounded-full hover:bg-gray-200">
-        <Bell className="w-7 h-8" style={{ fill: open ? "#201A23" : "none", stroke: "#201A23", strokeWidth: open ? "0" : "2" }} />
+      <button onClick={onToggle} className="relative p-2 rounded-full hover:bg-gray-200">
+        <Bell className="w-7 h-8" style={{ fill: isOpen ? "#201A23" : "none", stroke: "#201A23", strokeWidth: isOpen ? "0" : "2" }} />
         {notificationList.length > 0 && (
           <span className="absolute top-0 right-0 h-4 w-4 text-xs bg-[#6A0DAD] opacity-75 text-white rounded-full flex items-center justify-center">
             {notificationList.length}
@@ -179,7 +189,7 @@ const NotificationDropdown = () => {
       </button>
 
       {/* Notification Panel */}
-      {open && (
+      {isOpen && (
         <div className="absolute right-4 mt-1 w-96 bg-white rounded-xl overflow-hidden border border-gray-300 z-50">
           <div className="p-5 flex justify-center">
             <h2 className="text-xl font-bold text-[#201A23]">My Notifications</h2>
@@ -195,8 +205,12 @@ const NotificationDropdown = () => {
                 {error}
               </p>
             ) : notificationList.length > 0 ? (
-              notificationList.map(({ id, company, role, time, logo }) => (
-                <div key={id} className="p-4 flex items-center space-x-4 border-b border-gray-200 last:border-none">
+              notificationList.map(({ id, jobId, company, role, time, logo }) => (
+                <div
+                  key={id}
+                  className="p-4 flex items-center space-x-4 border-b border-gray-200 last:border-none hover:bg-gray-100 cursor-pointer"
+                  onClick={() => handleNotificationClick(jobId)}
+                >
                   {/* Logo/Image */}
                   <div className="w-12 h-12 flex items-center justify-center rounded-full">
                     {logo ? (
@@ -223,7 +237,13 @@ const NotificationDropdown = () => {
                   <span className="text-xs text-gray-500">{time}</span>
 
                   {/* Dismiss Button */}
-                  <button onClick={() => handleDismiss(id)} className="text-gray-500 hover:text-gray-700">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDismiss(id);
+                    }}
+                    className="text-gray-500 hover:text-gray-700"
+                  >
                     <X className="w-5 h-5" />
                   </button>
                 </div>
@@ -250,9 +270,4 @@ const NotificationDropdown = () => {
   );
 };
 
-// Usage
-const App = () => {
-  return <NotificationDropdown />;
-};
-
-export default App;
+export default NotificationDropdown;
