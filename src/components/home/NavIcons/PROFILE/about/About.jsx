@@ -1,12 +1,22 @@
 import { Pencil } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Modal from "../profile/Modal";
+import axios from "axios";
 
-function About({ userRole }) {
+function About({ userRole, initialAbout }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [aboutText, setAboutText] = useState(""); // Stores the entered text
   const [savedText, setSavedText] = useState(""); // Stores the saved text
+  const [apiError, setApiError] = useState(""); // For API errors
   const maxWords = 250;
+
+  // Initialize state with initialAbout
+  useEffect(() => {
+    if (initialAbout !== null) {
+      setAboutText(initialAbout);
+      setSavedText(initialAbout);
+    }
+  }, [initialAbout]);
 
   // Function to count words
   const countWords = (text) => {
@@ -18,13 +28,54 @@ function About({ userRole }) {
     const words = countWords(e.target.value);
     if (words <= maxWords) {
       setAboutText(e.target.value);
+      setApiError(""); // Clear any previous errors when typing
     }
   };
 
-  // Save function
-  const handleSave = () => {
-    setSavedText(aboutText); // Save the entered text
-    setIsModalOpen(false); // Close the modal
+  // Save function with API call
+  const handleSave = async () => {
+    // Retrieve the token and seeker_id from localStorage
+    const token = localStorage.getItem("token");
+    const seeker_id = localStorage.getItem("seeker_id");
+
+    if (!token) {
+      setApiError("Authentication token not found. Please log in again.");
+      return;
+    }
+
+    if (!seeker_id) {
+      setApiError("Seeker ID not found. Please log in again.");
+      return;
+    }
+
+    // Prepare the API request body
+    const requestBody = {
+      seeker_id: parseInt(seeker_id), // Convert to integer as API expects a number
+      about: aboutText,
+    };
+
+    try {
+      const response = await axios.post(
+        "https://wazafny.online/api/update-about",
+        requestBody,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`, // Add token to Authorization header
+          },
+        }
+      );
+      console.log("API Response:", response.data);
+
+      // On success, save the text and close the modal
+      setSavedText(aboutText);
+      setIsModalOpen(false);
+      setApiError(""); // Clear any previous errors
+    } catch (error) {
+      console.error("Error updating about:", error);
+      setApiError(
+        error.response?.data?.message || "Failed to update about. Please try again."
+      );
+    }
   };
 
   return (
@@ -44,7 +95,7 @@ function About({ userRole }) {
 
         {/* Display Saved Text or Default Message */}
         <div className="mt-8">
-          <p className={`text-[#A1A1A1] ${savedText ? 'text-left' : 'text-center'} text-sm md:text-base`}>
+          <p className={`text-[#201A23] text-justify ${savedText ? 'text-left' : 'text-center'} text-sm md:text-base`}>
             {savedText || "Mention your years of experience, industry, key skills, achievements, and past work experiences."}
           </p>
         </div>
@@ -69,6 +120,13 @@ function About({ userRole }) {
                 ✖
               </button>
             </div>
+
+            {/* API Error Message */}
+            {apiError && (
+              <div className="mb-4 p-2 bg-red-100 text-red-700 rounded-md">
+                {apiError}
+              </div>
+            )}
 
             {/* Instructions */}
             <p className="text-[#A1A1A1] text-center text-sm md:text-base">

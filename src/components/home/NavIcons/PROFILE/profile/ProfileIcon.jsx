@@ -1,14 +1,127 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { User, LogOut } from "lucide-react";
-import { Link } from "react-router-dom";
-import profile from "../../../../../assets/cow.png";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
 
-const UserProfileDropdown = ({ userName = "Guest", profilePhoto }) => {
+const UserProfileDropdown = () => {
   const [open, setOpen] = useState(false);
+  const [userData, setUserData] = useState({ userName: "Guest", profilePhoto: null });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const navigate = useNavigate();
+
+  // Retrieve seeker_id, user_id, and token from localStorage
+  const seekerId = localStorage.getItem("seeker_id");
+  const userId = localStorage.getItem("user_id");
+  const token = localStorage.getItem("token");
+
+  // Fetch user personal info from API
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      if (!seekerId || !token) {
+        setError("Missing seeker ID or token. Please log in again.");
+        setLoading(false);
+        setTimeout(() => navigate("/Login"), 2000);
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const response = await axios.get(
+          `https://wazafny.online/api/show-personal-info/${seekerId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        console.log("Personal Info API Response:", response.data);
+
+        if (response.data && response.data.seeker_id) {
+          const { first_name, last_name, profile_img } = response.data;
+          setUserData({
+            userName: `${first_name} ${last_name}`.trim() || "Guest",
+            profilePhoto: profile_img || null,
+          });
+        } else {
+          setUserData({ userName: "Guest", profilePhoto: null });
+        }
+      } catch (err) {
+        console.error("Error fetching personal info:", err);
+        if (err.response?.status === 401) {
+          setError("Unauthorized. Please log in again.");
+          setTimeout(() => navigate("/Login"), 2000);
+        } else if (err.response?.status === 404) {
+          setError("User information not found.");
+        } else if (err.response?.status === 500) {
+          setError("Server error. Please try again later.");
+        } else {
+          setError("Failed to load user information. Please try again later.");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserInfo();
+  }, [seekerId, token, navigate]);
+
+  // Handle logout functionality
+  const handleLogout = async () => {
+    if (!userId || !token) {
+      setError("Missing user ID or token. Please log in again.");
+      setTimeout(() => navigate("/Login"), 2000);
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+        "https://wazafny.online/api/logout",
+        { user_id: userId },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      console.log("Logout API Response:", response.data);
+
+      // Clear localStorage
+      localStorage.removeItem("seeker_id");
+      localStorage.removeItem("user_id");
+      localStorage.removeItem("token");
+      localStorage.removeItem("Role");
+
+      // Redirect to login page
+      navigate("/Login");
+    } catch (err) {
+      console.error("Error logging out:", err);
+      if (err.response?.status === 401) {
+        setError("Unauthorized. Please log in again.");
+      } else if (err.response?.status === 400) {
+        setError("Invalid request. Please try again.");
+      } else if (err.response?.status === 500) {
+        setError("Server error. Please try again later.");
+      } else {
+        setError("Failed to log out. Please try again later.");
+      }
+
+      // Clear localStorage and redirect even if the API fails (to ensure logout on client-side)
+      localStorage.removeItem("seeker_id");
+      localStorage.removeItem("user_id");
+      localStorage.removeItem("token");
+      localStorage.removeItem("Role");
+      navigate("/Login");
+    }
+  };
 
   // Ensure userName is a string and provide a fallback
-  const safeUserName = typeof userName === "string" ? userName : "Guest";
+  const safeUserName = typeof userData.userName === "string" ? userData.userName : "Guest";
   const nameParts = safeUserName.split(" ").slice(0, 2).join(" ");
   const initials = safeUserName
     .split(" ")
@@ -16,6 +129,25 @@ const UserProfileDropdown = ({ userName = "Guest", profilePhoto }) => {
     .join("")
     .slice(0, 2)
     .toUpperCase();
+
+  // Use fallback profile image if none is provided
+  const profilePhoto = userData.profilePhoto;
+
+  if (loading) {
+    return (
+      <div className="relative w-10 h-10 flex items-center justify-center rounded-full bg-black text-white text-lg font-bold">
+        Loading...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="relative w-10 h-10 flex items-center justify-center rounded-full bg-black text-white text-lg font-bold">
+        Error
+      </div>
+    );
+  }
 
   return (
     <div className="relative">
@@ -54,12 +186,13 @@ const UserProfileDropdown = ({ userName = "Guest", profilePhoto }) => {
               </button>
             </Link>
 
-            <Link to="/">
-              <button className="flex items-center w-full px-4 py-3 text-left text-[#201A23] hover:bg-red-100">
-                <LogOut className="w-5 h-5 mr-3" />
-                Logout
-              </button>
-            </Link>
+            <button
+              onClick={handleLogout}
+              className="flex items-center w-full px-4 py-3 text-left text-[#201A23] hover:bg-red-100"
+            >
+              <LogOut className="w-5 h-5 mr-3" />
+              Logout
+            </button>
           </div>
         </div>
       )}

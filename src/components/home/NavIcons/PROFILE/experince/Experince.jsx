@@ -1,16 +1,19 @@
 import { Pencil, Plus, Trash } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Modal from "../profile/Modal";
 import { InputField, SelectField } from "../profile/my-component";
 import Logo from "../../../../../assets/companyExpLogo.png";
+import axios from "axios";
 
-function Experience({ userRole }) {
+function Experience({ userRole, initialExperiences }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isModalAddOpen, setIsModalAddOpen] = useState(false);
   const [experienceList, setExperienceList] = useState([]); // Store experiences
   const [editingIndex, setEditingIndex] = useState(null);
+  const [apiError, setApiError] = useState(""); // For API errors
 
   const [formInputs, setFormInputs] = useState({
+    experience_id: null,
     Title: "",
     EmploymentType: "",
     Company: "",
@@ -18,6 +21,7 @@ function Experience({ userRole }) {
     EndDate: { Month: "", Year: "" },
     WorkingRole: false,
   });
+
   const Month = [
     "Month",
     "January",
@@ -44,9 +48,71 @@ function Experience({ userRole }) {
     "2020",
     "2019",
     "2018",
+    "2017",
+    "2016",
+    "2015",
+    "2014",
+    "2013",
+    "2012",
+    "2011",
+    "2010",
+    "2009",
+    "2008",
+    "2007",
+    "2006",
+    "2005",
+    "2004",
+    "2003",
+    "2002",
+    "2001",
+    "2000",
   ];
 
-  const handleSave = (e) => {
+  // Transform API data into the format expected by the component
+  useEffect(() => {
+    if (initialExperiences && initialExperiences.length > 0) {
+      const transformedExperiences = initialExperiences.map((exp) => {
+        const [startMonth, startYear] = exp.start_date.split(" ");
+        const isWorkingRole = exp.end_date === "Present";
+        let endMonth = "";
+        let endYear = "";
+        if (!isWorkingRole) {
+          [endMonth, endYear] = exp.end_date.split(" ");
+        }
+
+        return {
+          experience_id: exp.experience_id,
+          Title: exp.job_title,
+          EmploymentType: exp.job_time,
+          Company: exp.company,
+          StartDate: {
+            Month: Month.find((m) => m.startsWith(startMonth)) || startMonth,
+            Year: startYear,
+          },
+          EndDate: {
+            Month: isWorkingRole ? "" : Month.find((m) => m.startsWith(endMonth)) || endMonth,
+            Year: isWorkingRole ? "" : endYear,
+          },
+          WorkingRole: isWorkingRole,
+        };
+      });
+      setExperienceList(transformedExperiences);
+    }
+  }, [initialExperiences]);
+
+
+
+
+
+
+
+
+
+
+
+
+
+  const handleSave = async (e) => {
     e.preventDefault();
 
     // Validate required fields
@@ -56,49 +122,236 @@ function Experience({ userRole }) {
       !formInputs.StartDate.Month ||
       !formInputs.StartDate.Year
     ) {
+      setApiError("Please fill in all required fields.");
       return;
     }
 
-    if (editingIndex !== null) {
-      // Editing an existing experience
-      const updatedExperiences = [...experienceList];
-      updatedExperiences[editingIndex] = formInputs;
-      setExperienceList(updatedExperiences);
-      setEditingIndex(null);
-    } else {
-      // Adding a new experience
-      setExperienceList([...experienceList, formInputs]);
+    const token = localStorage.getItem("token");
+    const seeker_id = localStorage.getItem("seeker_id");
+
+    if (!token) {
+      setApiError("Authentication token not found. Please log in again.");
+      return;
     }
 
-    // Close the modal after saving
-    setIsModalOpen(false);
-    setIsModalAddOpen(false);
+    if (!seeker_id) {
+      setApiError("Seeker ID not found. Please log in again.");
+      return;
+    }
 
-    // Reset form fields
-    setFormInputs({
-      Title: "",
-      EmploymentType: "",
-      Company: "",
-      StartDate: { Month: "", Year: "" },
-      EndDate: { Month: "", Year: "" },
-      WorkingRole: false,
-    });
+    // Format dates as "MMM YYYY" (e.g., "Feb 2012")
+    const startDate = `${formInputs.StartDate.Month.slice(0, 3)} ${formInputs.StartDate.Year}`;
+    const endDate = formInputs.WorkingRole
+      ? "Present"
+      : `${formInputs.EndDate.Month.slice(0, 3)} ${formInputs.EndDate.Year}`;
+
+    // Prepare data for API
+    const experienceData = {
+      seeker_id: parseInt(seeker_id),
+      company: formInputs.Company,
+      job_title: formInputs.Title,
+      job_time: formInputs.EmploymentType,
+      start_date: startDate,
+      end_date: endDate,
+    };
+
+    try {
+      const response = await axios.post(
+        "https://wazafny.online/api/create-experience",
+        experienceData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      console.log("Create Experience API Response:", response.data);
+
+      // Assuming the API returns the created experience with an experience_id
+      const newExperience = {
+        ...formInputs,
+        experience_id: response.data.experience_id || Date.now(), // Fallback to timestamp if no ID is returned
+      };
+
+      // Add the new experience to the list
+      setExperienceList([...experienceList, newExperience]);
+
+      // Close the modal after saving
+      setIsModalOpen(false);
+      setIsModalAddOpen(false);
+
+      // Reset form fields
+      setFormInputs({
+        experience_id: null,
+        Title: "",
+        EmploymentType: "",
+        Company: "",
+        StartDate: { Month: "", Year: "" },
+        EndDate: { Month: "", Year: "" },
+        WorkingRole: false,
+      });
+      setApiError(""); // Clear any previous errors
+    } catch (error) {
+      console.error("Error creating experience:", error);
+      setApiError(
+        error.response?.data?.message ||
+          "Failed to create experience. Please try again."
+      );
+    }
+  };
+
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+
+    // Validate required fields
+    if (
+      !formInputs.Title ||
+      !formInputs.Company ||
+      !formInputs.StartDate.Month ||
+      !formInputs.StartDate.Year
+    ) {
+      setApiError("Please fill in all required fields.");
+      return;
+    }
+
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      setApiError("Authentication token not found. Please log in again.");
+      return;
+    }
+
+    if (!formInputs.experience_id) {
+      setApiError("Experience ID not found. Cannot update experience.");
+      return;
+    }
+
+    // Format dates as "MMM YYYY" (e.g., "Feb 2012")
+    const startDate = `${formInputs.StartDate.Month.slice(0, 3)} ${formInputs.StartDate.Year}`;
+    const endDate = formInputs.WorkingRole
+      ? "Present"
+      : `${formInputs.EndDate.Month.slice(0, 3)} ${formInputs.EndDate.Year}`;
+
+    // Prepare data for API
+    const experienceData = {
+      company: formInputs.Company,
+      job_title: formInputs.Title,
+      job_time: formInputs.EmploymentType,
+      start_date: startDate,
+      end_date: endDate,
+    };
+
+    try {
+      const response = await axios.put(
+        `https://wazafny.online/api/update-experience/${formInputs.experience_id}`,
+        experienceData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      console.log("Update Experience API Response:", response.data);
+
+      // Update the local experience list
+      const updatedExperiences = [...experienceList];
+      updatedExperiences[editingIndex] = {
+        ...formInputs,
+        StartDate: {
+          Month: formInputs.StartDate.Month,
+          Year: formInputs.StartDate.Year,
+        },
+        EndDate: {
+          Month: formInputs.WorkingRole ? "" : formInputs.EndDate.Month,
+          Year: formInputs.WorkingRole ? "" : formInputs.EndDate.Year,
+        },
+        WorkingRole: formInputs.WorkingRole,
+      };
+      setExperienceList(updatedExperiences);
+
+      // Close the modal after updating
+      setIsModalOpen(false);
+      setIsModalAddOpen(false);
+      setEditingIndex(null);
+
+      // Reset form fields
+      setFormInputs({
+        experience_id: null,
+        Title: "",
+        EmploymentType: "",
+        Company: "",
+        StartDate: { Month: "", Year: "" },
+        EndDate: { Month: "", Year: "" },
+        WorkingRole: false,
+      });
+      setApiError(""); // Clear any previous errors
+    } catch (error) {
+      console.error("Error updating experience:", error);
+      setApiError(
+        error.response?.data?.message ||
+          "Failed to update experience. Please try again."
+      );
+    }
   };
 
   const handleEdit = (index) => {
     const experienceToEdit = experienceList[index];
-    setFormInputs(experienceToEdit);
+    setFormInputs({
+      ...experienceToEdit,
+      experience_id: experienceToEdit.experience_id,
+    });
     setEditingIndex(index);
     setIsModalAddOpen(true);
     setIsModalOpen(false);
   };
 
-  const handleDelete = (index) => {
-    setExperienceList(experienceList.filter((_, i) => i !== index));
+  const handleDelete = async (index) => {
+    const experienceToDelete = experienceList[index];
+    const experienceId = experienceToDelete.experience_id;
+
+    if (!experienceId) {
+      setApiError("Experience ID not found. Cannot delete experience.");
+      return;
+    }
+
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      setApiError("Authentication token not found. Please log in again.");
+      return;
+    }
+
+    try {
+      const response = await axios.delete(
+        `https://wazafny.online/api/delete-experience/${experienceId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      console.log("Delete Experience API Response:", response.data);
+
+      // Remove the experience from the local list
+      setExperienceList(experienceList.filter((_, i) => i !== index));
+      setApiError(""); // Clear any previous errors
+    } catch (error) {
+      console.error("Error deleting experience:", error);
+      setApiError(
+        error.response?.data?.message ||
+          "Failed to delete experience. Please try again."
+      );
+    }
   };
 
   return (
-    <div className="max-h-[80vh] sm:max-h-[80vh] md:max-h-[80vh] lg:max-h-[80vh] xl:max-h-[80vh] 2xl:max-h-[80vh] 3xl:max-h-[80vh] 4xl:max-h-[80vh] ">
+    <div className="max-h-[80vh] sm:max-h-[80vh] md:max-h-[80vh] lg:max-h-[80vh] xl:max-h-[80vh] 2xl:max-h-[80vh] 3xl:max-h-[80vh] 4xl:max-h-[80vh]">
       <div className="flex mt-2">
         <div className="bg-white border border-[#D9D9D9] rounded-xl w-[900px] p-6">
           {/* Header with Icon */}
@@ -130,14 +383,10 @@ function Experience({ userRole }) {
                 key={index}
                 className="text-left flex mt-4 border-t pt-4 gap-4"
               >
-                <img src={Logo} className="w-[48px] h-[54px] mt-2.5" />
+                <img src={Logo} className="w-[48px] h-[54px] mt-2.5" alt="Company Logo" />
                 <div>
                   <h4 className="font-bold text-lg">{exp.Title}</h4>
-                  <p
-                    className="text-gray
-
--600"
-                  >
+                  <p className="text-gray-600">
                     {exp.Company} - {exp.EmploymentType}
                   </p>
                   <p className="text-[#A1A1A1]">
@@ -161,7 +410,7 @@ function Experience({ userRole }) {
           <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
             <form
               className="bg-white p-6 rounded-lg shadow-lg w-[700px] text-left relative overflow-y-auto max-h-[80vh] sm:max-h-[80vh] md:max-h-[80vh] lg:max-h-[80vh] xl:max-h-[80vh] 2xl:max-h-[80vh] 3xl:max-h-[80vh] 4xl:max-h-[80vh]"
-              onSubmit={() => setIsModalOpen(false)}
+              onSubmit={editingIndex !== null ? handleUpdate : () => setIsModalOpen(false)}
             >
               <div className="flex justify-between items-center mb-3 relative">
                 <h2 className="text-xl font-bold">Experience</h2>
@@ -184,7 +433,7 @@ function Experience({ userRole }) {
                       className="flex mt-4 border-t pt-4 gap-4 justify-between items-center"
                     >
                       <div className="flex gap-4">
-                        <img src={Logo} className="w-[48px] h-[54px] mt-2.5" />
+                        <img src={Logo} className="w-[48px] h-[54px] mt-2.5" alt="Company Logo" />
                         <div>
                           <h4 className="font-bold text-lg">{exp.Title}</h4>
                           <p className="text-gray-600">
@@ -236,20 +485,22 @@ function Experience({ userRole }) {
           </div>
         </Modal>
 
-        {/* Modal for Add Experience */}
+        {/* Modal for Add/Edit Experience */}
         <Modal
           isOpen={isModalAddOpen}
           onClose={() => setIsModalAddOpen(false)}
-          title="Edit Experience"
+          title={editingIndex !== null ? "Edit Experience" : "Add Experience"}
         >
           <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
             <form
               className="bg-white p-6 rounded-lg shadow-lg w-[700px] text-left relative overflow-y-auto max-h-[95vh]"
-              onSubmit={handleSave}
+              onSubmit={editingIndex !== null ? handleUpdate : handleSave}
             >
               {/* Header */}
               <div className="flex justify-between items-center mb-3">
-                <h2 className="text-xl font-bold">Experience</h2>
+                <h2 className="text-xl font-bold">
+                  {editingIndex !== null ? "Edit Experience" : "Add Experience"}
+                </h2>
                 <button
                   className="text-gray-500 hover:text-black"
                   onClick={() => setIsModalAddOpen(false)}
@@ -259,9 +510,17 @@ function Experience({ userRole }) {
               </div>
 
               <p className="text-[#A1A1A1] mb-3">
-                Add your work experience, including job roles and
-                responsibilities, here.
+                {editingIndex !== null
+                  ? "Edit your work experience here."
+                  : "Add your work experience, including job roles and responsibilities, here."}
               </p>
+
+              {/* Error Message */}
+              {apiError && (
+                <div className="mb-4 p-2 bg-red-100 text-red-700 rounded-md">
+                  {apiError}
+                </div>
+              )}
 
               {/* Title */}
               <InputField
@@ -286,12 +545,7 @@ function Experience({ userRole }) {
                     EmploymentType: e.target.value,
                   })
                 }
-                options={[
-                  "Full-time",
-                  "Part-time",
-                  
-                  "Remote",
-                ]}
+                options={["Select Field", "Full-time", "Part-time"]}
                 required
                 className="w-full mb-4"
               />

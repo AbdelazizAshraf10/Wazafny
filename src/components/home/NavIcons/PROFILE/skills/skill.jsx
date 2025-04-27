@@ -1,21 +1,95 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Pencil, Plus, X } from "lucide-react";
 import Modal from "../profile/Modal";
 import Search from "../../../../../assets/searchhh.png";
 
-function Skill({ userRole }) {
+function Skill({ userRole, initialSkills }) {
   const [isModalOpen, setIsModalOpen] = useState(false); // State for editing skills
   const [isModalAddOpen, setIsModalAddOpen] = useState(false); // State for adding skills
-  const [skills, setSkills] = useState([]); // State to store the list of skills
+  const [skills, setSkills] = useState(
+    initialSkills && Array.isArray(initialSkills)
+      ? initialSkills.map((skillObj) => skillObj.skill || "")
+      : []
+  ); // Initialize with skill names as strings
+  const [originalSkills, setOriginalSkills] = useState(
+    initialSkills && Array.isArray(initialSkills) ? initialSkills : []
+  ); // Store original skills with IDs
   const [searchTerm, setSearchTerm] = useState(""); // State for the search input in the "Add Skill" modal
   const [editSearchTerm, setEditSearchTerm] = useState(""); // State for the search input in the "Edit Skills" modal
   const [editingSkillIndex, setEditingSkillIndex] = useState(null); // Index of the skill being edited
+  const [apiSkills, setApiSkills] = useState([]); // State to store API-fetched skills
+  const [isLoading, setIsLoading] = useState(false); // State for loading status
+  const [error, setError] = useState(null); // State for error handling
+
+  // Function to fetch skills from the API (used only in "Add Skill" modal)
+  const fetchSkills = async (query) => {
+    if (!query.trim()) {
+      setApiSkills([]);
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const token = localStorage.getItem("token"); // Retrieve token from localStorage
+      if (!token) {
+        throw new Error("Authentication token is missing. Please log in again.");
+      }
+
+      const response = await fetch(`https://wazafny.online/api/skill-search?q=${encodeURIComponent(query)}`, {
+        headers: {
+          Authorization: `Bearer ${token}`, // Include token in Authorization header
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        if (response.status === 401 || response.status === 403) {
+          throw new Error("Authentication failed. Please log in again.");
+        }
+        throw new Error(`Failed to fetch skills: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log("Skill Search API Response:", data); // Log the response to debug
+
+      // Handle different possible response structures
+      let skillsData = [];
+      if (Array.isArray(data)) {
+        skillsData = data; // Direct array
+      } else if (data.skills && Array.isArray(data.skills)) {
+        skillsData = data.skills; // Object with skills array
+      } else if (data.data && Array.isArray(data.data)) {
+        skillsData = data.data; // Object with data array (common in some APIs)
+      } else {
+        throw new Error("Unexpected API response format");
+      }
+
+      setApiSkills(skillsData);
+    } catch (err) {
+      console.error("Error in fetchSkills:", err.message);
+      setError(err.message || "Error fetching skills. Please try again.");
+      setApiSkills([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Debounced API call when search term changes (only for "Add Skill" modal)
+  useEffect(() => {
+    const debounce = setTimeout(() => {
+      fetchSkills(searchTerm);
+    }, 300); // 300ms debounce to avoid excessive API calls
+    return () => clearTimeout(debounce);
+  }, [searchTerm]);
 
   // Function to handle adding a new skill
-  const handleAddSkill = () => {
-    if (searchTerm.trim() !== "" && searchTerm.trim().length <= 50) {
-      setSkills((prevSkills) => [...prevSkills, searchTerm.trim()]);
+  const handleAddSkill = (skill = searchTerm) => {
+    if (skill.trim() !== "" && skill.trim().length <= 50) {
+      setSkills((prevSkills) => [...prevSkills, skill.trim()]);
       setSearchTerm(""); // Clear the search bar after adding
+      setApiSkills([]); // Clear suggestions
     }
   };
 
@@ -27,10 +101,69 @@ function Skill({ userRole }) {
     setEditingSkillIndex(null); // Exit edit mode
   };
 
-  // Function to handle deleting a skill
+  // Function to handle deleting a skill locally
   const handleDeleteSkill = (index) => {
     const updatedSkills = skills.filter((_, i) => i !== index);
     setSkills(updatedSkills);
+  };
+
+  // Function to delete skills via API when "Save" is clicked
+  const handleSaveSkills = async () => {
+    const seekerId = localStorage.getItem("seeker_id");
+    const token = localStorage.getItem("token");
+
+    if (!seekerId || !token) {
+      setError("Missing seeker ID or token. Please log in again.");
+      return;
+    }
+
+    // Identify deleted skills by comparing originalSkills with current skills
+    const deletedSkills = originalSkills.filter(
+      (originalSkill) => !skills.includes(originalSkill.skill)
+    );
+
+    // Make DELETE API calls for each deleted skill
+    for (const deletedSkill of deletedSkills) {
+      try {
+        const response = await fetch(
+          `https://wazafny.online/api/delete-skill/${seekerId}/${deletedSkill.skill_id}`,
+          {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (!response.ok) {
+          if (response.status === 401 || response.status === 403) {
+            throw new Error("Authentication failed. Please log in again.");
+          }
+          throw new Error(`Failed to delete skill: ${response.status} ${response.statusText}`);
+        }
+
+        console.log(`Skill ${deletedSkill.skill} deleted successfully`);
+      } catch (err) {
+        console.error("Error deleting skill:", err.message);
+        setError(err.message || "Error deleting skill. Please try again.");
+        return; // Stop if there's an error
+      }
+    }
+
+    // Update originalSkills to match the current skills state
+    setOriginalSkills(
+      skills.map((skill) => {
+        const existingSkill = originalSkills.find((os) => os.skill === skill);
+        return existingSkill || { skill }; // Keep skill_id if it exists, otherwise just the skill name
+      })
+    );
+
+    // Close the modal and reset states
+    setIsModalOpen(false);
+    setEditSearchTerm("");
+    setApiSkills([]);
+    setError(null);
   };
 
   // Filter skills based on the search term in the "Edit Skills" modal
@@ -100,38 +233,47 @@ function Skill({ userRole }) {
         {/* Modal for Adding New Skill */}
         <Modal
           isOpen={isModalAddOpen}
-          onClose={() => setIsModalAddOpen(false)}
+          onClose={() => {
+            setIsModalAddOpen(false);
+            setSearchTerm("");
+            setApiSkills([]);
+            setError(null);
+          }}
           title={"Add New Skill"}
         >
-          {/* Added extra padding and margin for better spacing */}
           <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
             <div className="bg-white p-6 md:p-8 rounded-lg shadow-lg w-full max-w-[819px] max-h-[70vh] overflow-y-auto relative">
-              {/* Header with spacing adjustments */}
+              {/* Header */}
               <div className="flex justify-between mb-4 md:mb-6">
                 <h2 className="text-lg md:text-xl font-bold text-[#201A23]">
                   Add Skill
                 </h2>
                 <button
                   className="text-gray-500 hover:text-black text-lg scale-150"
-                  onClick={() => setIsModalAddOpen(false)}
+                  onClick={() => {
+                    setIsModalAddOpen(false);
+                    setSearchTerm("");
+                    setApiSkills([]);
+                    setError(null);
+                  }}
                 >
                   ✖
                 </button>
               </div>
 
-              {/* Search Bar with increased spacing */}
+              {/* Instructions */}
               <p className="text-[#A1A1A1] text-center mb-4 md:mb-6 text-sm md:text-base">
                 Search for a skill or type a new one and press{" "}
                 <span className="font-bold text-[#201A23]">Enter</span> to add.
               </p>
+
+              {/* Search Bar */}
               <div className="relative flex items-center w-full border border-gray-300 rounded-full overflow-hidden">
-                {/* Search Icon */}
                 <img
                   src={Search}
                   alt="Search Icon"
                   className="w-5 h-5 md:w-6 md:h-6 absolute left-4 top-1/2 transform -translate-y-1/2 pointer-events-none text-gray-400"
                 />
-                {/* Input Field */}
                 <input
                   autoFocus
                   type="text"
@@ -147,6 +289,25 @@ function Skill({ userRole }) {
                 />
               </div>
 
+              {/* API Suggestions */}
+              <div className="mt-2">
+                {isLoading && <p className="text-gray-500 text-sm">Loading...</p>}
+                {error && <p className="text-red-500 text-sm">{error}</p>}
+                {apiSkills.length > 0 && (
+                  <ul className="border border-gray-300 rounded-lg max-h-[150px] overflow-y-auto bg-white">
+                    {apiSkills.map((skillObj) => (
+                      <li
+                        key={skillObj.skill_id} // Use skill_id as the unique key
+                        className="px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer"
+                        onClick={() => handleAddSkill(skillObj.skill)} // Pass only the skill string
+                      >
+                        {skillObj.skill} {/* Render the skill string */}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
               {/* Displaying the list of skills in the modal */}
               <div className="mt-4 md:mt-6">
                 {skills.length > 0 && (
@@ -159,7 +320,7 @@ function Skill({ userRole }) {
                         <span>{skill}</span>
                         <X
                           className="w-4 h-4 md:w-5 md:h-5 text-[#A1A1A1] hover:text-red-500 cursor-pointer"
-                          onClick={() => handleDeleteSkill(index)} // Delete skill
+                          onClick={() => handleDeleteSkill(index)}
                         />
                       </div>
                     ))}
@@ -173,20 +334,29 @@ function Skill({ userRole }) {
         {/* Modal for Editing Skills */}
         <Modal
           isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
+          onClose={() => {
+            setIsModalOpen(false);
+            setEditSearchTerm("");
+            setApiSkills([]);
+            setError(null);
+          }}
           title={"Edit Skills"}
         >
-          {/* Added extra padding and margin for better spacing */}
           <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
             <div className="bg-white p-6 md:p-8 rounded-lg shadow-lg w-full max-w-[750px] max-h-[90vh] overflow-y-auto relative">
-              {/* Header with spacing adjustments */}
+              {/* Header */}
               <div className="flex justify-between items-center mb-2 md:mb-2">
                 <h2 className="text-lg md:text-xl font-bold text-[#201A23]">
                   Edit Skills
                 </h2>
                 <button
                   className="text-gray-500 hover:text-black text-lg"
-                  onClick={() => setIsModalOpen(false)}
+                  onClick={() => {
+                    setIsModalOpen(false);
+                    setEditSearchTerm("");
+                    setApiSkills([]);
+                    setError(null);
+                  }}
                 >
                   <X className="w-5 h-5 md:w-6 md:h-6 scale-150" />
                 </button>
@@ -195,15 +365,13 @@ function Skill({ userRole }) {
                 List your key skills and expertise here.
               </p>
 
-              {/* Search Bar for Filtering Skills with increased spacing */}
+              {/* Search Bar for Filtering Skills */}
               <div className="relative flex items-center w-full border border-[#81828E] rounded-md mb-5 overflow-hidden">
-                {/* Search Icon */}
                 <img
                   src={Search}
                   alt="Search Icon"
                   className="w-5 h-5 absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"
                 />
-                {/* Input Field */}
                 <input
                   type="text"
                   value={editSearchTerm}
@@ -213,8 +381,13 @@ function Skill({ userRole }) {
                 />
               </div>
 
-              {/* Editable Skills List with better styling */}
-              <div className="border border-gray-900 rounded-lg p-4 min-h-[100px] flex flex-wrap items-start gap-2">
+              {/* No API Suggestions in Edit Skills Modal */}
+              <div className="mt-2">
+                {error && <p className="text-red-500 text-sm">{error}</p>}
+              </div>
+
+              {/* Editable Skills List */}
+              <div className="border border-gray-900 rounded-lg p-4 min-h-[100px] flex flex-wrap items-start gap-2 mt-4">
                 {filteredSkills.length > 0 ? (
                   filteredSkills.map((skill, index) => (
                     <div
@@ -227,12 +400,7 @@ function Skill({ userRole }) {
                         width: "fit-content",
                       }}
                     >
-                      <input
-                        type="text"
-                        value={skill}
-                        onChange={(e) => handleEditSkill(index, e.target.value)}
-                        className="border-none outline-none bg-transparent text-white px-1 text-xs md:text-sm"
-                      />
+                      <span>{skill}</span>
                       <X
                         className="w-3 h-3 ml-1 text-white hover:text-red-400 cursor-pointer"
                         onClick={() => handleDeleteSkill(index)}
@@ -246,11 +414,11 @@ function Skill({ userRole }) {
                 )}
               </div>
 
-              {/* Save Button with increased spacing */}
+              {/* Save Button */}
               <div className="flex justify-end mt-4 md:mt-8">
                 <button
                   className="bg-black text-white px-4 md:px-9 py-2 md:py-2 font-bold rounded-lg hover:bg-gray-800 shadow-md text-sm md:text-base"
-                  onClick={() => setIsModalOpen(false)}
+                  onClick={handleSaveSkills} // Call the new function to handle deletions
                 >
                   Save
                 </button>

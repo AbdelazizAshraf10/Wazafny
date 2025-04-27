@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom"; // Replace useLocation with useParams
 import axios from "axios";
 import { motion } from "framer-motion";
 import profile from "../../../assets/seeker/profile-banner.png";
@@ -7,35 +7,31 @@ import vod from "../../../assets/seeker/vod.png";
 import email from "../../../assets/seeker/email.svg";
 import CompanyAbout from "./CompanyAbout";
 import CompanyPost from "./CompanyPost";
-import { Navigate } from "react-router-dom";
 
 function CompanyOverview() {
   const [activeTab, setActiveTab] = useState("overview");
   const [companyData, setCompanyData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const location = useLocation();
+  const { companyId } = useParams(); // Extract companyId from URL parameters
   const navigate = useNavigate();
-
-  // Retrieve companyId from location state
-  const companyId = location.state?.companyId;
 
   // Retrieve seeker_id and token from localStorage
   const seekerId = localStorage.getItem("seeker_id");
   const token = localStorage.getItem("token");
 
   // Log the extracted companyId for debugging
-  console.log("Extracted companyId from location state:", companyId);
+  console.log("Extracted companyId from URL params:", companyId);
 
   // Fetch company profile data
   useEffect(() => {
     const fetchCompanyProfile = async () => {
       // Check for missing parameters
-      if (!companyId) {
-        console.error("Company ID is undefined. Check navigation state.");
+      if (!companyId || isNaN(companyId)) {
+        console.error("Company ID is undefined or invalid:", companyId);
         setError("Missing company ID. Please select a company.");
         setLoading(false);
-        setTimeout(() => navigate("/seeker/jobs"), 2000); // Redirect to jobs page
+        setTimeout(() => navigate("/seeker/JopsPage"), 2000); // Redirect to jobs page
         return;
       }
 
@@ -48,7 +44,7 @@ function CompanyOverview() {
         );
         setError("Missing required parameters. Please log in again.");
         setLoading(false);
-        setTimeout(() => navigate("/login"), 2000); // Redirect to login page
+        setTimeout(() => navigate("/Login"), 2000); // Redirect to login page
         return;
       }
 
@@ -70,15 +66,15 @@ function CompanyOverview() {
         console.log("API Response:", response.data); // Log the entire API response
         setCompanyData(response.data);
       } catch (err) {
+        console.error("Error fetching company profile:", err);
         if (err.response?.status === 401) {
           setError("Unauthorized. Please log in again.");
-          Navigate("/LoginCompany");
+          setTimeout(() => navigate("/Login"), 2000); // Redirect to login
         } else if (err.response?.status === 404) {
-          console.log("Company profile not found.");
+          setError("Company profile not found.");
         } else if (err.response?.status === 500) {
-          console.log("Internal server Error");
+          setError("Internal server error. Please try again later.");
         } else {
-          console.error("Error fetching company profile:", err);
           setError(
             err.response?.data?.message ||
               err.message ||
@@ -144,19 +140,20 @@ function CompanyOverview() {
       }
     } catch (err) {
       console.error("Error toggling follow status:", err);
-      if (error.response?.status === 401) {
+      if (err.response?.status === 401) {
         setError("Unauthorized. Please log in again.");
-        navigate("/login");
-      } else if (error.response?.status === 404) {
-        setError("Job posts not found.");
-      } else if (error.response?.status === 500) {
+        setTimeout(() => navigate("/Login"), 2000);
+      } else if (err.response?.status === 404) {
+        setError("Company not found.");
+      } else if (err.response?.status === 500) {
         setError("Server error. Please try again later.");
+      } else {
+        setError(
+          err.response?.data?.message ||
+            err.message ||
+            "Failed to update follow status"
+        );
       }
-      setError(
-        err.response?.data?.message ||
-          err.message ||
-          "Failed to update follow status"
-      );
     }
   };
 

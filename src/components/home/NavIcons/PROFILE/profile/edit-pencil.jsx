@@ -1,14 +1,22 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Pencil } from "lucide-react";
 import Modal from "./Modal";
 import Trash from "../../../../../assets/trashPin.png";
-import { InputField } from "./my-component";
-import { SelectField } from "./my-component";
-import { InputFieldOption } from "./my-component";
+import { InputField, SelectField, InputFieldOption, CustomSelectField } from "./my-component";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
-const EditProfile = ({ onLinksChange }) => {
+const EditProfile = ({ onLinksChange, initialData }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [errors, setErrors] = useState({});
+  const [countries, setCountries] = useState([]);
+  const [cities, setCities] = useState([]);
+  const [selectedCountryCode, setSelectedCountryCode] = useState("");
+  const [loadingCountries, setLoadingCountries] = useState(false);
+  const [loadingCities, setLoadingCities] = useState(false);
+  const [cityNotFound, setCityNotFound] = useState(false);
+  const [apiError, setApiError] = useState("");
+  const navigate = useNavigate();
 
   const [FormInputs, setFormInputs] = useState({
     FirstName: "",
@@ -19,20 +27,121 @@ const EditProfile = ({ onLinksChange }) => {
     WebsiteLinks: [],
   });
 
-  // URL validation regex
+  // Initialize FormInputs with initialData when the modal opens
+  useEffect(() => {
+    if (isModalOpen && initialData) {
+      setFormInputs({
+        FirstName: initialData.first_name || "",
+        LastName: initialData.last_name || "",
+        Headline: initialData.headline || "",
+        Location: initialData.country || "",
+        City: initialData.city || "",
+        WebsiteLinks: initialData.links && initialData.links.length > 0
+          ? initialData.links.map(link => ({
+              website: link.link || "", // Use 'link' instead of 'url'
+              linkText: link.link_name || link.link || "", // Use 'link_name' instead of 'title'
+              link_id: link.link_id || null,
+            }))
+          : [],
+      });
+    }
+  }, [isModalOpen, initialData]);
+
   const urlRegex = /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w-./?%&=]*)?$/i;
 
   const validateUrl = (url) => {
     return urlRegex.test(url) && url.trim() !== "";
   };
 
+  useEffect(() => {
+    const fetchCountries = async () => {
+      setLoadingCountries(true);
+      try {
+        const response = await axios.get(
+          "http://api.geonames.org/countryInfoJSON?username=youssef797"
+        );
+        setCountries(response.data.geonames || []);
+      } catch (error) {
+        console.error("Error fetching countries:", error);
+        setErrors((prev) => ({
+          ...prev,
+          Location: "Failed to load countries. Please try again.",
+        }));
+      } finally {
+        setLoadingCountries(false);
+      }
+    };
+    fetchCountries();
+  }, []);
+
+  useEffect(() => {
+    if (FormInputs.Location && countries.length > 0) {
+      const selectedCountry = countries.find(
+        (country) => country.countryName === FormInputs.Location
+      );
+      if (selectedCountry) {
+        setSelectedCountryCode(selectedCountry.countryCode);
+        setCityNotFound(false);
+      } else {
+        setSelectedCountryCode("");
+        setCityNotFound(false);
+      }
+    } else {
+      setSelectedCountryCode("");
+      setCities([]);
+      setFormInputs((prev) => ({ ...prev, City: "" }));
+      setCityNotFound(false);
+    }
+  }, [FormInputs.Location, countries]);
+
+  useEffect(() => {
+    if (!selectedCountryCode) {
+      setCities([]);
+      setFormInputs((prev) => ({ ...prev, City: "" }));
+      return;
+    }
+
+    const fetchCities = async () => {
+      setLoadingCities(true);
+      try {
+        const response = await axios.get(
+          `http://api.geonames.org/searchJSON?country=${selectedCountryCode}&featureClass=A&featureCode=ADM1&maxRows=1000&username=Youssef797`
+        );
+        const fetchedCities = response.data.geonames || [];
+        setCities(fetchedCities);
+        console.log("Fetched cities:", fetchedCities);
+
+        if (FormInputs.City) {
+          const selectedCity = fetchedCities.find(
+            (city) => city.name === FormInputs.City
+          );
+          if (!selectedCity) {
+            setCityNotFound(true);
+            setFormInputs((prev) => ({ ...prev, City: "" }));
+          } else {
+            setCityNotFound(false);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching cities:", error);
+        setErrors((prev) => ({
+          ...prev,
+          City: "Failed to load cities. Please try again.",
+        }));
+        setCities([]);
+      } finally {
+        setLoadingCities(false);
+      }
+    };
+    fetchCities();
+  }, [selectedCountryCode, FormInputs.City]);
+
   const validateForm = () => {
     const newErrors = {};
     let isValid = true;
 
-    // Validate required fields
     if (!FormInputs.FirstName.trim()) {
-      newErrors.FirstName = "First Name is required";
+       newErrors.FirstName = "First Name is required";
       isValid = false;
     }
     if (!FormInputs.LastName.trim()) {
@@ -43,19 +152,26 @@ const EditProfile = ({ onLinksChange }) => {
       newErrors.Headline = "Headline is required";
       isValid = false;
     }
+    if (!FormInputs.Location.trim()) {
+      newErrors.Location = "Location is required";
+      isValid = false;
+    }
+    if (!FormInputs.City.trim()) {
+      newErrors.City = "City is required";
+      isValid = false;
+    }
 
-    // Validate WebsiteLinks
     FormInputs.WebsiteLinks.forEach((link, index) => {
       if (link.website && !validateUrl(link.website)) {
         newErrors[`Website-${index}`] = "Please enter a valid URL (e.g., https://example.com)";
         isValid = false;
       }
-      if (!link.website.trim()) {
-        newErrors[`Website-${index}`] = "Website URL is required";
+      if (link.website && !link.website.trim()) {
+        newErrors[`Website-${index}`] = "Website URL cannot be empty";
         isValid = false;
       }
-      if (!link.linkText.trim()) {
-        newErrors[`LinkText-${index}`] = "Link text is required";
+      if (link.linkText && !link.linkText.trim()) {
+        newErrors[`LinkText-${index}`] = "Link text cannot be empty";
         isValid = false;
       }
     });
@@ -70,15 +186,24 @@ const EditProfile = ({ onLinksChange }) => {
     );
     setFormInputs({ ...FormInputs, WebsiteLinks: updatedLinks });
 
-    // Real-time URL validation
     if (field === "website") {
       const newErrors = { ...errors };
       if (value && !validateUrl(value)) {
         newErrors[`Website-${index}`] = "Please enter a valid URL (e.g., https://example.com)";
-      } else if (!value.trim()) {
-        newErrors[`Website-${index}`] = "Website URL is required";
+      } else if (value && !value.trim()) {
+        newErrors[`Website-${index}`] = "Website URL cannot be empty";
       } else {
         delete newErrors[`Website-${index}`];
+      }
+      setErrors(newErrors);
+    }
+
+    if (field === "linkText") {
+      const newErrors = { ...errors };
+      if (value && !value.trim()) {
+        newErrors[`LinkText-${index}`] = "Link text cannot be empty";
+      } else {
+        delete newErrors[`LinkText-${index}`];
       }
       setErrors(newErrors);
     }
@@ -87,7 +212,10 @@ const EditProfile = ({ onLinksChange }) => {
   const addNewLink = () => {
     setFormInputs({
       ...FormInputs,
-      WebsiteLinks: [...FormInputs.WebsiteLinks, { website: "", linkText: "" }],
+      WebsiteLinks: [
+        ...FormInputs.WebsiteLinks,
+        { website: "", linkText: "", link_id: null },
+      ],
     });
   };
 
@@ -96,18 +224,83 @@ const EditProfile = ({ onLinksChange }) => {
       ...FormInputs,
       WebsiteLinks: FormInputs.WebsiteLinks.filter((_, i) => i !== index),
     });
-    // Clear errors for removed link
     const newErrors = { ...errors };
     delete newErrors[`Website-${index}`];
     delete newErrors[`LinkText-${index}`];
     setErrors(newErrors);
   };
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
-    if (validateForm()) {
-      onLinksChange(FormInputs.WebsiteLinks);
+    if (!validateForm()) return;
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setApiError("Authentication token not found. Please log in again.");
+      return;
+    }
+
+    const seeker_id = localStorage.getItem("seeker_id");
+    if (!seeker_id) {
+      setApiError("Seeker ID not found. Please log in again.");
+      return;
+    }
+
+    const requestBody = {
+      seeker_id: parseInt(seeker_id),
+      first_name: FormInputs.FirstName,
+      last_name: FormInputs.LastName,
+      headline: FormInputs.Headline,
+      country: FormInputs.Location,
+      city: FormInputs.City,
+      links: FormInputs.WebsiteLinks
+        .filter(link => link.website.trim() && link.linkText.trim()) // Only include non-empty links
+        .map((link) => ({
+          link_id: link.link_id,
+          link_name: link.linkText,
+          link: link.website,
+        })),
+    };
+
+    try {
+      const response = await axios.post(
+        "https://wazafny.online/api/update-personal-info",
+        requestBody,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log("API Response:", response.data);
+
+      // Notify parent component of updated links
+      const updatedLinks = FormInputs.WebsiteLinks
+        .filter(link => link.website.trim() && link.linkText.trim())
+        .map(link => ({
+          website: link.website,
+          linkText: link.linkText,
+          link_id: link.link_id,
+        }));
+      onLinksChange(updatedLinks);
       setIsModalOpen(false);
+      setApiError("");
+    } catch (error) {
+      console.error("Error updating personal info:", error);
+      if (error.response?.status === 401) {
+        setApiError("Unauthorized. Please log in again.");
+        setTimeout(() => navigate("/Login"), 2000);
+      } else if (error.response?.status === 404) {
+        setApiError("Resource not found.");
+      } else if (error.response?.status === 500) {
+        setApiError("Server error. Please try again later.");
+      } else if (error.response?.status === 422) {
+        setApiError("Validation error. Please check your inputs.");
+      } else {
+        setApiError(
+          error.response?.data?.message || "Failed to update personal info. Please try again."
+        );
+      }
     }
   };
 
@@ -138,13 +331,22 @@ const EditProfile = ({ onLinksChange }) => {
               </button>
             </div>
 
+            {apiError && (
+              <div className="mb-4 p-2 bg-red-100 text-red-700 rounded-md">
+                {apiError}
+              </div>
+            )}
+
             <InputField
               label="First Name"
               name="FirstName"
               value={FormInputs.FirstName}
               onChange={(e) => {
                 setFormInputs({ ...FormInputs, FirstName: e.target.value });
-                setErrors({ ...errors, FirstName: e.target.value.trim() ? "" : "First Name is required" });
+                setErrors({
+                  ...errors,
+                  FirstName: e.target.value.trim() ? "" : "First Name is required",
+                });
               }}
               placeholder="First name"
               required
@@ -157,7 +359,10 @@ const EditProfile = ({ onLinksChange }) => {
               value={FormInputs.LastName}
               onChange={(e) => {
                 setFormInputs({ ...FormInputs, LastName: e.target.value });
-                setErrors({ ...errors, LastName: e.target.value.trim() ? "" : "Last Name is required" });
+                setErrors({
+                  ...errors,
+                  LastName: e.target.value.trim() ? "" : "Last Name is required",
+                });
               }}
               placeholder="Last name"
               required
@@ -170,7 +375,10 @@ const EditProfile = ({ onLinksChange }) => {
               value={FormInputs.Headline}
               onChange={(e) => {
                 setFormInputs({ ...FormInputs, Headline: e.target.value });
-                setErrors({ ...errors, Headline: e.target.value.trim() ? "" : "Headline is required" });
+                setErrors({
+                  ...errors,
+                  Headline: e.target.value.trim() ? "" : "Headline is required",
+                });
               }}
               placeholder="Headline"
               required
@@ -178,23 +386,53 @@ const EditProfile = ({ onLinksChange }) => {
             />
 
             <div className="flex gap-4 mb-4">
-              <SelectField
+              <CustomSelectField
                 label="Location"
                 name="Location"
                 value={FormInputs.Location}
-                onChange={(e) =>
-                  setFormInputs({ ...FormInputs, Location: e.target.value })
+                onChange={(e) => {
+                  setFormInputs({
+                    ...FormInputs,
+                    Location: e.target.value,
+                    City: "",
+                  });
+                  setErrors({
+                    ...errors,
+                    Location: e.target.value.trim() ? "" : "Location is required",
+                    City: "",
+                  });
+                }}
+                options={
+                  loadingCountries
+                    ? ["Loading..."]
+                    : ["Select Country", ...countries.map((c) => c.countryName)]
                 }
-                options={["Country", "Egypt", "KSA", "UAE"]}
+                disabled={loadingCountries}
+                required
+                error={errors.Location}
               />
-              <SelectField
+              <CustomSelectField
                 label="City"
                 name="City"
                 value={FormInputs.City}
-                onChange={(e) =>
-                  setFormInputs({ ...FormInputs, City: e.target.value })
+                onChange={(e) => {
+                  setFormInputs({ ...FormInputs, City: e.target.value });
+                  setErrors({
+                    ...errors,
+                    City: e.target.value.trim() ? "" : "City is required",
+                  });
+                  setCityNotFound(false);
+                }}
+                options={
+                  loadingCities
+                    ? ["Loading..."]
+                    : cityNotFound
+                    ? ["City not found, please reselect"]
+                    : ["Select City", ...cities.map((c) => c.name).sort()]
                 }
-                options={["City", "Giza", "Cairo", "Tanta"]}
+                disabled={loadingCities || !selectedCountryCode}
+                required
+                error={errors.City}
               />
             </div>
 
@@ -210,7 +448,6 @@ const EditProfile = ({ onLinksChange }) => {
                         handleLinkChange(index, "website", e.target.value)
                       }
                       placeholder="https://example.com"
-                      required
                       error={errors[`Website-${index}`]}
                     />
                     <InputFieldOption
@@ -225,23 +462,20 @@ const EditProfile = ({ onLinksChange }) => {
                             ? e.target.value.length > 50
                               ? "Link text cannot exceed 50 characters"
                               : ""
-                            : "Link text is required",
+                            : "Link text cannot be empty",
                         });
                       }}
                       placeholder="Link text"
                       maxLength={50}
-                      required
                       error={errors[`LinkText-${index}`]}
                     />
-                    {FormInputs.WebsiteLinks.length >= 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removeLink(index)}
-                        className="text-[#201A23] hover:text-red-700"
-                      >
-                        <img className="scale-150 mt-6" src={Trash} alt="Delete" />
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      onClick={() => removeLink(index)}
+                      className="text-[#201A23] hover:text-red-700"
+                    >
+                      <img className="scale-150 mt-6" src={Trash} alt="Delete" />
+                    </button>
                   </div>
                 ))}
               </div>

@@ -37,7 +37,7 @@ const Counter = ({ target, duration = 230 }) => {
   return <span>{formatNumber(count)}</span>;
 };
 
-function JobsPage() {
+function CompanyJobs() { // Renamed to match the component's purpose
   const [searchTerm, setSearchTerm] = useState("");
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -50,7 +50,9 @@ function JobsPage() {
       try {
         const token = localStorage.getItem("token");
         if (!token) {
-          throw new Error("No token found in localStorage");
+          setError("Please log in to view companies.");
+          setTimeout(() => navigate("/Login"), 2000);
+          return;
         }
 
         const response = await axios.get("https://wazafny.online/api/show-compaines", {
@@ -60,8 +62,10 @@ function JobsPage() {
           },
         });
 
-        setCompanies(response.data.companies || []);
+        console.log("Companies API Response:", response.data); // Debug log
+        setCompanies(Array.isArray(response.data.companies) ? response.data.companies : []);
       } catch (err) {
+        console.error("Error fetching companies:", err);
         setError(err.response?.data?.message || err.message || "Failed to fetch companies");
       } finally {
         setLoading(false);
@@ -69,7 +73,7 @@ function JobsPage() {
     };
 
     fetchCompanies();
-  }, []);
+  }, [navigate]);
 
   // Filter companies based on search term
   const filteredCompanies = companies.filter((company) =>
@@ -134,11 +138,7 @@ function JobsPage() {
           filteredCompanies.map((company, index) => (
             <div key={company.company_id}>
               <motion.div
-                onClick={() =>
-                  navigate("/seeker/companyOverview", {
-                    state: { companyId: company.company_id },
-                  })
-                }
+                onClick={() => navigate(`/seeker/companyOverview/${company.company_id}`)} // Updated navigation
                 className="p-6 rounded-lg transition-all duration-200 hover:bg-gray-100 hover:scale-[1.01] hover:shadow-md cursor-pointer"
                 variants={cardVariants}
                 initial="hidden"
@@ -158,6 +158,7 @@ function JobsPage() {
                       src={company.profile_img}
                       alt={`${company.company_name} logo`}
                       className="w-10 h-10 rounded-md object-contain"
+                      onError={(e) => (e.target.src = "default-image-url")} // Add fallback image
                     />
                     <p className="text-xl font-bold text-[#201A23]">
                       {company.company_name}
@@ -223,4 +224,4 @@ function JobsPage() {
   );
 }
 
-export default JobsPage;
+export default CompanyJobs;

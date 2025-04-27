@@ -70,6 +70,7 @@ const router = createBrowserRouter([
       { path: "JopsPage/:id", element: <JopsPage /> },
       { path: "companypage", element: <CompanyJobs /> },
       { path: "companyOverview", element: <CompanyOverview /> },
+      { path: "companyOverview/:companyId", element: <CompanyOverview /> },
       { path: "profile", element: <UserProfile /> },
       { path: "Applications", element: <ViewApplications /> },
       { path: "apply", element: <Apply /> }, // Kept for backward compatibility

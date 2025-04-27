@@ -1,14 +1,21 @@
 import { Pencil, Plus, Trash } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import axios from "axios";
 import Modal from "../profile/Modal";
 import { InputField, SelectField } from "../profile/my-component";
 import Logo from "../../../../../assets/Education.png";
 
-function Education({ userRole }) {
+function Education({ userRole, initialEducation }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isModalAddOpen, setIsModalAddOpen] = useState(false);
   const [educationList, setEducationList] = useState([]);
   const [editingIndex, setEditingIndex] = useState(null);
+  const [universities, setUniversities] = useState(["Select University"]);
+  const [filteredUniversities, setFilteredUniversities] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [formInputs, setFormInputs] = useState({
     University: "",
     College: "",
@@ -16,6 +23,7 @@ function Education({ userRole }) {
     EndDate: { Month: "", Year: "" },
     CurrentlyStudying: false,
   });
+  const dropdownRef = useRef(null);
 
   const Month = [
     "Month",
@@ -44,57 +52,226 @@ function Education({ userRole }) {
     "2018",
   ];
 
-  const handleSave = (e) => {
+  const fallbackUniversities = [
+    "Select University",
+    "Harvard University",
+    "Stanford University",
+    "Massachusetts Institute of Technology (MIT)",
+    "University of Oxford",
+    "University of Cambridge",
+  ];
+
+  // Initialize educationList with initialEducation
+  useEffect(() => {
+    if (initialEducation) {
+      const formatDate = (dateStr) => {
+        const [monthAbbr, year] = dateStr.split(" ");
+        const monthMap = {
+          Jan: "January",
+          Feb: "February",
+          Mar: "March",
+          Apr: "April",
+          May: "May",
+          Jun: "June",
+          Jul: "July",
+          Aug: "August",
+          Sep: "September",
+          Oct: "October",
+          Nov: "November",
+          Dec: "December",
+        };
+        const fullMonth = monthMap[monthAbbr] || monthAbbr;
+        return { Month: fullMonth, Year: year };
+      };
+
+      const educationData = {
+        University: initialEducation.university,
+        College: initialEducation.college,
+        StartDate: formatDate(initialEducation.start_date),
+        EndDate:
+          initialEducation.end_date === "Present"
+            ? { Month: "", Year: "" }
+            : formatDate(initialEducation.end_date),
+        CurrentlyStudying: initialEducation.end_date === "Present",
+      };
+
+      setEducationList([educationData]);
+    } else {
+      setEducationList([]);
+    }
+  }, [initialEducation]);
+
+  useEffect(() => {
+    const fetchUniversities = async () => {
+      setLoading(true);
+      try {
+        const response = await axios.get(
+          "https://raw.githubusercontent.com/Hipo/university-domains-list/master/world_universities_and_domains.json"
+        );
+        const universityNames = response.data.map((uni) => uni.name);
+        setUniversities(["Select University", ...universityNames]);
+        setFilteredUniversities(["Select University", ...universityNames]);
+        setError(null);
+      } catch (err) {
+        console.error("Error fetching universities:", err);
+        setError("Failed to load universities. Using fallback options.");
+        setUniversities(fallbackUniversities);
+        setFilteredUniversities(fallbackUniversities);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUniversities();
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleSearch = (e) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+    setFormInputs({ ...formInputs, University: query });
+
+    if (query.trim() === "") {
+      setFilteredUniversities(universities);
+    } else {
+      const filtered = universities.filter((uni) =>
+        uni.toLowerCase().includes(query.toLowerCase())
+      );
+      setFilteredUniversities(
+        filtered.length > 0 ? filtered : ["No results found"]
+      );
+    }
+    setIsDropdownOpen(true);
+  };
+
+  const handleSelectUniversity = (university) => {
+    if (university !== "No results found" && university !== "Select University") {
+      setFormInputs({ ...formInputs, University: university });
+      setSearchQuery(university);
+    }
+    setIsDropdownOpen(false);
+  };
+
+  const handleSave = async (e) => {
     e.preventDefault();
-    // Validate required fields
     if (
       !formInputs.University ||
       !formInputs.College ||
       !formInputs.StartDate.Month ||
       !formInputs.StartDate.Year
     ) {
+      setError("Please fill in all required fields.");
       return;
     }
-    if (editingIndex !== null) {
-      // Editing an existing education entry
-      const updatedEducations = [...educationList];
-      updatedEducations[editingIndex] = formInputs;
-      setEducationList(updatedEducations);
-      setEditingIndex(null);
-    } else {
-      // Adding a new education entry
-      setEducationList([...educationList, formInputs]);
+
+    const seekerId = localStorage.getItem("seeker_id");
+    const token = localStorage.getItem("token");
+
+    if (!seekerId || !token) {
+      setError("User authentication details are missing.");
+      return;
     }
-    // Close the modal after saving
-    setIsModalOpen(false);
-    setIsModalAddOpen(false);
-    // Reset form fields
-    setFormInputs({
-      University: "",
-      College: "",
-      StartDate: { Month: "", Year: "" },
-      EndDate: { Month: "", Year: "" },
-      CurrentlyStudying: false,
-    });
+
+    const educationData = {
+      seeker_id: parseInt(seekerId),
+      university: formInputs.University,
+      college: formInputs.College,
+      start_date: `${formInputs.StartDate.Month.slice(0, 3)} ${
+        formInputs.StartDate.Year
+      }`,
+      end_date: formInputs.CurrentlyStudying
+        ? "Present"
+        : `${formInputs.EndDate.Month.slice(0, 3)} ${formInputs.EndDate.Year}`,
+    };
+
+    try {
+      await axios.post(
+        "https://wazafny.online/api/update-education",
+        educationData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (editingIndex !== null) {
+        const updatedEducations = [...educationList];
+        updatedEducations[editingIndex] = formInputs;
+        setEducationList(updatedEducations);
+        setEditingIndex(null);
+      } else {
+        setEducationList([...educationList, formInputs]);
+      }
+
+      setIsModalOpen(false);
+      setIsModalAddOpen(false);
+      setFormInputs({
+        University: "",
+        College: "",
+        StartDate: { Month: "", Year: "" },
+        EndDate: { Month: "", Year: "" },
+        CurrentlyStudying: false,
+      });
+      setSearchQuery("");
+      setFilteredUniversities(universities);
+      setError(null);
+    } catch (err) {
+      console.error("Error saving education:", err);
+      setError("Failed to save education details. Please try again.");
+    }
   };
 
   const handleEdit = (index) => {
     const educationToEdit = educationList[index];
     setFormInputs(educationToEdit);
+    setSearchQuery(educationToEdit.University);
     setEditingIndex(index);
     setIsModalAddOpen(true);
     setIsModalOpen(false);
   };
 
-  const handleDelete = (index) => {
-    setEducationList(educationList.filter((_, i) => i !== index));
+  const handleDelete = async (index) => {
+    const seekerId = localStorage.getItem("seeker_id");
+    const token = localStorage.getItem("token");
+
+    if (!seekerId || !token) {
+      setError("User authentication details are missing.");
+      return;
+    }
+
+    try {
+      await axios.delete(
+        `https://wazafny.online/api/delete-education/${seekerId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setEducationList(educationList.filter((_, i) => i !== index));
+      setError(null);
+    } catch (err) {
+      console.error("Error deleting education:", err);
+      setError("Failed to delete education. Please try again.");
+    }
   };
 
   return (
     <div className="max-h-[80vh]">
       <div className="flex mt-2">
         <div className="bg-white border border-[#D9D9D9] rounded-xl w-[900px] p-6">
-          {/* Header with Icon */}
           <div className="flex justify-between">
             <h3 className="text-xl font-bold text-[#201A23]">Education</h3>
             {userRole !== "Company" && (
@@ -116,8 +293,6 @@ function Education({ userRole }) {
               </div>
             )}
           </div>
-
-          {/* Display Education List or Placeholder */}
           {educationList.length === 0 ? (
             <div className="text-center mt-7 text-[#A1A1A1]">
               Add your degree, field of study, and university name here.
@@ -144,7 +319,6 @@ function Education({ userRole }) {
           )}
         </div>
 
-        {/* Modal for Edit Education */}
         <Modal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
@@ -209,7 +383,6 @@ function Education({ userRole }) {
               >
                 <span className="text-2xl">+</span> Add New Education
               </button>
-              {/* Save Button */}
               <div className="flex justify-end mb-4">
                 <button
                   type="submit"
@@ -222,7 +395,6 @@ function Education({ userRole }) {
           </div>
         </Modal>
 
-        {/* Modal for Add Education */}
         <Modal
           isOpen={isModalAddOpen}
           onClose={() => setIsModalAddOpen(false)}
@@ -233,7 +405,6 @@ function Education({ userRole }) {
               className="bg-white p-6 rounded-lg shadow-lg w-[700px] text-left relative overflow-y-auto max-h-[95vh]"
               onSubmit={handleSave}
             >
-              {/* Header */}
               <div className="flex justify-between items-center mb-3">
                 <h2 className="text-xl font-bold">Education</h2>
                 <button
@@ -246,18 +417,40 @@ function Education({ userRole }) {
               <p className="text-[#A1A1A1] mb-3">
                 Add your education details here.
               </p>
-              {/* University */}
-              <InputField
-                label="University"
-                name="University"
-                value={formInputs.University}
-                onChange={(e) =>
-                  setFormInputs({ ...formInputs, University: e.target.value })
-                }
-                required
-                className="w-full mb-4"
-              />
-              {/* College */}
+              {loading && (
+                <p className="text-gray-600 mb-3">Loading universities...</p>
+              )}
+              {error && <p className="text-red-600 mb-3">{error}</p>}
+              <div className="mb-4 relative" ref={dropdownRef}>
+                <label className="text-sm font-medium text-gray-700">
+                  University*
+                </label>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={handleSearch}
+                  onFocus={() => setIsDropdownOpen(true)}
+                  placeholder="Search for a university"
+                  className="mt-1 w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black"
+                  required
+                  disabled={loading}
+                />
+                {isDropdownOpen && (
+                  <ul className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                    {filteredUniversities.map((uni, index) => (
+                      <li
+                        key={index}
+                        onClick={() => handleSelectUniversity(uni)}
+                        className={`p-2 cursor-pointer hover:bg-gray-100 ${
+                          uni === "No results found" ? "text-gray-500" : ""
+                        }`}
+                      >
+                        {uni}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
               <InputField
                 label="College"
                 name="College"
@@ -271,8 +464,6 @@ function Education({ userRole }) {
                 required
                 className="w-full mb-4"
               />
-
-              {/* Start Date */}
               <div className="mb-4">
                 <label className="text-sm font-medium text-gray-700">
                   Start Date*
@@ -312,7 +503,6 @@ function Education({ userRole }) {
                   />
                 </div>
               </div>
-              {/* End Date */}
               <div className="mb-4">
                 <label className="text-sm font-medium text-gray-700">
                   End Date*
@@ -362,8 +552,6 @@ function Education({ userRole }) {
                   />
                 </div>
               </div>
-
-              {/* Currently Studying Checkbox */}
               <div className="flex items-center gap-2 mt-3">
                 <input
                   type="checkbox"
@@ -383,8 +571,6 @@ function Education({ userRole }) {
                   I am currently studying
                 </label>
               </div>
-
-              {/* Save Button */}
               <div className="flex justify-end mt-6">
                 <button
                   type="submit"
