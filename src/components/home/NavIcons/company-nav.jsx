@@ -126,8 +126,8 @@ function CompanyNav() {
           <motion.div
             className="relative"
             variants={iconVariants}
-            whileHover="hover"
-            whileTap="tap"
+            
+            
           >
             <JobApplicationDropdown
               isOpen={activeDropdown === "application"}
@@ -139,8 +139,8 @@ function CompanyNav() {
           <motion.div
             className="relative"
             variants={iconVariants}
-            whileHover="hover"
-            whileTap="tap"
+            
+            
           >
             <NotificationDropdown
               isOpen={activeDropdown === "notification"}

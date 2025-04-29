@@ -181,6 +181,10 @@ function ModalApply({
           console.log(error.response)
         } else if (status === 500) {
           setSubmissionError("Server error. Please try again later.");
+        } else if (status === 400) {
+          setSubmissionError("Job is Closed");
+        } else if (status === 406) {
+          setSubmissionError("Already applied for this job.");
         }else {
           setSubmissionError("Failed to submit application. Please try again.");
         }
@@ -279,7 +283,7 @@ function ModalApply({
   const renderStepContent = () => {
     if (isSubmitted) {
       return (
-        <div className="px-6 py-16 flex space-y-6 flex-col items-center">
+        <div className="px-6 mt-24 flex space-y-6 flex-col items-center">
           <div className="w-16 h-16 bg-[#6A0DAD] rounded-full flex items-center justify-center mb-4">
             <svg
               className="w-8 h-8 text-white"
@@ -325,7 +329,7 @@ function ModalApply({
 
     if (submissionError) {
       return (
-        <div className="px-6 py-16 flex flex-col items-center space-y-4">
+        <div className="px-6 my-36 flex flex-col items-center space-y-4">
           <div className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center mb-4">
             <svg
               className="w-8 h-8 text-white"
@@ -347,15 +351,7 @@ function ModalApply({
             {submissionError}
           </p>
           <div className="flex space-x-4">
-            <button
-              onClick={() => {
-                setSubmissionError("");
-                handleSubmit();
-              }}
-              className="bg-[#6A0DAD] text-white px-7 py-2.5 rounded-[20px] text-lg cursor-pointer"
-            >
-              Retry
-            </button>
+            
             <button
               onClick={onClose}
               className="bg-black text-white px-7 py-2.5 rounded-[20px] text-lg cursor-pointer"
@@ -370,7 +366,7 @@ function ModalApply({
     switch (step) {
       case 1:
         return (
-          <div className="px-24 pt-2 pb-3 space-y-5">
+          <div className="px-24 pt-2  space-y-5">
             <h3 className="text-xl font-bold text-center">
               Add your contact information
             </h3>
@@ -547,7 +543,7 @@ function ModalApply({
         );
       case 2:
         return (
-          <div className="px-12 py-5">
+          <div className="px-12 py-10 space-y-5">
             <h3 className="text-lg font-bold text-left mb-4">Resume*</h3>
             <p className="text-sm text-gray-600 mb-4 text-left">
               Be sure to upload updated resume (max 2MB)
@@ -593,11 +589,11 @@ function ModalApply({
         );
       case 3:
         return (
-          <div className="px-16 pt-2 pb-3 max-w-xl mx-auto space-y-5">
+          <div className="px-16 pt-2 pb-3 max-w-xl mx-auto">
             <h3 className="text-xl font-bold text-center mb-4">
               Additional Questions
             </h3>
-            <div className="space-y-4">
+            <div className="space-y-2">
               {questions.map((question) => (
                 <div key={question.question_id}>
                   <label className="block text-base font-medium text-gray-700 mb-1 text-left">
@@ -628,7 +624,7 @@ function ModalApply({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-10 overflow-auto pt-2.5">
-      <div className="bg-white mx-auto p-4 border border-gray-300 max-w-[550px] rounded-[10px] flex flex-col h-[550px]">
+      <div className="bg-white mx-auto p-4 border border-gray-300 w-[560px] rounded-[10px] flex flex-col h-[590px]">
         <div className="relative">
           {!isSubmitted && !isSubmitting && !submissionError && (
             <button

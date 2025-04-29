@@ -1,6 +1,8 @@
 import { AuthProvider } from "./Contexts/Authenticate";
 import "./App.css";
 import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
+import { PropagateLoader } from "react-spinners";
+import { LoadingProvider, useLoading } from "./Contexts/LoadingContext";
 
 // Import all components
 import Register from "./components/Register/Register";
@@ -73,8 +75,8 @@ const router = createBrowserRouter([
       { path: "companyOverview/:companyId", element: <CompanyOverview /> },
       { path: "profile", element: <UserProfile /> },
       { path: "Applications", element: <ViewApplications /> },
-      { path: "apply", element: <Apply /> }, // Kept for backward compatibility
-      { path: "apply/:jobId", element: <Apply /> }, // New route for job-specific apply
+      { path: "apply", element: <Apply /> },
+      { path: "apply/:jobId", element: <Apply /> },
     ],
   },
   {
@@ -117,8 +119,50 @@ const router = createBrowserRouter([
 function App() {
   return (
     <AuthProvider>
-      <RouterProvider router={router} />
+      <LoadingProvider>
+        <AppContent />
+      </LoadingProvider>
     </AuthProvider>
+  );
+}
+
+function AppContent() {
+  const { isLoading } = useLoading();
+
+  // Log when the loader should be visible
+  console.log("AppContent: isLoading =", isLoading);
+
+  return (
+    <>
+      {isLoading && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            zIndex: 9999,
+          }}
+        >
+          <PropagateLoader
+            color="#6A0DAD"
+            size={20}
+            speedMultiplier={1.2}
+            cssOverride={{
+              "@media (min-width: 768px)": {
+                transform: "scale(1.2)",
+              },
+            }}
+          />
+        </div>
+      )}
+      <RouterProvider router={router} />
+    </>
   );
 }
 

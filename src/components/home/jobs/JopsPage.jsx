@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Message } from "../../CustomMessage/FloatMessage";
 import { motion } from "framer-motion";
+import { useLoading } from "../../../Contexts/LoadingContext"; // Import the useLoading hook
 import search from "../../../assets/seeker/search.png";
 import loc from "../../../assets/seeker/location.png";
 import blink from "../../../assets/seeker/blink.png";
@@ -11,10 +12,11 @@ import vod from "../../../assets/seeker/vod.png";
 function JobsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [jobs, setJobs] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [pending, setpending] = useState(null);
+  const [pending, setPending] = useState(null);
+  const [showPopup, setShowPopup] = useState(false); // State for pop-up visibility
   const navigate = useNavigate();
+  const { startLoading, stopLoading } = useLoading(); // Use the global loading context
 
   // Retrieve seeker_id and token from localStorage
   const seekerId = localStorage.getItem("seeker_id");
@@ -26,11 +28,13 @@ function JobsPage() {
       if (!seekerId) {
         setError("Missing seeker ID. Please log in again.");
         setTimeout(() => navigate("/login"), 2000);
-        setLoading(false);
         return;
       }
 
-      setLoading(true);
+      startLoading();
+      console.log("Loader started");
+      const minLoadingTime = new Promise((resolve) => setTimeout(resolve, 1000)); // Minimum 1-second delay
+
       try {
         const response = await axios.post(
           "https://wazafny.online/api/recommended-jobs-posts",
@@ -43,15 +47,18 @@ function JobsPage() {
           }
         );
 
+        await minLoadingTime; // Ensure loader shows for at least 1 second
+
         console.log("API Response:", response.data);
 
         if (response.data.nullskills) {
-          setpending(`
-            To receive tailored job recommendations, please add your professional skills to your profile.
-          `);
+          setPending(
+            "To receive tailored job recommendations, please add your professional skills to your profile."
+          );
+          setShowPopup(true); // Show the pop-up when nullskills is true
         }
         if (response.status === 204) {
-          setpending("No jobs available at the moment.");
+          setPending("No jobs available at the moment.");
         }
 
         if (response.data.jobs && Array.isArray(response.data.jobs)) {
@@ -61,6 +68,7 @@ function JobsPage() {
           throw new Error("Unexpected API response format");
         }
       } catch (err) {
+        await minLoadingTime; // Ensure loader shows even on error
         if (err.response?.status === 401) {
           setError("Unauthorized. Please log in again.");
           setTimeout(() => navigate("/login"), 2000);
@@ -75,12 +83,25 @@ function JobsPage() {
           setError("Failed to load jobs. Please try again later.");
         }
       } finally {
-        setLoading(false);
+        stopLoading();
+        console.log("Loader stopped");
       }
     };
 
     fetchJobs();
   }, [navigate, seekerId]);
+
+  // Timer to close the pop-up after 12 seconds
+  useEffect(() => {
+    if (showPopup) {
+      const timer = setTimeout(() => {
+        setShowPopup(false);
+        setPending(null); // Clear the message after the pop-up closes
+      }, 12000); // 12 seconds
+
+      return () => clearTimeout(timer); // Cleanup timer on unmount
+    }
+  }, [showPopup]);
 
   const filteredJobs = jobs.filter((job) =>
     job.title.toLowerCase().includes(searchTerm.toLowerCase())
@@ -101,7 +122,7 @@ function JobsPage() {
     }),
   };
 
-  // Animation variants for the child elements within the card最低: true;
+  // Animation variants for the child elements within the card
   const childVariants = {
     hidden: { opacity: 0, y: 10 },
     visible: {
@@ -116,13 +137,20 @@ function JobsPage() {
 
   return (
     <div className="min-h-screen bg-white">
+      {/* Pop-up Message on the Left Side */}
+      {showPopup && (
+        <div className="fixed left-4 transform -translate-y-1/2 w-80 bg-[#F2E9FF] border border-gray-300 rounded-xl shadow-lg p-4 z-[1000] animate-slideIn">
+          <p className="text-[#201A23] text-sm font-semibold">{pending}</p>
+        </div>
+      )}
+
       {/* Floating Message Top Center */}
       <div className="fixed top-4 left-[460px] transform -translate-x-1/2 z-50 w-full px-4">
         <Message
-          message={pending}
+          message={pending && !showPopup ? pending : null} // Show in top center only if pop-up is not active
           duration={8000}
           type="pending"
-          onClose={() => setpending(null)}
+          onClose={() => setPending(null)}
         />
       </div>
       <div className="fixed top-4 left-[620px] transform -translate-x-1/2 z-50 w-full px-4">
@@ -149,14 +177,12 @@ function JobsPage() {
 
       {/* Job Listings Section */}
       <div className="max-w-6xl border-2 rounded-[16px] border-[#D9D9D9] mx-auto px-4 p-12 bg-white">
-        {loading ? (
-          <p className="text-center text-gray-500 p-6">Loading jobs...</p>
-        ) : filteredJobs.length > 0 ? (
+        {filteredJobs.length > 0 ? (
           filteredJobs.map((job, index) => (
             <div key={job.job_id}>
               <motion.div
                 className="p-6 rounded-lg transition-all duration-200 hover:bg-gray-100 hover:scale-[1.01] hover:shadow-md cursor-pointer"
-                onClick={() => navigate(`/seeker/apply/${job.job_id}`)} // Updated to include jobId in URL
+                onClick={() => navigate(`/seeker/apply/${job.job_id}`)}
                 variants={cardVariants}
                 initial="hidden"
                 animate="visible"
@@ -247,6 +273,41 @@ function JobsPage() {
           <p className="text-center text-gray-500 p-6">No jobs available.</p>
         )}
       </div>
+
+      {/* Inline Styles for Pop-up Animation */}
+      <style>
+        {`
+          @keyframes slideIn {
+            0% {
+              transform: translateX(-100%);
+              opacity: 0;
+            }
+            100% {
+              transform: translateX(0);
+              opacity: 1;
+            }
+          }
+
+          @keyframes slideOut {
+            0% {
+              transform: translateX(0);
+              opacity: 1;
+            }
+            100% {
+              transform: translateX(-100%);
+              opacity: 0;
+            }
+          }
+
+          .animate-slideIn {
+            animation: slideIn 0.5s ease-out forwards;
+          }
+
+          .animate-slideOut {
+            animation: slideOut 0.5s ease-out forwards;
+          }
+        `}
+      </style>
     </div>
   );
 }

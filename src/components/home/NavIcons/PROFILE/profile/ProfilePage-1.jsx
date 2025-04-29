@@ -2,16 +2,21 @@ import PropTypes from "prop-types";
 import EditProfile from "./edit-pencil";
 import Email from "../../../../../assets/seeker/email.svg";
 import CoverDefault from "../../../../../assets/company/default.png";
+import Search from "../../../../../assets/searchhh.png";
+import DefaultCompanyLogo from "../../../../../assets/company/default.png";
 import Modal from "./Modal";
 import About from "../about/about";
 import Resume from "../resume/resume";
 import Experience from "../experince/Experince";
 import Skill from "../skills/skill";
 import Education from "../education/Education";
-import Following from "./Following-Modal";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+
+import { useLoading } from "../../../../../Contexts/LoadingContext"; // Import the useLoading hook
+
 
 const UserProfile = () => {
   const [userProfileData, setUserProfileData] = useState({
@@ -29,7 +34,7 @@ const UserProfile = () => {
   const [isCoverModalOpen, setIsCoverModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [websiteLinks, setWebsiteLinks] = useState([]);
-  const [loading, setLoading] = useState(true);
+  
   const [error, setError] = useState(null);
   const [about, setAbout] = useState(null);
   const [resume, setResume] = useState("");
@@ -39,21 +44,27 @@ const UserProfile = () => {
   const [personalInfo, setPersonalInfo] = useState(null);
   const navigate = useNavigate();
 
+const { startLoading, stopLoading } = useLoading(); // Use the global loading context
+
   const seekerId = localStorage.getItem("seeker_id");
   const userId = localStorage.getItem("user_id");
   const token = localStorage.getItem("token");
   const userRole = localStorage.getItem("Role");
-console.log(token)
+
+  console.log(token);
+
+  // Fetch user profile data
   useEffect(() => {
     const fetchUserProfile = async () => {
       if (!seekerId || !token) {
         setError("Missing seeker ID or token. Please log in again.");
-        setLoading(false);
+        
         setTimeout(() => navigate("/Login"), 2000);
         return;
       }
+      startLoading(); // Start loading animation
 
-      setLoading(true);
+      
       try {
         const response = await axios.get(
           `https://wazafny.online/api/show-seeker-profile/${seekerId}`,
@@ -123,13 +134,14 @@ console.log(token)
           setError("Failed to load user profile. Please try again later.");
         }
       } finally {
-        setLoading(false);
+        stopLoading(); // Stop loading animation
       }
     };
 
     fetchUserProfile();
   }, [seekerId, token, navigate]);
 
+  // Clear message after 3 seconds
   useEffect(() => {
     if (message.text) {
       const timer = setTimeout(() => {
@@ -143,6 +155,7 @@ console.log(token)
     console.log("Current websiteLinks:", websiteLinks);
   }, [websiteLinks]);
 
+  // Handle cover photo change
   const handleCoverPhotoChange = async (event) => {
     const file = event.target.files[0];
     if (
@@ -164,6 +177,8 @@ console.log(token)
       const formData = new FormData();
       formData.append("user_id", userId);
       formData.append("cover_img", file);
+
+      startLoading(); // Start loading animation
 
       try {
         const response = await axios.post(
@@ -194,11 +209,8 @@ console.log(token)
             type: "error",
           });
           setTimeout(() => navigate("/Login"), 2000);
-        } else if (err.response?.status === 400) {
-          setMessage({
-            text: "Invalid image or request. Please try again.",
-            type: "error",
-          });
+        } else if (err.response?.status === 404) {
+          console.log("User_id not found:", err.response?.data);
         } else if (err.response?.status === 500) {
           setMessage({
             text: "Server error. Please try again later.",
@@ -210,6 +222,8 @@ console.log(token)
             type: "error",
           });
         }
+      }finally {
+        stopLoading(); // Stop loading animation
       }
     } else {
       setMessage({
@@ -217,8 +231,10 @@ console.log(token)
         type: "error",
       });
     }
+    
   };
 
+  // Handle cover photo deletion
   const handleDeleteCoverPhoto = async () => {
     if (!userId || !token) {
       setMessage({
@@ -228,6 +244,8 @@ console.log(token)
       setTimeout(() => navigate("/Login"), 2000);
       return;
     }
+
+    startLoading(); // Start loading animation
 
     try {
       const response = await axios.delete(
@@ -257,10 +275,7 @@ console.log(token)
         });
         setTimeout(() => navigate("/Login"), 2000);
       } else if (err.response?.status === 404) {
-        setMessage({
-          text: "Cover image not found.",
-          type: "error",
-        });
+        console.log("User_id not found:", err.response?.data);
       } else if (err.response?.status === 500) {
         setMessage({
           text: "Server error. Please try again later.",
@@ -272,9 +287,12 @@ console.log(token)
           type: "error",
         });
       }
+    }finally {
+      stopLoading(); // Stop loading animation
     }
   };
 
+  // Handle profile photo change
   const handleUserPhotoChange = async (event) => {
     const file = event.target.files[0];
     if (
@@ -296,7 +314,7 @@ console.log(token)
       const formData = new FormData();
       formData.append("user_id", userId);
       formData.append("profile_img", file);
-
+      startLoading(); // Start loading animation
       try {
         const response = await axios.post(
           "https://wazafny.online/api/update-profile-img",
@@ -326,11 +344,8 @@ console.log(token)
             type: "error",
           });
           setTimeout(() => navigate("/Login"), 2000);
-        } else if (err.response?.status === 400) {
-          setMessage({
-            text: "Invalid image or request. Please try again.",
-            type: "error",
-          });
+        } else if (err.response?.status === 404) {
+          console.log("User_id not found:", err.response?.data);
         } else if (err.response?.status === 500) {
           setMessage({
             text: "Server error. Please try again later.",
@@ -342,6 +357,8 @@ console.log(token)
             type: "error",
           });
         }
+      }finally {
+        stopLoading(); // Stop loading animation
       }
     } else {
       setMessage({
@@ -351,6 +368,7 @@ console.log(token)
     }
   };
 
+  // Handle profile photo deletion
   const handleDeleteProfilePhoto = async () => {
     if (!userId || !token) {
       setMessage({
@@ -360,7 +378,7 @@ console.log(token)
       setTimeout(() => navigate("/Login"), 2000);
       return;
     }
-
+    startLoading(); // Start loading animation
     try {
       const response = await axios.delete(
         `https://wazafny.online/api/delete-profile-img/${userId}`,
@@ -389,10 +407,7 @@ console.log(token)
         });
         setTimeout(() => navigate("/Login"), 2000);
       } else if (err.response?.status === 404) {
-        setMessage({
-          text: "Profile image not found.",
-          type: "error",
-        });
+        console.log("User_id not found:", err.response?.data);
       } else if (err.response?.status === 500) {
         setMessage({
           text: "Server error. Please try again later.",
@@ -404,18 +419,377 @@ console.log(token)
           type: "error",
         });
       }
+    }finally {
+      stopLoading(); // Stop loading animation
     }
   };
 
-  if (loading) {
+  // Animation variants for the profile card
+  const profileCardVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.5,
+        ease: "easeOut",
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  // Animation variants for child elements within the profile card
+  const profileChildVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.3,
+        ease: "easeOut",
+      },
+    },
+  };
+
+  // Animation variants for sections (About, Resume, etc.)
+  const sectionVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: (index) => ({
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.5,
+        ease: "easeOut",
+        delay: index * 0.2,
+      },
+    }),
+  };
+
+  // Animation variants for FollowingModal list items
+  const listItemVariants = {
+    hidden: { opacity: 0, x: -20 },
+    visible: (index) => ({
+      opacity: 1,
+      x: 0,
+      transition: {
+        duration: 0.4,
+        ease: "easeOut",
+        delay: index * 0.1,
+      },
+    }),
+  };
+
+  // Animation variants for modal backdrop
+  const backdropVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        duration: 0.3,
+        ease: "easeOut",
+      },
+    },
+    exit: {
+      opacity: 0,
+      transition: {
+        duration: 0.2,
+        ease: "easeIn",
+      },
+    },
+  };
+
+  // Animation variants for modal content
+  const modalVariants = {
+    hidden: { opacity: 0, scale: 0.95 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      transition: {
+        duration: 0.3,
+        ease: "easeOut",
+      },
+    },
+    exit: {
+      opacity: 0,
+      scale: 0.95,
+      transition: {
+        duration: 0.2,
+        ease: "easeIn",
+      },
+    },
+  };
+
+  // Following Modal Component (Integrated)
+  const FollowingModal = ({ isOpen, onClose, followings }) => {
+    // Ensure followings is an array; default to empty array if undefined or not an array
+    const initialFollowings = Array.isArray(followings)
+      ? followings.map((company) => ({
+          id: company.company_id,
+          name: company.company_name,
+          logo: company.profile_img,
+        }))
+      : [];
+
+    // State for search term, filtered followings, and messages
+    const [searchTerm, setSearchTerm] = useState("");
+    const [filteredFollowings, setFilteredFollowings] = useState(initialFollowings);
+    const [followingMessage, setFollowingMessage] = useState({ text: "", type: "" });
+
+    // Update filtered followings when followings prop or search term changes
+    useEffect(() => {
+      const term = searchTerm.toLowerCase();
+      const filtered = initialFollowings.filter((company) =>
+        company.name.toLowerCase().includes(term)
+      );
+      setFilteredFollowings(filtered);
+    }, [searchTerm, followings]);
+
+    // Handle search input changes
+    const handleSearchChange = (e) => {
+      setSearchTerm(e.target.value);
+    };
+
+    // Handle company click to navigate to company overview
+    const handleCompanyClick = (companyId) => {
+      console.log("Navigating with companyId:", companyId);
+      if (!companyId || isNaN(companyId)) {
+        console.error("companyId is undefined or invalid:", companyId);
+        setFollowingMessage({
+          text: "Invalid company ID. Please try again.",
+          type: "error",
+        });
+        return;
+      }
+      navigate(`/seeker/companyOverview/${companyId}`);
+    };
+
+    // Handle unfollow action
+    const handleUnfollow = async (companyId) => {
+      if (!token) {
+        setFollowingMessage({
+          text: "Please log in to unfollow.",
+          type: "error",
+        });
+        setTimeout(() => navigate("/Login"), 2000);
+        return;
+      }
+
+      if (!seekerId) {
+        setFollowingMessage({
+          text: "Missing seeker ID. Please log in again.",
+          type: "error",
+        });
+        setTimeout(() => navigate("/Login"), 2000);
+        return;
+      }
+
+      console.log("Unfollow Request:", {
+        token,
+        payload: { seeker_id: seekerId, company_id: companyId },
+      });
+
+      try {
+        const response = await axios.delete("https://wazafny.online/api/unfollow", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          data: {
+            seeker_id: seekerId,
+            company_id: companyId,
+          },
+        });
+
+        console.log("Unfollow API Response:", response.data);
+
+        // Update followings list in UserProfile state
+        setFollowingsList((prev) =>
+          prev.filter((company) => company.company_id !== companyId)
+        );
+        setUserProfileData((prev) => ({
+          ...prev,
+          following: prev.following - 1,
+        }));
+        setFilteredFollowings((prev) =>
+          prev.filter((company) => company.id !== companyId)
+        );
+
+        setFollowingMessage({
+          text: "Unfollowed successfully.",
+          type: "success",
+        });
+      } catch (err) {
+        console.error("Error unfollowing company:", err);
+        console.log("Error Response:", err.response?.data);
+
+        if (err.response?.status === 401) {
+          setFollowingMessage({
+            text: "Unauthorized. Please log in again.",
+            type: "error",
+          });
+          setTimeout(() => navigate("/Login"), 2000);
+        } else if (err.response?.status === 404) {
+          console.error("Company not found. Please try again." + err.response?.data);
+        } else if (err.response?.status === 500) {
+          setFollowingMessage({
+            text: "Server error. Please try again later.",
+            type: "error",
+          });
+        } else {
+          setFollowingMessage({
+            text: "Failed to unfollow. Please try again.",
+            type: "error",
+          });
+        }
+      }
+    };
+
+    // Clear message after 3 seconds
+    useEffect(() => {
+      if (followingMessage.text) {
+        const timer = setTimeout(() => {
+          setFollowingMessage({ text: "", type: "" });
+        }, 3000);
+        return () => clearTimeout(timer);
+      }
+    }, [followingMessage]);
+
     return (
-      <div className="flex justify-center mt-5">
-        <div className="bg-white border border-[#D9D9D9] rounded-xl w-[900px] p-6 text-center">
-          Loading profile...
-        </div>
-      </div>
+      <Modal isOpen={isOpen} onClose={onClose} title="Followings">
+        <AnimatePresence>
+          {isOpen && (
+            <motion.div
+              className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50"
+              variants={backdropVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+            >
+              <motion.div
+                className="bg-white p-6 md:p-8 rounded-lg shadow-lg w-[450px] max-h-[80vh] overflow-y-auto relative space-y-4"
+                variants={modalVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+              >
+                {/* Message Display */}
+                {followingMessage.text && (
+                  <div
+                    className={`floating-message ${followingMessage.type} ${
+                      !followingMessage.text ? "hide" : ""
+                    }`}
+                  >
+                    {followingMessage.text}
+                  </div>
+                )}
+
+                {/* Header */}
+                <div className="flex justify-center mb-7">
+                  <h2 className="text-xl font-bold">Followings</h2>
+                  <div className="absolute top-4 right-4 scale-150">
+                    <button
+                      className="text-gray-500 hover:text-black"
+                      onClick={onClose}
+                      aria-label="Close followings modal"
+                    >
+                      ✖
+                    </button>
+                  </div>
+                </div>
+
+                {/* Search Bar */}
+                <div className="relative w-full mt-9">
+                  <input
+                    type="text"
+                    placeholder="Search"
+                    value={searchTerm}
+                    onChange={handleSearchChange}
+                    className="w-full pl-10 pr-4 py-2 border text-sm rounded-full text-gray-700 focus:outline-none"
+                    aria-label="Search followed companies"
+                  />
+                  <img
+                    src={Search}
+                    alt="Search"
+                    className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
+                  />
+                </div>
+
+                {/* Followings List */}
+                <ul className="space-y-6">
+                  {filteredFollowings.length > 0 ? (
+                    filteredFollowings.map((company, index) => (
+                      <motion.li
+                        key={company.id}
+                        className="flex items-center justify-between"
+                        variants={listItemVariants}
+                        initial="hidden"
+                        animate="visible"
+                        custom={index}
+                      >
+                        <div
+                          className="flex items-center space-x-3 cursor-pointer"
+                          onClick={() => handleCompanyClick(company.id)}
+                          role="button"
+                          tabIndex={0}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              handleCompanyClick(company.id);
+                            }
+                          }}
+                          aria-label={`View ${company.name} overview`}
+                        >
+                          <img
+                            src={company.logo}
+                            alt={`${company.name} logo`}
+                            className="w-8 h-8 rounded-md object-cover"
+                            onError={(e) => {
+                              console.warn(`Failed to load logo for ${company.name}:`, company.logo);
+                              e.target.src = DefaultCompanyLogo;
+                            }}
+                          />
+                          <span className="text-md font-medium">{company.name}</span>
+                        </div>
+                        <button
+                          className="border px-3 py-2 rounded-md border-[#201A23] text-black hover:bg-gray-100"
+                          onClick={() => handleUnfollow(company.id)}
+                          aria-label={`Unfollow ${company.name}`}
+                        >
+                          Following
+                        </button>
+                      </motion.li>
+                    ))
+                  ) : (
+                    <div className="text-center text-gray-500">
+                      No results found.
+                    </div>
+                  )}
+                </ul>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </Modal>
     );
-  }
+  };
+
+  FollowingModal.propTypes = {
+    isOpen: PropTypes.bool.isRequired,
+    onClose: PropTypes.func.isRequired,
+    followings: PropTypes.arrayOf(
+      PropTypes.shape({
+        company_id: PropTypes.number.isRequired,
+        company_name: PropTypes.string.isRequired,
+        profile_img: PropTypes.string,
+      })
+    ),
+  };
+
+  FollowingModal.defaultProps = {
+    followings: [],
+  };
+
+  // Render loading or error state
+ 
 
   if (error) {
     return (
@@ -426,7 +800,7 @@ console.log(token)
       </div>
     );
   }
-
+  console.log("skills from profile",skills)
   return (
     <>
       {message.text && (
@@ -478,7 +852,7 @@ console.log(token)
           .floating-message {
             position: fixed;
             top: 20px;
-            left: 24%;
+            left: 41%;
             transform: translateX(-50%);
             padding: 12px 24px;
             border-radius: 8px;
@@ -503,11 +877,17 @@ console.log(token)
           }
         `}
       </style>
-      <div className="flex justify-center mt-5 mb-2 max-h-[80vh] sm:max-h-[80vh] md:max-h-[80vh] lg:max-h-[80vh] xl:max-h-[80vh] 2xl:max-h-[80vh] 3xl:max-h-[80vh] 4xl:max-h-[80vh]">
+      <motion.div
+        className="flex justify-center mt-5 mb-2 max-h-[80vh] sm:max-h-[80vh] md:max-h-[80vh] lg:max-h-[80vh] xl:max-h-[80vh] 2xl:max-h-[80vh] 3xl:max-h-[80vh] 4xl:max-h-[80vh]"
+        variants={profileCardVariants}
+        initial="hidden"
+        animate="visible"
+      >
         <div className="bg-white border border-[#D9D9D9] rounded-xl w-[900px] pb-4">
-          <div
+          <motion.div
             className="relative h-52 w-full cursor-pointer"
             onClick={userRole !== "Company" ? () => setIsCoverModalOpen(true) : undefined}
+            variants={profileChildVariants}
           >
             <img
               src={coverPhoto || CoverDefault}
@@ -521,13 +901,14 @@ console.log(token)
             {userRole !== "Company" && (
               <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 transition duration-300"></div>
             )}
-          </div>
+          </motion.div>
 
           <div className="px-6 relative">
-            <div className="flex items-start">
-              <div
+            <motion.div className="flex items-start" variants={profileChildVariants}>
+              <motion.div
                 className="w-20 h-20 rounded-full border-4 border-white bg-gray-200 flex items-center justify-center overflow-hidden shadow-lg -mt-10 cursor-pointer"
                 onClick={userRole !== "Company" ? () => setIsProfileModalOpen(true) : undefined}
+                variants={profileChildVariants}
               >
                 {profilePhoto ? (
                   <img
@@ -548,18 +929,21 @@ console.log(token)
                     <path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm0 2c-3.33 0-10 1.67-10 5v3h20v-3c0-3.33-6.67-5-10-5z"></path>
                   </svg>
                 )}
-              </div>
+              </motion.div>
               {userRole !== "Company" && (
-                <div className="absolute right-6 top-2">
+                <motion.div
+                  className="absolute right-6 top-2"
+                  variants={profileChildVariants}
+                >
                   <EditProfile
                     onLinksChange={setWebsiteLinks}
                     initialData={personalInfo}
                   />
-                </div>
+                </motion.div>
               )}
-            </div>
+            </motion.div>
 
-            <div className="flex gap-3 mt-2">
+            <motion.div className="flex gap-3 mt-2" variants={profileChildVariants}>
               <h2 className="text-xl font-bold text-black">
                 {userProfileData.name}
               </h2>
@@ -572,20 +956,20 @@ console.log(token)
                   {userProfileData.following} Following
                 </p>
               </button>
+            </motion.div>
 
-              <Following
-                isOpen={isFollowingModalOpen}
-                onClose={() => setIsFollowingModalOpen(false)}
-                followings={followingsList}
-              />
-            </div>
-
-            <div className="mt-1 space-y-2 text-md">
+            <motion.div
+              className="mt-1 space-y-2 text-md"
+              variants={profileChildVariants}
+            >
               <p className="text-[#201A23]">{userProfileData.Headline}</p>
               <p className="text-[#A1A1A1]">{userProfileData.location}</p>
-            </div>
+            </motion.div>
 
-            <div className="flex gap-2 mt-2 text-sm">
+            <motion.div
+              className="flex gap-2 mt-2 text-sm"
+              variants={profileChildVariants}
+            >
               <button
                 onClick={() => setIsLinksModalOpen(true)}
                 className="text-[#6A0DAD] text-lg font-bold bg-transparent border-none cursor-pointer"
@@ -594,102 +978,154 @@ console.log(token)
                 Links
               </button>
               <img src={Email} alt="Email Icon" />
-            </div>
+            </motion.div>
           </div>
         </div>
-      </div>
+      </motion.div>
 
-      <div className="flex justify-center">
+      <motion.div
+        className="flex justify-center"
+        variants={sectionVariants}
+        initial="hidden"
+        animate="visible"
+        custom={0}
+      >
         <About userRole={userRole} initialAbout={about} />
-      </div>
+      </motion.div>
 
-      <div className="flex justify-center mt-3">
+      <motion.div
+        className="flex justify-center mt-3"
+        variants={sectionVariants}
+        initial="hidden"
+        animate="visible"
+        custom={1}
+      >
         <Resume userRole={userRole} initialResume={resume} />
-      </div>
+      </motion.div>
 
-      <div className="flex justify-center mt-3">
+      <motion.div
+        className="flex justify-center mt-3"
+        variants={sectionVariants}
+        initial="hidden"
+        animate="visible"
+        custom={2}
+      >
         <Experience userRole={userRole} initialExperiences={experiences} />
-      </div>
+      </motion.div>
 
-      <div className="flex justify-center mt-3">
+      <motion.div
+        className="flex justify-center mt-3"
+        variants={sectionVariants}
+        initial="hidden"
+        animate="visible"
+        custom={3}
+      >
         <Skill userRole={userRole} initialSkills={skills} />
-      </div>
+      </motion.div>
 
-      <div className="flex justify-center mt-3 mb-9">
+      <motion.div
+        className="flex justify-center mt-3 mb-9"
+        variants={sectionVariants}
+        initial="hidden"
+        animate="visible"
+        custom={4}
+      >
         <Education userRole={userRole} initialEducation={education} />
-      </div>
+      </motion.div>
+
+      <FollowingModal
+        isOpen={isFollowingModalOpen}
+        onClose={() => setIsFollowingModalOpen(false)}
+        followings={followingsList}
+      />
 
       <Modal
         isOpen={isCoverModalOpen}
         onClose={() => setIsCoverModalOpen(false)}
         title="Cover Photo"
       >
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-10 rounded-lg shadow-lg w-[700px] h-[500px] text-center relative">
-            <div className="flex justify-between mb-4">
-              <h2 className="text-xl font-bold">Banner photo</h2>
-              <button
-                className="text-gray-500 hover:text-black scale-150"
-                onClick={() => setIsCoverModalOpen(false)}
-                aria-label="Close cover photo modal"
+        <AnimatePresence>
+          {isCoverModalOpen && (
+            <motion.div
+              className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50"
+              variants={backdropVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+            >
+              <motion.div
+                className="bg-white p-10 rounded-lg shadow-lg w-[700px] h-[500px] text-center relative"
+                variants={modalVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
               >
-                ✖
-              </button>
-            </div>
-
-            <div className="w-full h-60 border-2 border-solid border-[#000000] rounded-xl flex items-center justify-center overflow-hidden">
-              {coverPhoto ? (
-                <img
-                  src={coverPhoto}
-                  alt="Cover Preview"
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <img
-                  src={CoverDefault}
-                  alt="Cover Preview"
-                  className="w-20 object-cover"
-                />
-              )}
-            </div>
-            <p className="text-gray-500 text-sm mt-4">
-              A great background photo can make you more noticeable.
-            </p>
-
-            <div className="flex justify-center mt-4">
-              {coverPhoto ? (
-                <>
-                  <label className="cursor-pointer px-5 py-2 bg-black text-white font-bold rounded-lg inline-block">
-                    Select photo
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleCoverPhotoChange}
-                      className="hidden"
-                    />
-                  </label>
+                <div className="flex justify-between mb-4">
+                  <h2 className="text-xl font-bold">Banner photo</h2>
                   <button
-                    className="ml-4 px-5 py-2 border border-red-500 text-red-500 font-bold rounded-lg hover:bg-red-100"
-                    onClick={handleDeleteCoverPhoto}
-                    aria-label="Delete cover photo"
+                    className="text-gray-500 hover:text-black scale-150"
+                    onClick={() => setIsCoverModalOpen(false)}
+                    aria-label="Close cover photo modal"
                   >
-                    Delete
+                    ✖
                   </button>
-                </>
-              ) : (
-                <label className="cursor-pointer px-5 py-2 bg-black text-white font-bold rounded-lg inline-block">
-                  Select photo
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleCoverPhotoChange}
-                    className="hidden"
-                  />
-                </label>
-              )}
-            </div>
-          </div>
-        </div>
+                </div>
+
+                <div className="w-full h-60 border-2 border-solid border-[#000000] rounded-xl flex items-center justify-center overflow-hidden">
+                  {coverPhoto ? (
+                    <img
+                      src={coverPhoto}
+                      alt="Cover Preview"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <img
+                      src={CoverDefault}
+                      alt="Cover Preview"
+                      className="w-full h-full object-cover"
+                    />
+                  )}
+                </div>
+                <p className="text-gray-500 text-sm mt-4">
+                  A great background photo can make you more noticeable.
+                </p>
+
+                <div className="flex justify-center mt-4">
+                  {coverPhoto ? (
+                    <>
+                      <label className="cursor-pointer px-5 py-2 bg-black text-white font-bold rounded-lg inline-block">
+                        Select photo
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleCoverPhotoChange}
+                          className="hidden"
+                        />
+                      </label>
+                      <button
+                        className="ml-4 px-5 py-2 border border-red-500 text-red-500 font-bold rounded-lg hover:bg-red-100"
+                        onClick={handleDeleteCoverPhoto}
+                        aria-label="Delete cover photo"
+                      >
+                        Delete
+                      </button>
+                    </>
+                  ) : (
+                    <label className="cursor-pointer px-5 py-2 bg-black text-white font-bold rounded-lg inline-block">
+                      Select photo
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleCoverPhotoChange}
+                        className="hidden"
+                      />
+                    </label>
+                  )}
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </Modal>
 
       <Modal
@@ -697,68 +1133,84 @@ console.log(token)
         onClose={() => setIsProfileModalOpen(false)}
         title="Profile Photo"
       >
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-10 rounded-lg shadow-lg w-[600px] text-center relative">
-            <div className="flex justify-between mb-4">
-              <h2 className="text-xl font-bold">Profile photo</h2>
-              <button
-                className="text-gray-500 hover:text-black scale-150"
-                onClick={() => setIsProfileModalOpen(false)}
-                aria-label="Close profile photo modal"
+        <AnimatePresence>
+          {isProfileModalOpen && (
+            <motion.div
+              className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50"
+              variants={backdropVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+            >
+              <motion.div
+                className="bg-white p-10 rounded-lg shadow-lg w-[600px] text-center relative"
+                variants={modalVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
               >
-                ✖
-              </button>
-            </div>
-
-            <div className="w-28 h-28 mx-auto rounded-full border overflow-hidden bg-gray-200 flex items-center justify-center">
-              {profilePhoto ? (
-                <img
-                  src={profilePhoto}
-                  alt="Profile Preview"
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <p className="text-gray-600">No profile photo</p>
-              )}
-            </div>
-            <p className="text-gray-500 text-sm mt-4">
-              We suggest using a real photo of yourself.
-            </p>
-
-            <div className="flex justify-center mt-4">
-              {profilePhoto ? (
-                <>
-                  <label className="cursor-pointer px-5 py-2 bg-black text-white font-bold rounded-lg inline-block">
-                    Select photo
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleUserPhotoChange}
-                      className="hidden"
-                    />
-                  </label>
+                <div className="flex justify-between mb-4">
+                  <h2 className="text-xl font-bold">Profile photo</h2>
                   <button
-                    className="ml-4 px-5 py-2 border border-red-500 text-red-500 font-bold rounded-lg hover:bg-red-100"
-                    onClick={handleDeleteProfilePhoto}
-                    aria-label="Delete profile photo"
+                    className="text-gray-500 hover:text-black scale-150"
+                    onClick={() => setIsProfileModalOpen(false)}
+                    aria-label="Close profile photo modal"
                   >
-                    Delete
+                    ✖
                   </button>
-                </>
-              ) : (
-                <label className="cursor-pointer px-5 py-2 bg-black text-white font-bold rounded-lg inline-block">
-                  Select photo
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleUserPhotoChange}
-                    className="hidden"
-                  />
-                </label>
-              )}
-            </div>
-          </div>
-        </div>
+                </div>
+
+                <div className="w-28 h-28 mx-auto rounded-full border overflow-hidden bg-gray-200 flex items-center justify-center">
+                  {profilePhoto ? (
+                    <img
+                      src={profilePhoto}
+                      alt="Profile Preview"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <p className="text-gray-600">No profile photo</p>
+                  )}
+                </div>
+                <p className="text-gray-500 text-sm mt-4">
+                  We suggest using a real photo of yourself.
+                </p>
+
+                <div className="flex justify-center mt-4">
+                  {profilePhoto ? (
+                    <>
+                      <label className="cursor-pointer px-5 py-2 bg-black text-white font-bold rounded-lg inline-block">
+                        Select photo
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleUserPhotoChange}
+                          className="hidden"
+                        />
+                      </label>
+                      <button
+                        className="ml-4 px-5 py-2 border border-red-500 text-red-500 font-bold rounded-lg hover:bg-red-100"
+                        onClick={handleDeleteProfilePhoto}
+                        aria-label="Delete profile photo"
+                      >
+                        Delete
+                      </button>
+                    </>
+                  ) : (
+                    <label className="cursor-pointer px-5 py-2 bg-black text-white font-bold rounded-lg inline-block">
+                      Select photo
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleUserPhotoChange}
+                        className="hidden"
+                      />
+                    </label>
+                  )}
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </Modal>
 
       <Modal
@@ -766,60 +1218,76 @@ console.log(token)
         onClose={() => setIsLinksModalOpen(false)}
         title="Links"
       >
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-[700px] h-[300px] max-h-[80vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">Links</h2>
-              <button
-                className="text-gray-500 hover:text-black scale-150"
-                onClick={() => setIsLinksModalOpen(false)}
-                aria-label="Close links modal"
+        <AnimatePresence>
+          {isLinksModalOpen && (
+            <motion.div
+              className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50"
+              variants={backdropVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+            >
+              <motion.div
+                className="bg-white p-6 rounded-lg shadow-lg w-[700px] h-[300px] max-h-[80vh] overflow-y-auto"
+                variants={modalVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
               >
-                ✖
-              </button>
-            </div>
-
-            <div className="space-y-4">
-              {websiteLinks.length > 0 ? (
-                websiteLinks.map((link, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between p-2 border-b border-gray-200"
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-xl font-bold">Links</h2>
+                  <button
+                    className="text-gray-500 hover:text-black scale-150"
+                    onClick={() => setIsLinksModalOpen(false)}
+                    aria-label="Close links modal"
                   >
-                    <div className="flex items-center">
-                      <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center mr-3">
-                        <svg
-                          className="w-6 h-6 text-gray-600"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
-                          />
-                        </svg>
-                      </div>
-                      <a
-                        href={link.website}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-[#201A23] font-semibold"
+                    ✖
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  {websiteLinks.length > 0 ? (
+                    websiteLinks.map((link, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between p-2 border-b border-gray-200"
                       >
-                        {link.linkText || link.website}
-                      </a>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <p className="text-gray-600 text-center">No links added yet.</p>
-              )}
-            </div>
-          </div>
-        </div>
+                        <div className="flex items-center">
+                          <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center mr-3">
+                            <svg
+                              className="w-6 h-6 text-gray-600"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2"
+                                d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+                              />
+                            </svg>
+                          </div>
+                          <a
+                            href={link.website}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[#201A23] font-semibold"
+                          >
+                            {link.linkText || link.website}
+                          </a>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-gray-600 text-center">No links added yet.</p>
+                  )}
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </Modal>
     </>
   );

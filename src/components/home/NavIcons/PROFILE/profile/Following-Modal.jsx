@@ -97,7 +97,7 @@ function Following({ isOpen, onClose, followings }) {
         prev.filter((company) => company.id !== companyId)
       );
 
-      setMessage({
+        ({
         text: "Unfollowed successfully.",
         type: "success",
       });

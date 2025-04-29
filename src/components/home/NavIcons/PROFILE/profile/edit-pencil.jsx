@@ -5,6 +5,7 @@ import Trash from "../../../../../assets/trashPin.png";
 import { InputField, SelectField, InputFieldOption, CustomSelectField } from "./my-component";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 
 const EditProfile = ({ onLinksChange, initialData }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -38,8 +39,8 @@ const EditProfile = ({ onLinksChange, initialData }) => {
         City: initialData.city || "",
         WebsiteLinks: initialData.links && initialData.links.length > 0
           ? initialData.links.map(link => ({
-              website: link.link || "", // Use 'link' instead of 'url'
-              linkText: link.link_name || link.link || "", // Use 'link_name' instead of 'title'
+              website: link.link || "",
+              linkText: link.link_name || link.link || "",
               link_id: link.link_id || null,
             }))
           : [],
@@ -254,7 +255,7 @@ const EditProfile = ({ onLinksChange, initialData }) => {
       country: FormInputs.Location,
       city: FormInputs.City,
       links: FormInputs.WebsiteLinks
-        .filter(link => link.website.trim() && link.linkText.trim()) // Only include non-empty links
+        .filter(link => link.website.trim() && link.linkText.trim())
         .map((link) => ({
           link_id: link.link_id,
           link_name: link.linkText,
@@ -274,7 +275,6 @@ const EditProfile = ({ onLinksChange, initialData }) => {
       );
       console.log("API Response:", response.data);
 
-      // Notify parent component of updated links
       const updatedLinks = FormInputs.WebsiteLinks
         .filter(link => link.website.trim() && link.linkText.trim())
         .map(link => ({
@@ -304,6 +304,46 @@ const EditProfile = ({ onLinksChange, initialData }) => {
     }
   };
 
+  // Animation variants for modal backdrop
+  const backdropVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        duration: 0.3,
+        ease: "easeOut",
+      },
+    },
+    exit: {
+      opacity: 0,
+      transition: {
+        duration: 0.2,
+        ease: "easeIn",
+      },
+    },
+  };
+
+  // Animation variants for modal content
+  const modalVariants = {
+    hidden: { opacity: 0, scale: 0.95 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      transition: {
+        duration: 0.3,
+        ease: "easeOut",
+      },
+    },
+    exit: {
+      opacity: 0,
+      scale: 0.95,
+      transition: {
+        duration: 0.2,
+        ease: "easeIn",
+      },
+    },
+  };
+
   return (
     <div>
       <Pencil
@@ -316,189 +356,203 @@ const EditProfile = ({ onLinksChange, initialData }) => {
         onClose={() => setIsModalOpen(false)}
         title={"Personal Information"}
       >
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <form
-            className="bg-white p-6 rounded-lg shadow-lg w-[750px] text-left relative overflow-y-auto max-h-[90vh]"
-            onSubmit={handleSave}
-          >
-            <div className="flex justify-between items-center relative mb-3">
-              <h2 className="text-xl font-bold">Personal Information</h2>
-              <button
-                className="text-gray-500 hover:text-black scale-150"
-                onClick={() => setIsModalOpen(false)}
-              >
-                ✖
-              </button>
-            </div>
-
-            {apiError && (
-              <div className="mb-4 p-2 bg-red-100 text-red-700 rounded-md">
-                {apiError}
-              </div>
-            )}
-
-            <InputField
-              label="First Name"
-              name="FirstName"
-              value={FormInputs.FirstName}
-              onChange={(e) => {
-                setFormInputs({ ...FormInputs, FirstName: e.target.value });
-                setErrors({
-                  ...errors,
-                  FirstName: e.target.value.trim() ? "" : "First Name is required",
-                });
-              }}
-              placeholder="First name"
-              required
-              error={errors.FirstName}
-            />
-
-            <InputField
-              label="Last Name"
-              name="LastName"
-              value={FormInputs.LastName}
-              onChange={(e) => {
-                setFormInputs({ ...FormInputs, LastName: e.target.value });
-                setErrors({
-                  ...errors,
-                  LastName: e.target.value.trim() ? "" : "Last Name is required",
-                });
-              }}
-              placeholder="Last name"
-              required
-              error={errors.LastName}
-            />
-
-            <InputField
-              label="Headline"
-              name="Headline"
-              value={FormInputs.Headline}
-              onChange={(e) => {
-                setFormInputs({ ...FormInputs, Headline: e.target.value });
-                setErrors({
-                  ...errors,
-                  Headline: e.target.value.trim() ? "" : "Headline is required",
-                });
-              }}
-              placeholder="Headline"
-              required
-              error={errors.Headline}
-            />
-
-            <div className="flex gap-4 mb-4">
-              <CustomSelectField
-                label="Location"
-                name="Location"
-                value={FormInputs.Location}
-                onChange={(e) => {
-                  setFormInputs({
-                    ...FormInputs,
-                    Location: e.target.value,
-                    City: "",
-                  });
-                  setErrors({
-                    ...errors,
-                    Location: e.target.value.trim() ? "" : "Location is required",
-                    City: "",
-                  });
-                }}
-                options={
-                  loadingCountries
-                    ? ["Loading..."]
-                    : ["Select Country", ...countries.map((c) => c.countryName)]
-                }
-                disabled={loadingCountries}
-                required
-                error={errors.Location}
-              />
-              <CustomSelectField
-                label="City"
-                name="City"
-                value={FormInputs.City}
-                onChange={(e) => {
-                  setFormInputs({ ...FormInputs, City: e.target.value });
-                  setErrors({
-                    ...errors,
-                    City: e.target.value.trim() ? "" : "City is required",
-                  });
-                  setCityNotFound(false);
-                }}
-                options={
-                  loadingCities
-                    ? ["Loading..."]
-                    : cityNotFound
-                    ? ["City not found, please reselect"]
-                    : ["Select City", ...cities.map((c) => c.name).sort()]
-                }
-                disabled={loadingCities || !selectedCountryCode}
-                required
-                error={errors.City}
-              />
-            </div>
-
-            {FormInputs.WebsiteLinks.length > 0 && (
-              <div className="overflow-y-auto max-h-[40vh] pr-2">
-                {FormInputs.WebsiteLinks.map((link, index) => (
-                  <div key={index} className="flex gap-4 mb-4 items-center">
-                    <InputFieldOption
-                      label="Website"
-                      name={`Website-${index}`}
-                      value={link.website}
-                      onChange={(e) =>
-                        handleLinkChange(index, "website", e.target.value)
-                      }
-                      placeholder="https://example.com"
-                      error={errors[`Website-${index}`]}
-                    />
-                    <InputFieldOption
-                      label="Link text"
-                      name={`LinkText-${index}`}
-                      value={link.linkText}
-                      onChange={(e) => {
-                        handleLinkChange(index, "linkText", e.target.value);
-                        setErrors({
-                          ...errors,
-                          [`LinkText-${index}`]: e.target.value.trim()
-                            ? e.target.value.length > 50
-                              ? "Link text cannot exceed 50 characters"
-                              : ""
-                            : "Link text cannot be empty",
-                        });
-                      }}
-                      placeholder="Link text"
-                      maxLength={50}
-                      error={errors[`LinkText-${index}`]}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeLink(index)}
-                      className="text-[#201A23] hover:text-red-700"
-                    >
-                      <img className="scale-150 mt-6" src={Trash} alt="Delete" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <button
-              type="button"
-              className="text-purple-600 text-sm font-medium flex items-center gap-1 mb-4"
-              onClick={addNewLink}
+        <AnimatePresence>
+          {isModalOpen && (
+            <motion.div
+              className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50"
+              variants={backdropVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
             >
-              + Add New link
-            </button>
-
-            <div className="flex justify-end">
-              <button
-                type="submit"
-                className="p-2 w-[112px] bg-black text-white rounded-xl font-semibold hover:bg-gray-900 transition mx-4"
+              <motion.form
+                className="bg-white p-6 rounded-lg shadow-lg w-[750px] text-left relative overflow-y-auto max-h-[90vh]"
+                onSubmit={handleSave}
+                variants={modalVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
               >
-                Save
-              </button>
-            </div>
-          </form>
-        </div>
+                <div className="flex justify-between items-center relative mb-3">
+                  <h2 className="text-xl font-bold">Personal Information</h2>
+                  <button
+                    className="text-gray-500 hover:text-black scale-150"
+                    onClick={() => setIsModalOpen(false)}
+                  >
+                    ✖
+                  </button>
+                </div>
+
+                {apiError && (
+                  <div className="mb-4 p-2 bg-red-100 text-red-700 rounded-md">
+                    {apiError}
+                  </div>
+                )}
+
+                <InputField
+                  label="First Name"
+                  name="FirstName"
+                  value={FormInputs.FirstName}
+                  onChange={(e) => {
+                    setFormInputs({ ...FormInputs, FirstName: e.target.value });
+                    setErrors({
+                      ...errors,
+                      FirstName: e.target.value.trim() ? "" : "First Name is required",
+                    });
+                  }}
+                  placeholder="First name"
+                  required
+                  error={errors.FirstName}
+                />
+
+                <InputField
+                  label="Last Name"
+                  name="LastName"
+                  value={FormInputs.LastName}
+                  onChange={(e) => {
+                    setFormInputs({ ...FormInputs, LastName: e.target.value });
+                    setErrors({
+                      ...errors,
+                      LastName: e.target.value.trim() ? "" : "Last Name is required",
+                    });
+                  }}
+                  placeholder="Last name"
+                  required
+                  error={errors.LastName}
+                />
+
+                <InputField
+                  label="Headline"
+                  name="Headline"
+                  value={FormInputs.Headline}
+                  onChange={(e) => {
+                    setFormInputs({ ...FormInputs, Headline: e.target.value });
+                    setErrors({
+                      ...errors,
+                      Headline: e.target.value.trim() ? "" : "Headline is required",
+                    });
+                  }}
+                  placeholder="Headline"
+                  required
+                  error={errors.Headline}
+                />
+
+                <div className="flex gap-4 mb-4">
+                  <CustomSelectField
+                    label="Location"
+                    name="Location"
+                    value={FormInputs.Location}
+                    onChange={(e) => {
+                      setFormInputs({
+                        ...FormInputs,
+                        Location: e.target.value,
+                        City: "",
+                      });
+                      setErrors({
+                        ...errors,
+                        Location: e.target.value.trim() ? "" : "Location is required",
+                        City: "",
+                      });
+                    }}
+                    options={
+                      loadingCountries
+                        ? ["Loading..."]
+                        : ["Select Country", ...countries.map((c) => c.countryName)]
+                    }
+                    disabled={loadingCountries}
+                    required
+                    error={errors.Location}
+                  />
+                  <CustomSelectField
+                    label="City"
+                    name="City"
+                    value={FormInputs.City}
+                    onChange={(e) => {
+                      setFormInputs({ ...FormInputs, City: e.target.value });
+                      setErrors({
+                        ...errors,
+                        City: e.target.value.trim() ? "" : "City is required",
+                      });
+                      setCityNotFound(false);
+                    }}
+                    options={
+                      loadingCities
+                        ? ["Loading..."]
+                        : cityNotFound
+                        ? ["City not found, please reselect"]
+                        : ["Select City", ...cities.map((c) => c.name).sort()]
+                    }
+                    disabled={loadingCities || !selectedCountryCode}
+                    required
+                    error={errors.City}
+                  />
+                </div>
+
+                {FormInputs.WebsiteLinks.length > 0 && (
+                  <div className="overflow-y-auto max-h-[40vh] pr-2">
+                    {FormInputs.WebsiteLinks.map((link, index) => (
+                      <div key={index} className="flex gap-4 mb-4 items-center">
+                        <InputFieldOption
+                          label="Website"
+                          name={`Website-${index}`}
+                          value={link.website}
+                          onChange={(e) =>
+                            handleLinkChange(index, "website", e.target.value)
+                          }
+                          placeholder="https://example.com"
+                          error={errors[`Website-${index}`]}
+                        />
+                        <InputFieldOption
+                          label="Link text"
+                          name={`LinkText-${index}`}
+                          value={link.linkText}
+                          onChange={(e) => {
+                            handleLinkChange(index, "linkText", e.target.value);
+                            setErrors({
+                              ...errors,
+                              [`LinkText-${index}`]: e.target.value.trim()
+                                ? e.target.value.length > 50
+                                  ? "Link text cannot exceed 50 characters"
+                                  : ""
+                                : "Link text cannot be empty",
+                            });
+                          }}
+                          placeholder="Link text"
+                          maxLength={50}
+                          error={errors[`LinkText-${index}`]}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeLink(index)}
+                          className="text-[#201A23] hover:text-red-700"
+                        >
+                          <img className="scale-150 mt-6" src={Trash} alt="Delete" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  className="text-purple-600 text-sm font-medium flex items-center gap-1 mb-4"
+                  onClick={addNewLink}
+                >
+                  + Add New link
+                </button>
+
+                <div className="flex justify-end">
+                  <button
+                    type="submit"
+                    className="p-2 w-[112px] bg-black text-white rounded-xl font-semibold hover:bg-gray-900 transition mx-4"
+                  >
+                    Save
+                  </button>
+                </div>
+              </motion.form>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </Modal>
     </div>
   );

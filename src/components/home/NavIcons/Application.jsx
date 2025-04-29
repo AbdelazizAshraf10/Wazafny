@@ -13,7 +13,7 @@ const getFallbackLogo = (companyName) => {
     case "Vodafone Egypt":
       return logoVodafone;
     default:
-      return logoVodafone; // Default fallback
+      return logoVodafone;
   }
 };
 
@@ -21,13 +21,16 @@ const JobApplicationDropdown = ({ isOpen, onToggle }) => {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [navigating, setNavigating] = useState(false);
   const navigate = useNavigate();
 
-  // Retrieve seeker_id and token from localStorage
+  useEffect(() => {
+    console.log("JobApplicationDropdown: isOpen =", isOpen);
+  }, [isOpen]);
+
   const seekerId = localStorage.getItem("seeker_id");
   const token = localStorage.getItem("token");
 
-  // Fetch latest applications from API
   useEffect(() => {
     const fetchApplications = async () => {
       if (!seekerId || !token) {
@@ -54,14 +57,13 @@ const JobApplicationDropdown = ({ isOpen, onToggle }) => {
         if (response.status === 204 || !response.data.applications) {
           setApplications([]);
         } else {
-          // Map API response to the component's expected format
           const mappedApplications = response.data.applications.map((app) => ({
             id: app.application_id,
             company: app.job.company.company_name,
             position: app.job.job_title,
             location: `${app.job.job_city}, ${app.job.job_country} (${app.job.job_type})`,
             status: app.status,
-            daysAgo: app.time_ago, // Use time_ago directly
+            daysAgo: app.time_ago,
             logo: app.job.company.profile_img || getFallbackLogo(app.job.company.company_name),
           }));
           setApplications(mappedApplications);
@@ -86,9 +88,47 @@ const JobApplicationDropdown = ({ isOpen, onToggle }) => {
     fetchApplications();
   }, [seekerId, token, navigate]);
 
+  useEffect(() => {
+    console.log("JobApplicationDropdown: navigating =", navigating);
+  }, [navigating]);
+
+  const handleViewAllClick = (e) => {
+    e.stopPropagation();
+    console.log("View all button clicked: Attempting to navigate to /seeker/Applications");
+    if (!seekerId || !token) {
+      console.log("View all: Missing seekerId or token, redirecting to /Login");
+      setError("Missing seeker ID or token. Please log in again.");
+      setTimeout(() => navigate("/Login"), 2000);
+      return;
+    }
+
+    setNavigating(true);
+    setTimeout(() => {
+      navigate("/seeker/Applications");
+      onToggle();
+      setNavigating(false);
+    }, 1000);
+  };
+
+  const handleParentDivClick = (e) => {
+    console.log("Parent div clicked: Navigating to /seeker/Applications as fallback");
+    if (!seekerId || !token) {
+      console.log("Parent div: Missing seekerId or token, redirecting to /Login");
+      setError("Missing seeker ID or token. Please log in again.");
+      setTimeout(() => navigate("/Login"), 2000);
+      return;
+    }
+
+    setNavigating(true);
+    setTimeout(() => {
+      navigate("/seeker/Applications");
+      onToggle();
+      setNavigating(false);
+    }, 1000);
+  };
+
   return (
     <div className="relative">
-      {/* Briefcase Icon */}
       <button
         onClick={onToggle}
         className="relative p-2 rounded-full hover:bg-gray-200"
@@ -103,7 +143,6 @@ const JobApplicationDropdown = ({ isOpen, onToggle }) => {
         />
       </button>
 
-      {/* Application Panel */}
       {isOpen && (
         <div className="absolute right-4 mt-2 w-96 bg-white rounded-xl border border-gray-300 shadow-lg z-50">
           <div className="p-5 flex justify-center border-b border-gray-200">
@@ -116,6 +155,10 @@ const JobApplicationDropdown = ({ isOpen, onToggle }) => {
             {loading ? (
               <p className="p-6 text-center text-lg font-semibold text-gray-400">
                 Loading applications...
+              </p>
+            ) : navigating ? (
+              <p className="p-6 text-center text-lg font-semibold text-gray-400">
+                Navigating to Applications...
               </p>
             ) : error ? (
               <p className="p-6 text-center text-lg font-semibold text-red-500">
@@ -136,7 +179,6 @@ const JobApplicationDropdown = ({ isOpen, onToggle }) => {
                     key={id}
                     className="p-4 flex justify-between items-center border-b border-gray-200 last:border-none"
                   >
-                    {/* Left Section (Logo + Company Name) */}
                     <div className="items-center rtl:space-x-reverse">
                       <div className="flex items-center gap-2">
                         <img
@@ -158,7 +200,6 @@ const JobApplicationDropdown = ({ isOpen, onToggle }) => {
                       </div>
                     </div>
 
-                    {/* Right Section (Days Ago & Status) */}
                     <div className="flex flex-col items-end space-y-9">
                       <p className="text-xs text-gray-400">{daysAgo}</p>
                       <span
@@ -183,14 +224,14 @@ const JobApplicationDropdown = ({ isOpen, onToggle }) => {
             )}
           </div>
 
-          {/* View All Button */}
-          <div className="p-4 text-center border-t border-gray-200">
+          <div
+            className="p-4 text-center border-t border-gray-200"
+            onClick={handleParentDivClick}
+          >
             <button
-              onClick={() => {
-                navigate("/seeker/Applications");
-                onToggle(); // Close dropdown after navigation
-              }}
+              onClick={handleViewAllClick}
               className="text-black font-bold hover:underline"
+              style={{ pointerEvents: "auto" }}
             >
               View all
             </button>
