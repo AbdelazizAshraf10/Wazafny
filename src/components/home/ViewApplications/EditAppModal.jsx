@@ -361,7 +361,7 @@ function EditAppModal({ isOpen, onClose, jobTitle = "Mobile Software Engineer", 
     switch (step) {
       case 1:
         return (
-          <div className="px-24 pt-2 pb-3 space-y-5">
+          <div className="px-20 pt-2 pb-3 space-y-5">
             <h3 className="text-xl font-bold text-center">Add your contact information</h3>
             <div className="space-y-2">
               <div>
@@ -607,8 +607,8 @@ function EditAppModal({ isOpen, onClose, jobTitle = "Mobile Software Engineer", 
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-10 overflow-auto pt-2.5">
-      <div className="bg-white mx-auto my-auto p-4 border border-gray-300 w-4/5 max-w-[600px] text-center relative rounded-[10px] box-border">
+    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-10 overflow-auto ">
+      <div className="bg-white mx-auto my-auto p-4 border border-gray-300 w-full max-w-[600px] text-center relative rounded-[10px] box-border">
         <button
           onClick={onClose}
           className="absolute top-2.5 right-2.5 mr-5 mt-3.5 text-gray-400 hover:text-black text-2xl font-bold cursor-pointer"
