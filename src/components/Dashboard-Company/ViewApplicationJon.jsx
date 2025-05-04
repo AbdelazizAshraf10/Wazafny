@@ -62,6 +62,7 @@ function ViewApplications() {
             status: app.status,
             time: app.time_ago,
             photo: app.seeker.profile_img || "",
+            seeker_id: app.seeker.seeker_id,
           }));
           setApplications(mappedApplications);
         }
@@ -189,6 +190,8 @@ function ViewApplications() {
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.3, delay: index * 0.1 + 0.3 }}
+                      onClick={() => navigate(`/Dashboard/SeekerApplicant/${app.seeker_id}`)}
+                      className="text-[#242645] text-sm font-bold underline cursor-pointer"
                     >
                       {app.name}
                     </motion.span>

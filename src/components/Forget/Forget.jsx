@@ -132,7 +132,7 @@ export default function Forget() {
           .floating-message {
             position: fixed;
             top: 20px;
-            left: 44%;
+            left: 41%;
             transform: translateX(-50%);
             padding: 12px 24px;
             border-radius: 8px;
@@ -157,7 +157,7 @@ export default function Forget() {
           }
         `}
       </style>
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center mt-20">
         {/* Floating Message */}
         {message.text && (
           <div

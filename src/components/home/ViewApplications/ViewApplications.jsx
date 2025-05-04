@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import  { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 // --- Framer Motion Imports ---
@@ -10,7 +10,7 @@ import blink22 from "../../../assets/seeker/blink.png"; // Placeholder for Blink
 import trash from "../../../assets/seeker/trash1.svg"; // Placeholder for delete icon
 import JobResModal from "./JobResModal"; // Assuming this component can handle animation internally or we wrap it
 import EditAppModal from "./EditAppModal"; // Assuming this component can handle animation internally or we wrap it
-import { Message } from "../../CustomMessage/FloatMessage";
+
 
 // --- Animation Variants ---
 const listItemVariants = {
@@ -34,17 +34,7 @@ const listItemVariants = {
   },
 };
 
-const modalOverlayVariants = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { duration: 0.3 } },
-    exit: { opacity: 0, transition: { duration: 0.3, delay: 0.1 } }, // Delay exit slightly
-};
 
-const modalContentVariants = {
-    hidden: { opacity: 0, scale: 0.9 },
-    visible: { opacity: 1, scale: 1, transition: { duration: 0.3, ease: "easeOut" } },
-    exit: { opacity: 0, scale: 0.95, transition: { duration: 0.2, ease: "easeIn" } },
-};
 // ------------------------
 
 function ViewApplications() {

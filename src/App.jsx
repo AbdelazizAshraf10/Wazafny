@@ -39,7 +39,7 @@ import Apply from "./components/home/apply/apply";
 import CompanyOverview from "./components/home/companyjobs/CompanyOverview";
 import ViewApplications from "./components/home/ViewApplications/ViewApplications";
 import JobTilteLink from "./components/Dashboard-Company/JobTilteLink";
-
+import SeekerProfile from "./components/Dashboard-Company/profile-seeker/SeekerProfile";
 const router = createBrowserRouter([
   {
     path: "/",
@@ -86,6 +86,7 @@ const router = createBrowserRouter([
       { path: "", element: <Navigate to="Overview" replace /> },
       { path: "Overview", element: <DashboardContent /> },
       { path: "JobOverview/:jobId", element: <JobTilteLink /> },
+      { path: "SeekerApplicant/:seekerId", element: <SeekerProfile /> },
       {
         path: "Jobpost",
         element: <Jobpost />,

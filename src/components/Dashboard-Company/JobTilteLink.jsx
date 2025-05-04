@@ -130,12 +130,15 @@ function JobTilteLink() {
 
           <div className="mt-4">
             <h4 className="text-xl font-semibold text-gray-900">Skills</h4>
-            <div className="flex items-center gap-4 mt-2">
+            <div className="flex flex-wrap gap-4 mt-2">
               {job.tags.length > 0 ? (
                 job.tags.map((tag, idx) => (
                   <span
                     key={idx}
                     className="bg-[#F2E9FF] text-[#201A23] text-md font-bold px-6 py-1 rounded-[9px]"
+                    style={{
+                      maxWidth: job.tags.length > 10 ? "calc(50% - 0.5rem)" : undefined,
+                    }}
                   >
                     {tag}
                   </span>

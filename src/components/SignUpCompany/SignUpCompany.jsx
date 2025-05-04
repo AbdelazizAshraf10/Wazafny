@@ -177,7 +177,6 @@ export default function Register() {
         style={{
           maxWidth: "1280px",
           margin: "0 auto",
-          padding: "3rem",
           textAlign: "center",
         }}
         className="flex justify-around mt-8"
@@ -193,9 +192,9 @@ export default function Register() {
           </div>
         )}
 
-        <div className="image w-2/4">
+        <div className="image w-2/5 mr-14 animate-fadeIn">
           <img
-            className="ml-[-150px] animate-fadeIn"
+            className="w-full mt-10 animate-fadeIn"
             style={{ animationDelay: "0s" }}
             src="\src\assets\company-sign-up.png"
             alt="frame"
@@ -206,14 +205,14 @@ export default function Register() {
           style={{ width: "450px", animationDelay: "0.1s" }}
         >
           <h2
-            className="text-3xl text-[#242645] font-extrabold animate-fadeIn"
-            style={{ animationDelay: "0.2s" }}
+            className="text-3xl text-[#242645] font-extrabold "
+           
           >
             SIGN UP
           </h2>
           <h3
-            className="text-lg text-[#242645] font-semibold mb-8 animate-fadeIn"
-            style={{ animationDelay: "0.3s" }}
+            className="text-lg text-[#242645] font-semibold mb-8 "
+            
           >
             COMPANY
           </h3>
@@ -426,8 +425,8 @@ export default function Register() {
 
             {/* Submit Button */}
             <div
-              className="w-full mt-6 animate-fadeIn"
-              style={{ animationDelay: "0.8s" }}
+              className="w-full mt-6 "
+              
             >
               <button
                 type="submit"
@@ -439,8 +438,8 @@ export default function Register() {
 
             {/* Login Link */}
             <div
-              className="login-link mt-6 animate-fadeIn"
-              style={{ animationDelay: "0.9s" }}
+              className="login-link mt-6 "
+              
             >
               <p className="font-bold">
                 Already have an account?{" "}
@@ -455,8 +454,8 @@ export default function Register() {
 
             {/* Create Seeker Account Link */}
             <div
-              className="mt-6 login-link animate-fadeIn"
-              style={{ animationDelay: "1.0s" }}
+              className="mt-6 login-link "
+              
             >
               <Link
                 to={"/Register"}

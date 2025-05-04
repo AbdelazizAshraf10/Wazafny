@@ -115,6 +115,7 @@ function ViewAppSeeker() {
 
       const data = response.data;
       setUser({
+        seekerId: data.seeker_id,
         firstName: data.first_name,
         lastName: data.last_name,
         phone: data.phone,
@@ -347,8 +348,8 @@ function ViewAppSeeker() {
                     alt="Profile"
                     className="w-24 h-24 rounded-full border shadow-md object-cover"
                   />
-                  <div>
-                    <p className="text-xl font-bold text-gray-900">
+                  <div onClick={() => navigate(`/dashboard/SeekerApplicant/${user.seekerId}`)}>
+                    <p className="text-xl font-bold text-gray-900 cursor-pointer underline">
                       {user.firstName} {user.lastName}
                     </p>
                   </div>

@@ -164,7 +164,6 @@ export default function LoginCompany() {
         style={{
           maxWidth: "1280px",
           margin: "0 auto",
-          padding: "2rem",
           textAlign: "center",
         }}
         className="flex justify-around mt-5"
@@ -193,14 +192,14 @@ export default function LoginCompany() {
           style={{ width: "450px", animationDelay: "0.1s" }}
         >
           <h2
-            className="text-3xl text-[#242645] font-extrabold animate-fadeIn"
-            style={{ animationDelay: "0.2s" }}
+            className="text-3xl text-[#242645] font-extrabold "
+            
           >
             LOGIN
           </h2>
           <h3
-            className="text-lg text-[#242645] font-semibold mb-6 animate-fadeIn"
-            style={{ animationDelay: "0.3s" }}
+            className="text-lg text-[#242645] font-semibold mb-6 "
+            
           >
             COMPANY
           </h3>
@@ -297,8 +296,8 @@ export default function LoginCompany() {
               </div>
               {formik.errors.Password && formik.touched.Password ? (
                 <div
-                  className="text-sm text-red-500 text-left mt-2 animate-fadeIn"
-                  style={{ animationDelay: "0.5s" }}
+                  className="text-sm text-red-500 text-left mt-2 "
+                  
                 >
                   {formik.errors.Password}
                 </div>
@@ -306,8 +305,8 @@ export default function LoginCompany() {
             </div>
 
             <div
-              className="w-full animate-fadeIn"
-              style={{ animationDelay: "0.6s" }}
+              className="w-full "
+              
             >
               <button
                 type="submit"
@@ -318,8 +317,8 @@ export default function LoginCompany() {
             </div>
 
             <div
-              className="forget mt-4 animate-fadeIn"
-              style={{ animationDelay: "0.7s" }}
+              className="forget mt-4 "
+              
             >
               <Link
                 to={"/Forget"}
@@ -330,8 +329,8 @@ export default function LoginCompany() {
             </div>
 
             <div
-              className="login-link mt-4 animate-fadeIn"
-              style={{ animationDelay: "0.8s" }}
+              className="login-link mt-4 "
+             
             >
               <p className="font-bold">
                 New user?{" "}
@@ -345,8 +344,8 @@ export default function LoginCompany() {
             </div>
 
             <div
-              className="mt-4 login-link animate-fadeIn"
-              style={{ animationDelay: "0.9s" }}
+              className="mt-4 login-link "
+              
             >
               <Link
                 to={"/Login"}

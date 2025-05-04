@@ -84,7 +84,9 @@ function DashboardContent() {
       const companyId = localStorage.getItem("company_id");
 
       if (!token || !companyId) {
-        setApplicationsError("Missing token or company ID. Please log in again.");
+        setApplicationsError(
+          "Missing token or company ID. Please log in again."
+        );
         setApplicationsLoading(false);
         navigate("/LoginCompany");
         return;
@@ -105,15 +107,18 @@ function DashboardContent() {
           setlatestApplication([]);
         } else {
           const mappedApplications = response.data.applications.map((app) => {
-            // Log profileImg to debug
-            console.log(`Profile Image for ${app.seeker.first_name}:`, app.seeker.profile_img);
+            console.log(
+              `Profile Image for ${app.seeker.first_name}:`,
+              app.seeker.profile_img
+            );
             return {
               id: app.application_id,
               applicationName: `${app.seeker.first_name} ${app.seeker.last_name}`,
               jobpost: app.job.job_title,
               jobId: app.job.job_id || null,
               Time: app.time_ago,
-              profileImg: app.seeker.profile_img || "", // Ensure profileImg is a string
+              profileImg: app.seeker.profile_img || "",
+              seekerId: app.seeker.seeker_id, // Add seeker_id to the mapped object
             };
           });
           setlatestApplication(mappedApplications);
@@ -130,7 +135,9 @@ function DashboardContent() {
         } else if (error.response?.status === 500) {
           setApplicationsError("Server error fetching applications.");
         } else {
-          setApplicationsError("Failed to fetch applications. Please try again.");
+          setApplicationsError(
+            "Failed to fetch applications. Please try again."
+          );
         }
         setApplicationsLoading(false);
       }
@@ -223,7 +230,8 @@ function DashboardContent() {
   };
 
   // Destructure statistics data with fallback
-  const { active_jobs_count, applications_count, followers_count, jobs_count } = stats;
+  const { active_jobs_count, applications_count, followers_count, jobs_count } =
+    stats;
 
   // Animation variants
   const statVariants = {
@@ -318,49 +326,66 @@ function DashboardContent() {
                   variants={applicationVariants}
                   initial="hidden"
                   animate="visible"
-                  className={`flex justify-between py-3 ${
+                  className={`flex justify-between py-3 hover:bg-[#EFF0F2] ${
                     index !== latestApplication.length - 1 ? "border-b" : ""
                   }`}
+                  onClick={(e) => {
+                    // Prevent navigation if clicking on applicant name or job post title
+                    if (
+                      e.target.closest(".applicant-name") ||
+                      e.target.closest(".job-post-title")
+                    ) {
+                      return;
+                    }
+                    navigate(`/Dashboard/application/${application.id}`);
+                  }}
                 >
                   {/* Profile Picture & Name */}
-                  <div
-                    onClick={() => navigate("/seeker/profile")}
-                    className="flex items-center w-1/3"
-                  >
+                  <div className="flex items-center w-1/3 applicant-name">
                     <div className="w-10 h-10 flex items-center cursor-pointer justify-center rounded-full bg-gray-200 mr-3">
                       <img
-                        src={application.profileImg || profile} // Use profile as default if profileImg is falsy
+                        src={application.profileImg || profile}
                         alt="Profile"
-                        className="w-9 h-9 rounded-full object-cover" // Added object-cover
+                        className="w-9 h-9 rounded-full object-cover"
                         onError={(e) => {
-                          console.log("Image failed to load, using fallback:", profile);
+                          console.log(
+                            "Image failed to load, using fallback:",
+                            profile
+                          );
                           e.target.src = profile;
                         }}
                       />
                     </div>
-                    <p className="font-bold cursor-pointer">
+                    <p
+                      onClick={() => {
+                        navigate(
+                          `/dashboard/SeekerApplicant/${application.seekerId}`
+                        );
+                      }}
+                      className="font-bold cursor-pointer"
+                    >
                       {application.applicationName}
                     </p>
                   </div>
 
                   {/* Job Post Title */}
-                  <p
-                    className={`w-1/3 ml-5 mt-2.5 font-extrabold text-sm ${
-                      application.jobId
-                        ? "text-[#6A0DAD] underline cursor-pointer"
-                        : "text-gray-500 cursor-not-allowed"
-                    }`}
-                  >
-                    {application.jobId ? (
-                      <Link
-                        to={`/Dashboard/JobOverview/${application.jobId}`}
-                      >
-                        {application.jobpost}
-                      </Link>
-                    ) : (
-                      <span>{application.jobpost} (Invalid Job ID)</span>
-                    )}
-                  </p>
+                  <div className="w-1/3 ml-5 mt-2.5 job-post-title">
+                    <p
+                      className={`font-extrabold text-sm ${
+                        application.jobId
+                          ? "text-[#6A0DAD] underline cursor-pointer"
+                          : "text-gray-500 cursor-not-allowed"
+                      }`}
+                    >
+                      {application.jobId ? (
+                        <Link to={`/Dashboard/JobOverview/${application.jobId}`}>
+                          {application.jobpost}
+                        </Link>
+                      ) : (
+                        <span>{application.jobpost} (Invalid Job ID)</span>
+                      )}
+                    </p>
+                  </div>
 
                   {/* Time */}
                   <p className="text-gray-500">{application.Time}</p>
@@ -388,9 +413,12 @@ function DashboardContent() {
                   variants={jobPostVariants}
                   initial="hidden"
                   animate="visible"
-                  className={`flex justify-between py-3 ${
+                  className={`flex justify-between py-3 cursor-pointer hover:bg-[#EFF0F2] ${
                     index !== latestJob.length - 1 ? "border-b" : ""
                   }`}
+                  onClick={() => {
+                    navigate(`/Dashboard/JobOverview/${job.id}`);
+                  }}
                 >
                   <div className="space-y-2">
                     <p className="font-bold text-base">{job.jobpost}</p>

@@ -197,7 +197,7 @@ const OTPInput = ({ length = 6 }) => {
           .floating-message {
             position: fixed;
             top: 20px;
-            left: 44%;
+            left: 42%;
             transform: translateX(-50%);
             padding: 12px 24px;
             border-radius: 8px;

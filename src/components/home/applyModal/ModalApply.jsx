@@ -177,7 +177,7 @@ function ModalApply({
     formDataToSend.append("phone", formData.phoneNumber);
     formDataToSend.append("seeker_id", seekerid);
     formDataToSend.append("job_id", jobId);
-    formDataToSend.append("resume", formData.resume);
+    formDataToSend.append("resume", formData.resume);    
 
     // Append answers only if there were questions
     if (totalSteps === 3) {

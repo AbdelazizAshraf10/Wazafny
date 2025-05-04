@@ -88,9 +88,7 @@ const JobApplicationDropdown = ({ isOpen, onToggle }) => {
     fetchApplications();
   }, [seekerId, token, navigate]);
 
-  useEffect(() => {
-    console.log("JobApplicationDropdown: navigating =", navigating);
-  }, [navigating]);
+
 
   const handleViewAllClick = (e) => {
     e.stopPropagation();
@@ -107,10 +105,10 @@ const JobApplicationDropdown = ({ isOpen, onToggle }) => {
       navigate("/seeker/Applications");
       onToggle();
       setNavigating(false);
-    }, 1000);
+    });
   };
 
-  const handleParentDivClick = (e) => {
+  const handleParentDivClick = () => {
     console.log("Parent div clicked: Navigating to /seeker/Applications as fallback");
     if (!seekerId || !token) {
       console.log("Parent div: Missing seekerId or token, redirecting to /Login");
@@ -155,10 +153,6 @@ const JobApplicationDropdown = ({ isOpen, onToggle }) => {
             {loading ? (
               <p className="p-6 text-center text-lg font-semibold text-gray-400">
                 Loading applications...
-              </p>
-            ) : navigating ? (
-              <p className="p-6 text-center text-lg font-semibold text-gray-400">
-                Navigating to Applications...
               </p>
             ) : error ? (
               <p className="p-6 text-center text-lg font-semibold text-red-500">
