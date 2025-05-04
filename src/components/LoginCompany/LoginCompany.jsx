@@ -27,7 +27,7 @@ export default function LoginCompany() {
         role: "Company",
       });
 
-      console.log("Response:", response.status, response.data);
+      
 
       if (response.status === 200) {
         localStorage.removeItem("token", response.data.token);

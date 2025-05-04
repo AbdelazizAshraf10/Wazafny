@@ -69,7 +69,7 @@ function ViewAppSeeker() {
         text: `Application ${actionType} successfully!`,
         type: "success",
       });
-      console.log("Status update response:", response.data);
+      
       closeModal();
       // Refresh the application data to reflect the updated status
       fetchApplication();
@@ -100,7 +100,7 @@ function ViewAppSeeker() {
       return;
     }
 
-    console.log("applicationId from view app:", id);
+    
 
     try {
       const response = await axios.get(

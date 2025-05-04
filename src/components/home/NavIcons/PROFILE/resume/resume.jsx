@@ -141,7 +141,7 @@ function Resume({ userRole, initialResume }) {
         }
       );
 
-      console.log("Update Resume API Response:", response.data);
+     
 
       const updatedResumeUrl =
         response.data.resume || URL.createObjectURL(file);

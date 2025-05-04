@@ -76,7 +76,7 @@ export default function ResetPassword() {
         }
       );
 
-      console.log("Response:", response.status, response.data);
+      
 
       if (response.status === 200) {
         setMessage({ text: "Password reset successful!", type: "success" });

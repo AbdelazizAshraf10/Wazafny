@@ -41,9 +41,9 @@ function Following({ isOpen, onClose, followings }) {
 
   // Handle company click to navigate to company overview
   const handleCompanyClick = (companyId) => {
-    console.log("Navigating with companyId:", companyId);
+    
     if (!companyId || isNaN(companyId)) {
-      console.error("companyId is undefined or invalid:", companyId);
+      console.error("companyId is undefined or invalid");
       setMessage({
         text: "Invalid company ID. Please try again.",
         type: "error",
@@ -73,10 +73,7 @@ function Following({ isOpen, onClose, followings }) {
       return;
     }
 
-    console.log("Unfollow Request:", {
-      token,
-      payload: { seeker_id: seekerId, company_id: companyId },
-    });
+    
 
     try {
       const response = await axios.delete("https://wazafny.online/api/unfollow", {
@@ -90,7 +87,7 @@ function Following({ isOpen, onClose, followings }) {
         },
       });
 
-      console.log("Unfollow API Response:", response.data);
+      
 
       // Remove the company from filteredFollowings
       setFilteredFollowings((prev) =>

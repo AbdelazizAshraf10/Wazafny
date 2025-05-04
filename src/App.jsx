@@ -130,8 +130,7 @@ function App() {
 function AppContent() {
   const { isLoading } = useLoading();
 
-  // Log when the loader should be visible
-  console.log("AppContent: isLoading =", isLoading);
+  
 
   return (
     <>

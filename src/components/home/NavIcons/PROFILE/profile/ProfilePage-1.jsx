@@ -51,7 +51,7 @@ const { startLoading, stopLoading } = useLoading(); // Use the global loading co
   const token = localStorage.getItem("token");
   const userRole = localStorage.getItem("Role");
 
-  console.log(token);
+  
 
   // Fetch user profile data
   useEffect(() => {
@@ -76,7 +76,7 @@ const { startLoading, stopLoading } = useLoading(); // Use the global loading co
           }
         );
 
-        console.log("User Profile API Response:", response.data);
+        
 
         if (response.data && response.data.personal_info) {
           const { personal_info } = response.data;
@@ -151,9 +151,7 @@ const { startLoading, stopLoading } = useLoading(); // Use the global loading co
     }
   }, [message]);
 
-  useEffect(() => {
-    console.log("Current websiteLinks:", websiteLinks);
-  }, [websiteLinks]);
+ 
 
   // Handle cover photo change
   const handleCoverPhotoChange = async (event) => {
@@ -192,7 +190,7 @@ const { startLoading, stopLoading } = useLoading(); // Use the global loading co
           }
         );
 
-        console.log("Update Cover Image API Response:", response.data);
+     
 
         const updatedCoverImg = response.data.cover_img || URL.createObjectURL(file);
         setCoverPhoto(updatedCoverImg);
@@ -258,7 +256,7 @@ const { startLoading, stopLoading } = useLoading(); // Use the global loading co
         }
       );
 
-      console.log("Delete Cover Image API Response:", response.data);
+      
 
       setCoverPhoto(null);
       setIsCoverModalOpen(false);
@@ -327,7 +325,7 @@ const { startLoading, stopLoading } = useLoading(); // Use the global loading co
           }
         );
 
-        console.log("Update Profile Image API Response:", response.data);
+       
 
         const updatedProfileImg = response.data.profile_img || URL.createObjectURL(file);
         setProfilePhoto(updatedProfileImg);
@@ -390,7 +388,7 @@ const { startLoading, stopLoading } = useLoading(); // Use the global loading co
         }
       );
 
-      console.log("Delete Profile Image API Response:", response.data);
+      
 
       setProfilePhoto(null);
       setIsProfileModalOpen(false);
@@ -551,9 +549,9 @@ const { startLoading, stopLoading } = useLoading(); // Use the global loading co
 
     // Handle company click to navigate to company overview
     const handleCompanyClick = (companyId) => {
-      console.log("Navigating with companyId:", companyId);
+      
       if (!companyId || isNaN(companyId)) {
-        console.error("companyId is undefined or invalid:", companyId);
+        console.error("companyId is undefined or invalid:");
         setFollowingMessage({
           text: "Invalid company ID. Please try again.",
           type: "error",
@@ -583,11 +581,7 @@ const { startLoading, stopLoading } = useLoading(); // Use the global loading co
         return;
       }
 
-      console.log("Unfollow Request:", {
-        token,
-        payload: { seeker_id: seekerId, company_id: companyId },
-      });
-
+      
       try {
         const response = await axios.delete("https://wazafny.online/api/unfollow", {
           headers: {
@@ -600,7 +594,7 @@ const { startLoading, stopLoading } = useLoading(); // Use the global loading co
           },
         });
 
-        console.log("Unfollow API Response:", response.data);
+        
 
         // Update followings list in UserProfile state
         setFollowingsList((prev) =>
@@ -800,7 +794,7 @@ const { startLoading, stopLoading } = useLoading(); // Use the global loading co
       </div>
     );
   }
-  console.log("skills from profile",skills)
+ 
   return (
     <>
       {message.text && (

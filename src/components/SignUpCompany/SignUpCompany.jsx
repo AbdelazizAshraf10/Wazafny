@@ -33,7 +33,7 @@ export default function Register() {
       localStorage.setItem("userEmail", values.Email);
       
 
-      console.log("Response:", response.status, response.data);
+      
 
       if (response.status === 201) {
         localStorage.removeItem("token", response.data.token);

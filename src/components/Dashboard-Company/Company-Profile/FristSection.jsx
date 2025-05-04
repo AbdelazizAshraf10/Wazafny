@@ -351,8 +351,7 @@ function FirstSection({
       return;
     }
 
-    console.log("User ID:", userId);
-    console.log("Token:", token);
+    
 
     try {
       const response = await axios.delete(
@@ -365,7 +364,7 @@ function FirstSection({
         }
       );
 
-      console.log("Delete Response:", response.data);
+      
 
       setCompanyData((prevData) => ({
         ...prevData,
@@ -532,8 +531,7 @@ function FirstSection({
       return;
     }
 
-    console.log("User ID:", userId);
-    console.log("Token:", token);
+    
 
     try {
       const response = await axios.delete(
@@ -546,7 +544,7 @@ function FirstSection({
         }
       );
 
-      console.log("Delete Response:", response.data);
+      
 
       setCompanyData((prevData) => ({
         ...prevData,

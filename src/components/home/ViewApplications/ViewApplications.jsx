@@ -75,7 +75,7 @@ function ViewApplications() {
           }
         );
 
-        console.log("Applications API Response:", response.data);
+        
 
         if (response.status === 204 || !response.data.applications) {
           setApplications([]);
@@ -195,7 +195,7 @@ function ViewApplications() {
 
   const handleActionClick = (status, app) => {
     setSelectedApp(app);
-    console.log("Selected App Response:", app.response);
+    
     if (status === "Accepted" || status === "Rejected") {
       setIsJobResModalOpen(true);
     } else if (status === "Pending") {

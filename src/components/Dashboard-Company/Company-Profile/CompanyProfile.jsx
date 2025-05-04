@@ -25,7 +25,7 @@ function CompanyProfile() {
             'Content-Type': 'application/json',
           },
         });
-        console.log(response.data)
+        
         setCompanyData(response.data);
         setLoading(false);
       } catch (err) {

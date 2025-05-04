@@ -71,7 +71,7 @@ const OTPInput = ({ length = 6 }) => {
         }
       );
 
-      console.log('Response:', response.status, response.data);
+     
 
       if (response.status === 200) {
         setMessage({ text: 'OTP verified! Redirecting...', type: 'success' });
@@ -120,7 +120,7 @@ const OTPInput = ({ length = 6 }) => {
         }
       );
 
-      console.log('Resend OTP Response:', response.status, response.data);
+      
       setMessage({ text: 'OTP resent successfully. Please check your email.', type: 'success' });
     } catch (error) {
       console.error('Resend OTP Error:', {

@@ -270,7 +270,7 @@ function Preview() {
       jobPostData.sections = [];
     }
 
-    console.log("Payload being sent:", JSON.stringify(jobPostData, null, 2));
+   
 
     if (isEdit) {
       // Handle update job post
@@ -291,7 +291,7 @@ function Preview() {
             },
           }
         );
-        console.log("Update payload:", jobPostData);
+        
         clearLocalStorage();
         setMessage({ text: "Job updated successfully", type: "success" });
         setTimeout(() => navigate("/Dashboard/Jobpost"), 3000);
@@ -337,7 +337,7 @@ function Preview() {
             },
           }
         );
-        console.log("Create payload:", jobPostData);
+        
         clearLocalStorage();
         setMessage({ text: "Job created successfully", type: "success" });
         setTimeout(() => navigate("/Dashboard/Jobpost"), 3000);

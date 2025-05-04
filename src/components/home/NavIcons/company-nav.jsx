@@ -6,12 +6,14 @@ import NotificationDropdown from "./notofication";
 import UserProfileDropdown from "./PROFILE/profile/ProfileIcon";
 import JobApplicationDropdown from "./Application"; // Ensure correct import
 import { Outlet } from "react-router-dom";
+import { Message } from "../../CustomMessage/FloatMessage";
 
 function CompanyNav() {
   const navigate = useNavigate();
   const location = useLocation();
   const [activeTab, setActiveTab] = useState("Jobs");
   const [activeDropdown, setActiveDropdown] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null); // State for success message
 
   // Update activeTab based on the current URL
   useEffect(() => {
@@ -34,13 +36,13 @@ function CompanyNav() {
 
   // Handle dropdown toggle and ensure only one is open
   const handleDropdownToggle = (dropdownName) => {
-    console.log("Toggling dropdown:", dropdownName, "Current activeDropdown:", activeDropdown);
+    
     if (activeDropdown === dropdownName) {
       setActiveDropdown(null); // Close the dropdown if it's already open
     } else {
       setActiveDropdown(dropdownName); // Open the clicked dropdown and close others
     }
-    console.log("New activeDropdown:", activeDropdown);
+    
   };
 
   // Animation variants for the buttons
@@ -65,6 +67,16 @@ function CompanyNav() {
 
   return (
     <div>
+      {/* Success Message */}
+      <div className="fixed top-9 left-1/2 transform -translate-x-1/2 z-50 w-full px-4">
+        <Message
+          message={successMessage}
+          type="success"
+          duration={3000}
+          onClose={() => setSuccessMessage(null)}
+        />
+      </div>
+
       <div className="flex justify-between items-center px-5 mt-2">
         {/* Logo on the left */}
         <motion.div
@@ -73,7 +85,7 @@ function CompanyNav() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <img src={logo} alt="logo"  />
+          <img src={logo} alt="logo" />
         </motion.div>
 
         {/* Job and company select in the middle */}
@@ -126,8 +138,6 @@ function CompanyNav() {
           <motion.div
             className="relative"
             variants={iconVariants}
-            
-            
           >
             <JobApplicationDropdown
               isOpen={activeDropdown === "application"}
@@ -139,8 +149,6 @@ function CompanyNav() {
           <motion.div
             className="relative"
             variants={iconVariants}
-            
-            
           >
             <NotificationDropdown
               isOpen={activeDropdown === "notification"}
@@ -153,11 +161,12 @@ function CompanyNav() {
             className="relative bg-[#6A0DAD] text-white w-10 h-10 flex items-center justify-center rounded-full text-lg font-bold"
             variants={iconVariants}
             whileHover="hover"
-            whileTap="tap"
+            
           >
             <UserProfileDropdown
               isOpen={activeDropdown === "profile"}
               onToggle={() => handleDropdownToggle("profile")}
+              setSuccessMessage={setSuccessMessage} // Pass callback to set success message
             />
           </motion.div>
         </motion.div>

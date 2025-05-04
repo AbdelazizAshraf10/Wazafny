@@ -14,7 +14,7 @@ function JobDetails() {
   const { jobId } = useParams(); // Get jobId from URL params
   const navigate = useNavigate();
 
-  console.log("Job ID from URL params:", jobId);
+ 
 
   // Retrieve token from localStorage
   const token = localStorage.getItem("token");
@@ -36,7 +36,7 @@ function JobDetails() {
         setTimeout(() => navigate("/Login"), 2000);
         return;
       }
-      console.log("jobId:", jobId);
+      
       setLoading(true);
       try {
         const response = await axios.get(
@@ -49,7 +49,7 @@ function JobDetails() {
           }
         );
 
-        console.log("Job Details API Response:", response.data);
+       
         setJobData(response.data);
       } catch (err) {
         if (err.response?.status === 401) {

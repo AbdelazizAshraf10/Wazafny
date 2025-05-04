@@ -32,7 +32,7 @@ function JobsPage() {
       }
 
       startLoading();
-      console.log("Loader started");
+      
       const minLoadingTime = new Promise((resolve) => setTimeout(resolve, 1000)); // Minimum 1-second delay
 
       try {
@@ -49,7 +49,7 @@ function JobsPage() {
 
         await minLoadingTime; // Ensure loader shows for at least 1 second
 
-        console.log("API Response:", response.data);
+        
 
         if (response.data.nullskills) {
           setPending(
@@ -63,7 +63,7 @@ function JobsPage() {
 
         if (response.data.jobs && Array.isArray(response.data.jobs)) {
           setJobs(response.data.jobs);
-          console.log("Jobs:", response.data.jobs);
+          
         } else {
           throw new Error("Unexpected API response format");
         }
@@ -84,7 +84,7 @@ function JobsPage() {
         }
       } finally {
         stopLoading();
-        console.log("Loader stopped");
+        
       }
     };
 

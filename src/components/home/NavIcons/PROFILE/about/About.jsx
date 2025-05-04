@@ -81,7 +81,7 @@ function About({ userRole, initialAbout }) {
           },
         }
       );
-      console.log("API Response:", response.data);
+      
 
       setSavedText(aboutText);
       setIsModalOpen(false);

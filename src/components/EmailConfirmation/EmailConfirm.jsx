@@ -65,7 +65,7 @@ function EmailConfirm() {
           },
           { timeout: 10000 } // 10-second timeout
         );
-        console.log("API Response:", response.data);
+        
         if (MAX_ATTEMPTS === 0) {
           clearInterval(intervalId);
           if (role === "Company") {
@@ -138,7 +138,7 @@ function EmailConfirm() {
     // Cleanup interval on component unmount
     return () => {
       clearInterval(intervalId);
-      console.log("Cleared polling interval");
+      
     };
   }, [userId, navigate]);
 

@@ -180,7 +180,7 @@ function Experience({ userRole, initialExperiences }) {
         }
       );
 
-      console.log("Create Experience API Response:", response.data);
+     
 
       // Assuming the API returns the created experience with an experience_id
       const newExperience = {
@@ -299,7 +299,7 @@ function Experience({ userRole, initialExperiences }) {
         }
       );
 
-      console.log("Update Experience API Response:", response.data);
+      
 
       // Update the local experience list
       const updatedExperiences = [...experienceList];
@@ -408,7 +408,7 @@ function Experience({ userRole, initialExperiences }) {
         }
       );
 
-      console.log("Delete Experience API Response:", response.data);
+      
 
       // Remove the experience from the local list
       setExperienceList(experienceList.filter((_, i) => i !== index));

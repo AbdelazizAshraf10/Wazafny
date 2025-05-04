@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import { User, LogOut } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { Message } from "../../../../CustomMessage/FloatMessage";
 
-const UserProfileDropdown = ({ isOpen, onToggle }) => {
+const UserProfileDropdown = ({ isOpen, onToggle, setSuccessMessage }) => {
   const [userData, setUserData] = useState({ userName: "Guest", profilePhoto: null });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -36,7 +37,7 @@ const UserProfileDropdown = ({ isOpen, onToggle }) => {
           }
         );
 
-        console.log("Personal Info API Response:", response.data);
+        
 
         if (response.data && response.data.seeker_id) {
           const { first_name, last_name, profile_img } = response.data;
@@ -87,7 +88,10 @@ const UserProfileDropdown = ({ isOpen, onToggle }) => {
         }
       );
 
-      console.log("Logout API Response:", response.data);
+      
+
+      // Set success message via callback
+      setSuccessMessage("Logout successfully");
 
       // Clear localStorage
       localStorage.removeItem("seeker_id");
@@ -95,9 +99,11 @@ const UserProfileDropdown = ({ isOpen, onToggle }) => {
       localStorage.removeItem("token");
       localStorage.removeItem("Role");
 
-      // Redirect to login page
-      navigate("/Login");
-      onToggle(); // Close dropdown after navigation
+      // Redirect to login page after a short delay to show the message
+      setTimeout(() => {
+        navigate("/Login");
+        onToggle(); // Close dropdown after navigation
+      }, 1000); // Delay to allow the success message to be visible
     } catch (err) {
       console.error("Error logging out:", err);
       if (err.response?.status === 401) {
@@ -144,16 +150,7 @@ const UserProfileDropdown = ({ isOpen, onToggle }) => {
     );
   }
 
-  if (error) {
-    return (
-      <button
-        className="relative w-10 h-10 flex items-center justify-center rounded-full bg-black text-white text-lg font-bold"
-        disabled
-      >
-        !
-      </button>
-    );
-  }
+  
 
   return (
     <div className="relative">

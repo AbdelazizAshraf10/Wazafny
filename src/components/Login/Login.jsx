@@ -27,7 +27,7 @@ export default function Login() {
         role: "Seeker",
       });
 
-      console.log("Response:", response.status, response.data);
+      
 
       if (response.status === 200) {
         // Clear previous storage

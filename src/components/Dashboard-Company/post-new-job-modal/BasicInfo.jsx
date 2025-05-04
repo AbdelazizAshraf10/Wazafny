@@ -38,7 +38,7 @@ function BasicInfo() {
 
     // If location.state.formData exists (from edit mode), use it
     if (location.state?.formData) {
-      console.log("FormData in edit mode:", location.state.formData); // Debug formData
+      
       return location.state.formData;
     }
 
@@ -99,7 +99,7 @@ function BasicInfo() {
         );
         const fetchedCities = response.data.geonames || [];
         setCities(fetchedCities);
-        console.log("Fetched cities:", fetchedCities); // Debug cities
+        
       } catch (error) {
         console.error("Error fetching cities:", error);
         setMessage({
@@ -119,7 +119,7 @@ function BasicInfo() {
     localStorage.setItem("basicInfoFormData", JSON.stringify(formData));
 
     if (formData.cityState && cities.length > 0) {
-      console.log("Trying to match cityState:", formData.cityState); // Debug cityState
+      
       const selectedCity = cities.find(
         (city) => city.name === formData.cityState
       );

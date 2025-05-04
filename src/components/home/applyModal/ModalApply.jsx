@@ -199,7 +199,7 @@ function ModalApply({
         }
       );
 
-      console.log("Application submitted successfully:", response.data);
+      
       setIsSubmitted(true); // Move to success screen
     } catch (error) {
       console.error("Error submitting application:", error);

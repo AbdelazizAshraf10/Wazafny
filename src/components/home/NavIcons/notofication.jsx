@@ -52,7 +52,7 @@ const NotificationDropdown = ({ isOpen, onToggle }) => {
           }
         );
 
-        console.log("Notifications API Response:", response.data);
+        
 
         if (response.status === 204 || !response.data.notifications) {
           setNotificationList([]);

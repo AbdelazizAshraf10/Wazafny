@@ -38,7 +38,7 @@ function ViewApplications() {
         return;
       }
 
-      console.log("jobid from view app:", jobId);
+      
 
       try {
         const response = await axios.get(
@@ -66,7 +66,7 @@ function ViewApplications() {
           }));
           setApplications(mappedApplications);
         }
-        console.log("Fetched applications:", response.data);
+        
         setLoading(false);
       } catch (error) {
         console.error("Error fetching applications:", error);

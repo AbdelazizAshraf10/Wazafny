@@ -87,7 +87,7 @@ export default function Info() {
         }
       );
 
-      console.log("API Response:", response.data);
+     
       setSuccess("Headline saved successfully!");
       setTimeout(() => navigate("/seeker/JopsPage"), 2000);
     } catch (error) {

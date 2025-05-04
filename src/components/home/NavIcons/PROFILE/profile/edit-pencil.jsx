@@ -110,7 +110,7 @@ const EditProfile = ({ onLinksChange, initialData }) => {
         );
         const fetchedCities = response.data.geonames || [];
         setCities(fetchedCities);
-        console.log("Fetched cities:", fetchedCities);
+        
 
         if (FormInputs.City) {
           const selectedCity = fetchedCities.find(
@@ -273,7 +273,7 @@ const EditProfile = ({ onLinksChange, initialData }) => {
           },
         }
       );
-      console.log("API Response:", response.data);
+      
 
       const updatedLinks = FormInputs.WebsiteLinks
         .filter(link => link.website.trim() && link.linkText.trim())

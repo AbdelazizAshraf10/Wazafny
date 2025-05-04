@@ -4,7 +4,6 @@ import axios from "axios";
 import { motion } from "framer-motion";
 import profile from "../../../assets/seeker/profile-banner.png";
 import vod from "../../../assets/seeker/vod.png";
-import email from "../../../assets/seeker/email.svg";
 import CompanyAbout from "./CompanyAbout";
 import CompanyPost from "./CompanyPost";
 
@@ -13,6 +12,7 @@ function CompanyOverview() {
   const [companyData, setCompanyData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showEmail, setShowEmail] = useState(false); // State to toggle email visibility
   const { companyId } = useParams(); // Extract companyId from URL parameters
   const navigate = useNavigate();
 
@@ -20,15 +20,14 @@ function CompanyOverview() {
   const seekerId = localStorage.getItem("seeker_id");
   const token = localStorage.getItem("token");
 
-  // Log the extracted companyId for debugging
-  console.log("Extracted companyId from URL params:", companyId);
+
 
   // Fetch company profile data
   useEffect(() => {
     const fetchCompanyProfile = async () => {
       // Check for missing parameters
       if (!companyId || isNaN(companyId)) {
-        console.error("Company ID is undefined or invalid:", companyId);
+        console.error("Company ID is undefined or invalid:");
         setError("Missing company ID. Please select a company.");
         setLoading(false);
         setTimeout(() => navigate("/seeker/JopsPage"), 2000); // Redirect to jobs page
@@ -38,9 +37,9 @@ function CompanyOverview() {
       if (!seekerId || !token) {
         console.error(
           "Seeker ID or token is missing. Seeker ID:",
-          seekerId,
+          
           "Token:",
-          token
+          
         );
         setError("Missing required parameters. Please log in again.");
         setLoading(false);
@@ -50,9 +49,7 @@ function CompanyOverview() {
 
       setLoading(true);
       try {
-        console.log(
-          `Fetching company profile for ID: ${companyId}, Seeker ID: ${seekerId}`
-        );
+        
         const response = await axios.get(
           `https://wazafny.online/api/show-company-profile/${companyId}/${seekerId}`,
           {
@@ -63,7 +60,7 @@ function CompanyOverview() {
           }
         );
 
-        console.log("API Response:", response.data); // Log the entire API response
+        
         setCompanyData(response.data);
       } catch (err) {
         console.error("Error fetching company profile:", err);
@@ -115,7 +112,7 @@ function CompanyOverview() {
           },
           data: payload, // DELETE requests can include a body in axios
         });
-        console.log("Unfollow successful");
+        
         // Update local state
         setCompanyData((prev) => ({
           ...prev,
@@ -130,7 +127,7 @@ function CompanyOverview() {
             "Content-Type": "application/json",
           },
         });
-        console.log("Follow successful");
+        
         // Update local state
         setCompanyData((prev) => ({
           ...prev,
@@ -155,6 +152,11 @@ function CompanyOverview() {
         );
       }
     }
+  };
+
+  // Handle email toggle
+  const handleEmailToggle = () => {
+    setShowEmail((prev) => !prev);
   };
 
   // Animation variants for the container
@@ -264,7 +266,6 @@ function CompanyOverview() {
                       {companyData.company_website_link}
                     </a>
                   </span>
-                  <img src={email} alt="Email Icon" className="w-5 h-5 ml-1" />
                 </div>
               </motion.div>
             </motion.div>
@@ -276,11 +277,24 @@ function CompanyOverview() {
                 className="flex flex-col items-center"
                 variants={childVariants}
               >
-                <div className="flex mt-4 items-center">
-                  <span className="text-purple-700 font-bold text-sm sm:text-base">
-                    Email
-                  </span>
-                  <img src={email} alt="Email Icon" className="w-5 h-5 ml-1" />
+                <div
+                  className="flex mt-4 items-center cursor-pointer"
+                  onClick={handleEmailToggle}
+                >
+                  {showEmail ? (
+                    <span className="text-purple-700 font-bold text-sm sm:text-base">
+                      {companyData.company_email}
+                    </span>
+                  ) : (
+                    <>
+                      <span className="text-purple-700 font-bold text-sm sm:text-base">
+                        Email
+                      </span>
+                      <span className="text-purple-700 font-bold text-sm sm:text-base ml-1">
+                        ↺
+                      </span>
+                    </>
+                  )}
                 </div>
               </motion.div>
               <motion.div

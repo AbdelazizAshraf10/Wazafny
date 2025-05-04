@@ -16,8 +16,8 @@ function Skill({ userRole, initialSkills }) {
     initialSkills && Array.isArray(initialSkills) ? initialSkills : []
   );
 
-  console.log("Initial Skills (prop):", initialSkills);
-  console.log("Skills Data (state on render):", skillsData);
+
+  
 
   const [searchTerm, setSearchTerm] = useState("");
   const [editSearchTerm, setEditSearchTerm] = useState("");
@@ -68,7 +68,7 @@ function Skill({ userRole, initialSkills }) {
         throw new Error(`Failed to fetch skills: ${response.status} ${response.statusText}`);
       }
       const data = await response.json();
-      console.log("Skill Search API Response:", data);
+      
 
       // *** RENAME local variable to avoid shadowing state variable ***
       let fetchedSkillsData = [];
@@ -141,8 +141,7 @@ function Skill({ userRole, initialSkills }) {
          const errorData = await response.json().catch(() => ({}));
          throw new Error(errorData.message || `Failed to update skills: ${response.status} ${response.statusText}`);
       }
-      const data = await response.json();
-      console.log("Update Skills API Response (Add):", data);
+      
       const newSkillObj = {
         skill_id: skillId || Date.now().toString(), // Use timestamp if no ID from suggestion
         skill: skillName.trim()

@@ -24,9 +24,7 @@ const JobApplicationDropdown = ({ isOpen, onToggle }) => {
   const [navigating, setNavigating] = useState(false);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    console.log("JobApplicationDropdown: isOpen =", isOpen);
-  }, [isOpen]);
+ 
 
   const seekerId = localStorage.getItem("seeker_id");
   const token = localStorage.getItem("token");
@@ -52,7 +50,7 @@ const JobApplicationDropdown = ({ isOpen, onToggle }) => {
           }
         );
 
-        console.log("Latest Applications API Response:", response.data);
+        
 
         if (response.status === 204 || !response.data.applications) {
           setApplications([]);
@@ -92,9 +90,9 @@ const JobApplicationDropdown = ({ isOpen, onToggle }) => {
 
   const handleViewAllClick = (e) => {
     e.stopPropagation();
-    console.log("View all button clicked: Attempting to navigate to /seeker/Applications");
+    
     if (!seekerId || !token) {
-      console.log("View all: Missing seekerId or token, redirecting to /Login");
+      
       setError("Missing seeker ID or token. Please log in again.");
       setTimeout(() => navigate("/Login"), 2000);
       return;
@@ -109,9 +107,9 @@ const JobApplicationDropdown = ({ isOpen, onToggle }) => {
   };
 
   const handleParentDivClick = () => {
-    console.log("Parent div clicked: Navigating to /seeker/Applications as fallback");
+    
     if (!seekerId || !token) {
-      console.log("Parent div: Missing seekerId or token, redirecting to /Login");
+      
       setError("Missing seeker ID or token. Please log in again.");
       setTimeout(() => navigate("/Login"), 2000);
       return;

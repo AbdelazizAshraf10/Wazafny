@@ -36,7 +36,7 @@ export default function Location() {
         const response = await axios.get(
           "http://api.geonames.org/countryInfoJSON?username=youssef797"
         );
-        console.log("Countries API Response:", response.data);
+        
 
         if (response.data.geonames && Array.isArray(response.data.geonames)) {
           const sortedCountries = response.data.geonames.sort((a, b) =>
@@ -76,7 +76,7 @@ export default function Location() {
         );
         const fetchedCities = response.data.geonames || [];
         setCities(fetchedCities);
-        console.log("Fetched cities:", fetchedCities);
+        
 
         if (
           formik.values.City &&
@@ -130,7 +130,7 @@ export default function Location() {
         }
       );
 
-      console.log("API Response:", response.data);
+      
       setSuccess("Location saved successfully!");
       setTimeout(() => navigate("/info"), 2000);
     } catch (error) {

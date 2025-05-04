@@ -179,14 +179,14 @@ function EditAppModal({
       });
     }
 
-    console.log("Validation result:", { isValid, errors: newErrors });
+    
     setErrors(newErrors);
     return isValid;
   };
 
   const handleNext = async () => {
     const isValid = validateStep();
-    console.log("handleNext called, step:", step, "isValid:", isValid);
+    
 
     if (isValid) {
       if (step < totalSteps) {
@@ -225,10 +225,7 @@ function EditAppModal({
           }
         }
 
-        console.log("FormData contents:");
-        for (let [key, value] of formDataToSubmit.entries()) {
-          console.log(`${key}: ${value instanceof File ? value.name : value}`);
-        }
+        
 
         setLoading(true);
         setSubmitError(null);
@@ -245,7 +242,7 @@ function EditAppModal({
             }
           );
 
-          console.log("Update Application API Response:", response.data);
+          
           setIsSubmitted(true);
           setTimeout(() => {
             onClose();

@@ -62,7 +62,7 @@ function CompanyJobs() { // Renamed to match the component's purpose
           },
         });
 
-        console.log("Companies API Response:", response.data); // Debug log
+        
         setCompanies(Array.isArray(response.data.companies) ? response.data.companies : []);
       } catch (err) {
         console.error("Error fetching companies:", err);

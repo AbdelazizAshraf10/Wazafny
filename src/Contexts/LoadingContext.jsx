@@ -8,11 +8,11 @@ export const LoadingProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const startLoading = () => {
-    console.log("startLoading called");
+    
     setIsLoading(true);
   };
   const stopLoading = () => {
-    console.log("stopLoading called");
+    
     setIsLoading(false);
   };
 

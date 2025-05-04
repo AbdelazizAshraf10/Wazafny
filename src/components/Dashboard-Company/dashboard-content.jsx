@@ -34,8 +34,7 @@ function DashboardContent() {
       const token = localStorage.getItem("token");
       const companyId = localStorage.getItem("company_id");
 
-      console.log("Token:", token);
-      console.log("Company ID:", companyId);
+      
 
       if (!token || !companyId) {
         setStatsError("Missing token or company ID. Please log in again.");
@@ -56,7 +55,7 @@ function DashboardContent() {
         );
 
         setFetchData(response.data);
-        console.log("Fetched stats data:", response.data);
+        
         setStatsLoading(false);
       } catch (error) {
         console.error("Stats API Error:", error);
@@ -107,10 +106,7 @@ function DashboardContent() {
           setlatestApplication([]);
         } else {
           const mappedApplications = response.data.applications.map((app) => {
-            console.log(
-              `Profile Image for ${app.seeker.first_name}:`,
-              app.seeker.profile_img
-            );
+            
             return {
               id: app.application_id,
               applicationName: `${app.seeker.first_name} ${app.seeker.last_name}`,
@@ -123,7 +119,7 @@ function DashboardContent() {
           });
           setlatestApplication(mappedApplications);
         }
-        console.log("Fetched latest applications:", response.data);
+        
         setApplicationsLoading(false);
       } catch (error) {
         console.error("Applications API Error:", error);
@@ -181,7 +177,7 @@ function DashboardContent() {
           }));
           setLatestJob(mappedJobs);
         }
-        console.log("Fetched latest job posts:", response.data);
+        
         setLatestJobLoading(false);
       } catch (error) {
         console.error("Latest Job Posts API Error:", error);
@@ -202,8 +198,7 @@ function DashboardContent() {
     fetchLatestJobs();
   }, [navigate]);
 
-  // Log the profile import to debug
-  console.log("Profile Fallback Image:", profile);
+  
 
   // Combine loading states
   if (statsLoading || applicationsLoading || latestJobLoading) {
@@ -348,10 +343,7 @@ function DashboardContent() {
                         alt="Profile"
                         className="w-9 h-9 rounded-full object-cover"
                         onError={(e) => {
-                          console.log(
-                            "Image failed to load, using fallback:",
-                            profile
-                          );
+                          
                           e.target.src = profile;
                         }}
                       />

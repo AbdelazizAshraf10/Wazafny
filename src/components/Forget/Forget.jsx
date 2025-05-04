@@ -42,8 +42,8 @@ export default function Forget() {
       );
       localStorage.setItem("userEmail", values.Email);
 
-      console.log(localStorage.getItem("userEmail"));
-      console.log("Response:", response.status, response.data);
+      
+      
 
       if (response.status === 200) {
         setMessage({ text: "OTP sent successfully! Redirecting...", type: "success" });
