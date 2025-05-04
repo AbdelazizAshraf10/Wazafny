@@ -103,9 +103,21 @@ function JobsPage() {
     }
   }, [showPopup]);
 
-  const filteredJobs = jobs.filter((job) =>
-    job.title.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filter jobs based on search term across multiple fields
+  const filteredJobs = jobs.filter((job) => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      job.title.toLowerCase().includes(searchLower) ||
+      job.company.company_name.toLowerCase().includes(searchLower) ||
+      job.job_type.toLowerCase().includes(searchLower) ||
+      job.skills.some((skill) => skill.toLowerCase().includes(searchLower)) ||
+      // Check for "remote" or "onsite" in job_type
+      (searchLower.includes("remote") &&
+        job.job_type.toLowerCase().includes("remote")) ||
+      (searchLower.includes("onsite") &&
+        job.job_type.toLowerCase().includes("onsite"))
+    );
+  });
 
   // Animation variants for the card
   const cardVariants = {

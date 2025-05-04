@@ -75,10 +75,15 @@ function CompanyJobs() { // Renamed to match the component's purpose
     fetchCompanies();
   }, [navigate]);
 
-  // Filter companies based on search term
-  const filteredCompanies = companies.filter((company) =>
-    company.company_name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filter companies based on search term across company_name, company_city, and company_country
+  const filteredCompanies = companies.filter((company) => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      company.company_name.toLowerCase().includes(searchLower) ||
+      (company.company_city && company.company_city.toLowerCase().includes(searchLower)) ||
+      (company.company_country && company.company_country.toLowerCase().includes(searchLower))
+    );
+  });
 
   // Animation variants for the card
   const cardVariants = {

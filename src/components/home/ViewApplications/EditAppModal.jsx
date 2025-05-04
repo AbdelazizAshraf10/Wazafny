@@ -3,9 +3,15 @@ import axios from "axios";
 import cv from "../../../assets/seeker/cv.png";
 import trash from "../../../assets/seeker/trash1.svg";
 import PhoneInput from "react-phone-input-2";
-import 'react-phone-input-2/lib/style.css';
+import "react-phone-input-2/lib/style.css";
 
-function EditAppModal({ isOpen, onClose, jobTitle = "Mobile Software Engineer", companyName = "Blink22", applicationId }) {
+function EditAppModal({
+  isOpen,
+  onClose,
+  jobTitle = "Mobile Software Engineer",
+  companyName = "Blink22",
+  applicationId,
+}) {
   if (!isOpen) return null;
 
   const [step, setStep] = useState(1);
@@ -50,7 +56,9 @@ function EditAppModal({ isOpen, onClose, jobTitle = "Mobile Software Engineer", 
   };
 
   const countries = Object.keys(countryCitiesMap);
-  const cities = formData.country ? countryCitiesMap[formData.country] || [] : [];
+  const cities = formData.country
+    ? countryCitiesMap[formData.country] || []
+    : [];
 
   useEffect(() => {
     const fetchApplicationDetails = async () => {
@@ -81,7 +89,9 @@ function EditAppModal({ isOpen, onClose, jobTitle = "Mobile Software Engineer", 
           email: data.email || "",
           country: data.country || "",
           city: data.city || "",
-          resume: data.resume ? { name: "Existing Resume", url: data.resume } : null,
+          resume: data.resume
+            ? { name: "Existing Resume", url: data.resume }
+            : null,
         });
 
         if (data.questions && data.questions.length > 0) {
@@ -105,7 +115,9 @@ function EditAppModal({ isOpen, onClose, jobTitle = "Mobile Software Engineer", 
         } else if (err.response?.status === 500) {
           setFetchError("Server error. Please try again later.");
         } else {
-          setFetchError("Failed to load application details. Please try again later.");
+          setFetchError(
+            "Failed to load application details. Please try again later."
+          );
         }
       } finally {
         setLoading(false);
@@ -131,7 +143,8 @@ function EditAppModal({ isOpen, onClose, jobTitle = "Mobile Software Engineer", 
         isValid = false;
       }
       if (!formData.phoneNumber || !phoneRegex.test(formData.phoneNumber)) {
-        newErrors.phoneNumber = "Phone number can only contain digits and a plus sign.";
+        newErrors.phoneNumber =
+          "Phone number can only contain digits and a plus sign.";
         isValid = false;
       } else if (formData.phoneNumber.length > maxPhoneLength) {
         newErrors.phoneNumber = `Phone number cannot exceed ${maxPhoneLength} characters.`;
@@ -182,7 +195,9 @@ function EditAppModal({ isOpen, onClose, jobTitle = "Mobile Software Engineer", 
       } else {
         const token = localStorage.getItem("token");
         if (!token || !applicationId) {
-          setSubmitError("Missing token or application ID. Please log in again.");
+          setSubmitError(
+            "Missing token or application ID. Please log in again."
+          );
           return;
         }
 
@@ -245,12 +260,19 @@ function EditAppModal({ isOpen, onClose, jobTitle = "Mobile Software Engineer", 
           } else if (err.response?.status === 500) {
             setSubmitError("Server error. Please try again later.");
           } else if (err.response?.status === 422) {
-            setSubmitError("Validation error: " + (err.response?.data?.message || "Invalid data provided."));
-          }
-          else if (err.response?.status === 400) {
-            console.log("the application is already submitted accept or reject " );
-          }  else {
-            setSubmitError("Failed to update application: " + (err.response?.data?.message || "Please try again later."));
+            setSubmitError(
+              "Validation error: " +
+                (err.response?.data?.message || "Invalid data provided.")
+            );
+          } else if (err.response?.status === 400) {
+            console.log(
+              "the application is already submitted accept or reject "
+            );
+          } else {
+            setSubmitError(
+              "Failed to update application: " +
+                (err.response?.data?.message || "Please try again later.")
+            );
           }
         } finally {
           setLoading(false);
@@ -280,8 +302,17 @@ function EditAppModal({ isOpen, onClose, jobTitle = "Mobile Software Engineer", 
       if (file.size > maxFileSize) {
         setErrors({ ...errors, resume: "File size exceeds 2MB limit." });
         setFormData({ ...formData, resume: null });
-      } else if (!["application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"].includes(file.type)) {
-        setErrors({ ...errors, resume: "Invalid file type. Only PDF, DOC, and DOCX are allowed." });
+      } else if (
+        ![
+          "application/pdf",
+          "application/msword",
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        ].includes(file.type)
+      ) {
+        setErrors({
+          ...errors,
+          resume: "Invalid file type. Only PDF, DOC, and DOCX are allowed.",
+        });
         setFormData({ ...formData, resume: null });
       } else {
         setFormData({ ...formData, resume: file });
@@ -293,9 +324,15 @@ function EditAppModal({ isOpen, onClose, jobTitle = "Mobile Software Engineer", 
   const handlePhoneChange = (phone) => {
     setFormData({ ...formData, phoneNumber: phone });
     if (!phoneRegex.test(phone) && phone !== "") {
-      setErrors({ ...errors, phoneNumber: "Phone number can only contain digits and a plus sign." });
+      setErrors({
+        ...errors,
+        phoneNumber: "Phone number can only contain digits and a plus sign.",
+      });
     } else if (phone.length > maxPhoneLength) {
-      setErrors({ ...errors, phoneNumber: `Phone number cannot exceed ${maxPhoneLength} characters.` });
+      setErrors({
+        ...errors,
+        phoneNumber: `Phone number cannot exceed ${maxPhoneLength} characters.`,
+      });
     } else {
       setErrors({ ...errors, phoneNumber: "" });
     }
@@ -319,24 +356,37 @@ function EditAppModal({ isOpen, onClose, jobTitle = "Mobile Software Engineer", 
   };
 
   const renderStepContent = () => {
+    const stateWrapperClasses = "flex flex-col items-center justify-center text-center h-full px-6 py-10";
     if (isSubmitted) {
       return (
-        <div className="text-center p-6">
-          <svg
-            className="w-16 h-16 text-green-500 mx-auto"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
+        <div className={stateWrapperClasses}>
+          <div className="w-16 h-16 bg-[#6A0DAD] rounded-full flex items-center justify-center mb-4">
+            <svg
+              className="w-8 h-8 text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
+          </div>
+          <h3 className="text-xl font-bold mb-2">Application Submitted!</h3>
+          <p className="text-base text-gray-600 font-medium mb-6 max-w-md">
+            Thank you for applying for the {jobTitle} position at {companyName}.
+            Your application has been received.
+          </p>
+          <button
+            onClick={onClose}
+            className="bg-black hover:bg-gray-800 transition-colors text-white px-7 py-2.5 rounded-full text-lg cursor-pointer"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M5 13l4 4L19 7"
-            />
-          </svg>
-          <p className="text-green-500 text-lg font-semibold mt-4">Submitted Successfully!</p>
+            Done
+          </button>
         </div>
       );
     }
@@ -351,18 +401,24 @@ function EditAppModal({ isOpen, onClose, jobTitle = "Mobile Software Engineer", 
     }
 
     if (fetchError) {
-      return <div className="text-center text-red-500 p-6">Error: {fetchError}</div>;
+      return (
+        <div className="text-center text-red-500 p-6">Error: {fetchError}</div>
+      );
     }
 
     if (submitError) {
-      return <div className="text-center text-red-500 p-6">Error: {submitError}</div>;
+      return (
+        <div className="text-center text-red-500 p-6">Error: {submitError}</div>
+      );
     }
 
     switch (step) {
       case 1:
         return (
           <div className="px-20 pt-2 pb-3 space-y-5">
-            <h3 className="text-xl font-bold text-center">Add your contact information</h3>
+            <h3 className="text-xl font-bold text-center">
+              Add your contact information
+            </h3>
             <div className="space-y-2">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1 text-left">
@@ -377,7 +433,9 @@ function EditAppModal({ isOpen, onClose, jobTitle = "Mobile Software Engineer", 
                   placeholder="Yousef"
                 />
                 {errors.firstName && (
-                  <p className="text-red-500 text-xs mt-1 text-left">{errors.firstName}</p>
+                  <p className="text-red-500 text-xs mt-1 text-left">
+                    {errors.firstName}
+                  </p>
                 )}
               </div>
               <div>
@@ -393,7 +451,9 @@ function EditAppModal({ isOpen, onClose, jobTitle = "Mobile Software Engineer", 
                   placeholder="Elsherif"
                 />
                 {errors.lastName && (
-                  <p className="text-red-500 text-xs mt-1 text-left">{errors.lastName}</p>
+                  <p className="text-red-500 text-xs mt-1 text-left">
+                    {errors.lastName}
+                  </p>
                 )}
               </div>
               <div>
@@ -401,17 +461,19 @@ function EditAppModal({ isOpen, onClose, jobTitle = "Mobile Software Engineer", 
                   Phone Number*
                 </label>
                 <PhoneInput
-                  country={'eg'}
+                  country={"eg"}
                   value={formData.phoneNumber}
                   onChange={handlePhoneChange}
                   inputClass="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:border-[#6A0DAD] text-gray-600 box-border"
                   buttonClass="border-r border-gray-300"
                   dropdownClass="border border-gray-300 rounded-md shadow-md z-10"
-                  inputStyle={{ width: '100%', paddingLeft: '50px' }}
-                  buttonStyle={{ padding: '0 5px' }}
+                  inputStyle={{ width: "100%", paddingLeft: "50px" }}
+                  buttonStyle={{ padding: "0 5px" }}
                 />
                 {errors.phoneNumber && (
-                  <p className="text-red-500 text-xs mt-1 text-left">{errors.phoneNumber}</p>
+                  <p className="text-red-500 text-xs mt-1 text-left">
+                    {errors.phoneNumber}
+                  </p>
                 )}
               </div>
               <div>
@@ -427,7 +489,9 @@ function EditAppModal({ isOpen, onClose, jobTitle = "Mobile Software Engineer", 
                   placeholder="Yourname@email.com"
                 />
                 {errors.email && (
-                  <p className="text-red-500 text-xs mt-1 text-left">{errors.email}</p>
+                  <p className="text-red-500 text-xs mt-1 text-left">
+                    {errors.email}
+                  </p>
                 )}
               </div>
               <div>
@@ -437,7 +501,9 @@ function EditAppModal({ isOpen, onClose, jobTitle = "Mobile Software Engineer", 
                 <div className="relative w-full border border-gray-300 rounded-md">
                   <button
                     type="button"
-                    onClick={() => setIsCountryDropdownOpen(!isCountryDropdownOpen)}
+                    onClick={() =>
+                      setIsCountryDropdownOpen(!isCountryDropdownOpen)
+                    }
                     className="w-full text-left p-2.5 border-none bg-transparent text-gray-600 cursor-pointer"
                   >
                     {formData.country || "Select Country"}
@@ -471,7 +537,9 @@ function EditAppModal({ isOpen, onClose, jobTitle = "Mobile Software Engineer", 
                   )}
                 </div>
                 {errors.country && (
-                  <p className="text-red-500 text-xs mt-1 text-left">{errors.country}</p>
+                  <p className="text-red-500 text-xs mt-1 text-left">
+                    {errors.country}
+                  </p>
                 )}
               </div>
               <div>
@@ -516,7 +584,9 @@ function EditAppModal({ isOpen, onClose, jobTitle = "Mobile Software Engineer", 
                   )}
                 </div>
                 {errors.city && (
-                  <p className="text-red-500 text-xs mt-1 text-left">{errors.city}</p>
+                  <p className="text-red-500 text-xs mt-1 text-left">
+                    {errors.city}
+                  </p>
                 )}
               </div>
             </div>
@@ -534,7 +604,10 @@ function EditAppModal({ isOpen, onClose, jobTitle = "Mobile Software Engineer", 
                 <div className="flex items-center justify-between w-full rounded-[10px] p-4">
                   <img src={cv} alt="CV Icon" className="w-10 h-10 mr-4" />
                   <a
-                    href={formData.resume.url || URL.createObjectURL(formData.resume)}
+                    href={
+                      formData.resume.url ||
+                      URL.createObjectURL(formData.resume)
+                    }
                     download
                     target="_blank"
                     rel="noopener noreferrer"
@@ -568,14 +641,18 @@ function EditAppModal({ isOpen, onClose, jobTitle = "Mobile Software Engineer", 
               )}
             </div>
             {errors.resume && (
-              <p className="text-red-500 text-xs mt-1 text-left">{errors.resume}</p>
+              <p className="text-red-500 text-xs mt-1 text-left">
+                {errors.resume}
+              </p>
             )}
           </div>
         );
       case 3:
         return (
           <div className="px-20 pt-2 pb-3">
-            <h3 className="text-xl font-bold text-center mb-4">Additional Questions</h3>
+            <h3 className="text-xl font-bold text-center mb-4">
+              Additional Questions
+            </h3>
             <div className="space-y-4">
               {questions.length > 0 ? (
                 questions.map((q) => (
@@ -586,17 +663,23 @@ function EditAppModal({ isOpen, onClose, jobTitle = "Mobile Software Engineer", 
                     <input
                       type="text"
                       value={answers[q.question_id] || ""}
-                      onChange={(e) => handleAnswerChange(q.question_id, e.target.value)}
+                      onChange={(e) =>
+                        handleAnswerChange(q.question_id, e.target.value)
+                      }
                       className="w-full p-3 border border-gray-300 rounded-[9px] focus:outline-none focus:ring-2 focus:ring-[#6A0DAD] text-gray-600 "
                       placeholder="Your answer"
                     />
                     {errors[q.question_id] && (
-                      <p className="text-red-500 text-xs mt-1 text-left">{errors[q.question_id]}</p>
+                      <p className="text-red-500 text-xs mt-1 text-left">
+                        {errors[q.question_id]}
+                      </p>
                     )}
                   </div>
                 ))
               ) : (
-                <p className="text-center text-gray-600">No additional questions available.</p>
+                <p className="text-center text-gray-600">
+                  No additional questions available.
+                </p>
               )}
             </div>
           </div>
