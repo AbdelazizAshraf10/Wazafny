@@ -217,7 +217,7 @@ function Education({ userRole, initialEducation }) {
 
     try {
       await axios.post(
-        "https://wazafny.online/api/update-education",
+        "https://laravel.wazafny.online/api/update-education",
         educationData,
         {
           headers: {
@@ -301,7 +301,7 @@ function Education({ userRole, initialEducation }) {
 
     try {
       await axios.delete(
-        `https://wazafny.online/api/delete-education/${seekerId}`,
+        `https://laravel.wazafny.online/api/delete-education/${seekerId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

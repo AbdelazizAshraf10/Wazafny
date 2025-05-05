@@ -76,7 +76,7 @@ function Following({ isOpen, onClose, followings }) {
     
 
     try {
-      const response = await axios.delete("https://wazafny.online/api/unfollow", {
+      const response = await axios.delete("https://laravel.wazafny.online/api/unfollow", {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",

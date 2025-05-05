@@ -2,9 +2,13 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import axios from 'axios';
 import { Navigate } from 'react-router-dom';
+
 function SecondSection({ companyId, about, industry, companySize, headquarters, founded, country, city }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [message, setMessage] = useState({ text: "", type: "" });
+  const [countries, setCountries] = useState([]);
+  const [cities, setCities] = useState([]);
+  const [selectedCountry, setSelectedCountry] = useState(country || "");
 
   useEffect(() => {
     if (message.text) {
@@ -14,6 +18,34 @@ function SecondSection({ companyId, about, industry, companySize, headquarters, 
       return () => clearTimeout(timer);
     }
   }, [message]);
+
+  useEffect(() => {
+    const fetchCountries = async () => {
+      try {
+        const response = await axios.get('https://countriesnow.space/api/v0.1/countries');
+        setCountries(response.data.data);
+      } catch (err) {
+        console.error('Error fetching countries:', err);
+      }
+    };
+    fetchCountries();
+  }, []);
+
+  useEffect(() => {
+    if (selectedCountry) {
+      const fetchCities = async () => {
+        try {
+          const response = await axios.post('https://countriesnow.space/api/v0.1/countries/states', {
+            country: selectedCountry,
+          });
+          setCities(response.data.data.states);
+        } catch (err) {
+          console.error('Error fetching cities:', err);
+        }
+      };
+      fetchCities();
+    }
+  }, [selectedCountry]);
 
   const [formData, setFormData] = useState({
     about: about || "",
@@ -81,6 +113,9 @@ function SecondSection({ companyId, about, industry, companySize, headquarters, 
         setFormData((prev) => ({ ...prev, [name]: value }));
         setWordCount(words.length);
       }
+    } else if (name === 'country') {
+      setFormData((prev) => ({ ...prev, [name]: value, city: '' }));
+      setSelectedCountry(value);
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
@@ -129,7 +164,7 @@ function SecondSection({ companyId, about, industry, companySize, headquarters, 
           company_city: formData.city,
         };
 
-        await axios.post('https://wazafny.online/api/update-extra-info', payload, {
+        await axios.post('https://laravel.wazafny.online/api/update-extra-info', payload, {
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
@@ -148,9 +183,9 @@ function SecondSection({ companyId, about, industry, companySize, headquarters, 
           Navigate("/LoginCompany");
         } else if (err.response?.status === 422) {
           console.log("Invalid data provided. Please check your inputs.");
-        }else if (err.response?.status === 500) {
+        } else if (err.response?.status === 500) {
           console.log("Internal server error");
-        }else if (err.response?.status === 404) {
+        } else if (err.response?.status === 404) {
           console.log("Company not found id company not correct.");
         } else {
           setMessage({
@@ -442,8 +477,11 @@ function SecondSection({ companyId, about, industry, companySize, headquarters, 
                     } focus:ring-purple-500`}
                   >
                     <option value="">Country</option>
-                    <option value="USA">USA</option>
-                    <option value="Egypt">Egypt</option>
+                    {countries.map((country) => (
+                      <option key={country.iso2} value={country.country}>
+                        {country.country}
+                      </option>
+                    ))}
                   </select>
                   {errors.country && (
                     <p className="text-red-500 text-xs mt-1">{errors.country}</p>
@@ -457,8 +495,11 @@ function SecondSection({ companyId, about, industry, companySize, headquarters, 
                     } focus:ring-purple-500`}
                   >
                     <option value="">City</option>
-                    <option value="Wall St.">Wall St.</option>
-                    <option value="Cairo">Cairo</option>
+                    {cities.map((city, index) => (
+                      <option key={index} value={city.name}>
+                        {city.name}
+                      </option>
+                    ))}
                   </select>
                   {errors.city && (
                     <p className="text-red-500 text-xs mt-1">{errors.city}</p>

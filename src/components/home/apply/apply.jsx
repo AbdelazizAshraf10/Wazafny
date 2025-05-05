@@ -40,7 +40,7 @@ function JobDetails() {
       setLoading(true);
       try {
         const response = await axios.get(
-          `https://wazafny.online/api/show-job-post/${jobId}/${seekerId}`,
+          `https://laravel.wazafny.online/api/show-job-post/${jobId}/${seekerId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

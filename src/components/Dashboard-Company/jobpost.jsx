@@ -55,7 +55,7 @@ function Jobpost() {
 
     try {
       const response = await axios.get(
-        `https://wazafny.online/api/show-job-posts/${companyId}`,
+        `https://laravel.wazafny.online/api/show-job-posts/${companyId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -99,7 +99,7 @@ function Jobpost() {
 
     try {
       const response = await axios.get(
-        `https://wazafny.online/api/show-job-post/${jobId}`,
+        `https://laravel.wazafny.online/api/show-job-post/${jobId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -172,7 +172,7 @@ function Jobpost() {
 
     try {
       const response = await axios.put(
-        `https://wazafny.online/api/close-job-post/${jobToClose}`,
+        `https://laravel.wazafny.online/api/close-job-post/${jobToClose}`,
         {},
         {
           headers: {
@@ -221,7 +221,7 @@ function Jobpost() {
 
     try {
       const response = await axios.delete(
-        `https://wazafny.online/api/delete-job-post/${jobToDelete}`,
+        `https://laravel.wazafny.online/api/delete-job-post/${jobToDelete}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -271,7 +271,7 @@ function Jobpost() {
 
     try {
       const response = await axios.put(
-        `https://wazafny.online/api/activate-job-post/${jobToActivate}`,
+        `https://laravel.wazafny.online/api/activate-job-post/${jobToActivate}`,
         {},
         {
           headers: {

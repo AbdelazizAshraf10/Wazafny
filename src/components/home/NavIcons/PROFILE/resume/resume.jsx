@@ -131,7 +131,7 @@ function Resume({ userRole, initialResume }) {
 
     try {
       const response = await axios.post(
-        "https://wazafny.online/api/update-resume",
+        "https://laravel.wazafny.online/api/update-resume",
         formData,
         {
           headers: {

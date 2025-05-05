@@ -12,7 +12,7 @@ const EditProfile = ({ onLinksChange, initialData }) => {
   const [errors, setErrors] = useState({});
   const [countries, setCountries] = useState([]);
   const [cities, setCities] = useState([]);
-  const [selectedCountryCode, setSelectedCountryCode] = useState("");
+  const [selectedCountry, setSelectedCountry] = useState("");
   const [loadingCountries, setLoadingCountries] = useState(false);
   const [loadingCities, setLoadingCities] = useState(false);
   const [cityNotFound, setCityNotFound] = useState(false);
@@ -58,10 +58,12 @@ const EditProfile = ({ onLinksChange, initialData }) => {
     const fetchCountries = async () => {
       setLoadingCountries(true);
       try {
-        const response = await axios.get(
-          "http://api.geonames.org/countryInfoJSON?username=youssef797"
-        );
-        setCountries(response.data.geonames || []);
+        const response = await axios.get("https://countriesnow.space/api/v0.1/countries");
+        if (response.data.error === false) {
+          setCountries(response.data.data || []);
+        } else {
+          throw new Error("Failed to fetch countries");
+        }
       } catch (error) {
         console.error("Error fetching countries:", error);
         setErrors((prev) => ({
@@ -76,27 +78,18 @@ const EditProfile = ({ onLinksChange, initialData }) => {
   }, []);
 
   useEffect(() => {
-    if (FormInputs.Location && countries.length > 0) {
-      const selectedCountry = countries.find(
-        (country) => country.countryName === FormInputs.Location
-      );
-      if (selectedCountry) {
-        setSelectedCountryCode(selectedCountry.countryCode);
-        setCityNotFound(false);
-      } else {
-        setSelectedCountryCode("");
-        setCityNotFound(false);
-      }
+    if (FormInputs.Location && FormInputs.Location !== "Select Country") {
+      setSelectedCountry(FormInputs.Location);
     } else {
-      setSelectedCountryCode("");
+      setSelectedCountry("");
       setCities([]);
       setFormInputs((prev) => ({ ...prev, City: "" }));
       setCityNotFound(false);
     }
-  }, [FormInputs.Location, countries]);
+  }, [FormInputs.Location]);
 
   useEffect(() => {
-    if (!selectedCountryCode) {
+    if (!selectedCountry || selectedCountry === "Select Country") {
       setCities([]);
       setFormInputs((prev) => ({ ...prev, City: "" }));
       return;
@@ -105,44 +98,45 @@ const EditProfile = ({ onLinksChange, initialData }) => {
     const fetchCities = async () => {
       setLoadingCities(true);
       try {
-        const response = await axios.get(
-          `http://api.geonames.org/searchJSON?country=${selectedCountryCode}&featureClass=A&featureCode=ADM1&maxRows=1000&username=Youssef797`
-        );
-        const fetchedCities = response.data.geonames || [];
-        setCities(fetchedCities);
-        
-
-        if (FormInputs.City) {
-          const selectedCity = fetchedCities.find(
-            (city) => city.name === FormInputs.City
-          );
-          if (!selectedCity) {
+        const response = await axios.post("https://countriesnow.space/api/v0.1/countries/states", {
+          country: selectedCountry,
+        });
+        if (response.data.error === false && response.data.data) {
+          const states = response.data.data.states || [];
+          const stateNames = states.map(state => state.name);
+          setCities(stateNames);
+          if (FormInputs.City && !stateNames.includes(FormInputs.City)) {
             setCityNotFound(true);
             setFormInputs((prev) => ({ ...prev, City: "" }));
           } else {
             setCityNotFound(false);
           }
+        } else {
+          setCities([]);
+          setCityNotFound(true);
+          setFormInputs((prev) => ({ ...prev, City: "" }));
         }
       } catch (error) {
-        console.error("Error fetching cities:", error);
+        console.error("Error fetching states:", error);
         setErrors((prev) => ({
           ...prev,
-          City: "Failed to load cities. Please try again.",
+          City: "Failed to load states. Please try again.",
         }));
         setCities([]);
+        setCityNotFound(true);
       } finally {
         setLoadingCities(false);
       }
     };
     fetchCities();
-  }, [selectedCountryCode, FormInputs.City]);
+  }, [selectedCountry]);
 
   const validateForm = () => {
     const newErrors = {};
     let isValid = true;
 
     if (!FormInputs.FirstName.trim()) {
-       newErrors.FirstName = "First Name is required";
+      newErrors.FirstName = "First Name is required";
       isValid = false;
     }
     if (!FormInputs.LastName.trim()) {
@@ -153,11 +147,11 @@ const EditProfile = ({ onLinksChange, initialData }) => {
       newErrors.Headline = "Headline is required";
       isValid = false;
     }
-    if (!FormInputs.Location.trim()) {
+    if (!FormInputs.Location.trim() || FormInputs.Location === "Select Country") {
       newErrors.Location = "Location is required";
       isValid = false;
     }
-    if (!FormInputs.City.trim()) {
+    if (!FormInputs.City.trim() || FormInputs.City === "Select City") {
       newErrors.City = "City is required";
       isValid = false;
     }
@@ -265,7 +259,7 @@ const EditProfile = ({ onLinksChange, initialData }) => {
 
     try {
       const response = await axios.post(
-        "https://wazafny.online/api/update-personal-info",
+        "https://laravel.wazafny.online/api/update-personal-info",
         requestBody,
         {
           headers: {
@@ -273,7 +267,6 @@ const EditProfile = ({ onLinksChange, initialData }) => {
           },
         }
       );
-      
 
       const updatedLinks = FormInputs.WebsiteLinks
         .filter(link => link.website.trim() && link.linkText.trim())
@@ -457,7 +450,7 @@ const EditProfile = ({ onLinksChange, initialData }) => {
                     options={
                       loadingCountries
                         ? ["Loading..."]
-                        : ["Select Country", ...countries.map((c) => c.countryName)]
+                        : ["Select Country", ...countries.map((c) => c.country).sort()]
                     }
                     disabled={loadingCountries}
                     required
@@ -480,9 +473,9 @@ const EditProfile = ({ onLinksChange, initialData }) => {
                         ? ["Loading..."]
                         : cityNotFound
                         ? ["City not found, please reselect"]
-                        : ["Select City", ...cities.map((c) => c.name).sort()]
+                        : ["Select City", ...cities.sort()]
                     }
-                    disabled={loadingCities || !selectedCountryCode}
+                    disabled={loadingCities || !FormInputs.Location || FormInputs.Location === "Select Country"}
                     required
                     error={errors.City}
                   />

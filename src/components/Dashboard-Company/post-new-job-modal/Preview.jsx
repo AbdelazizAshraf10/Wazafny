@@ -77,7 +77,7 @@ function Preview() {
         try {
           const token = localStorage.getItem("token");
           const response = await axios.get(
-            `https://wazafny.online/api/show-job-post/${jobId}`,
+            `https://laravel.wazafny.online/api/show-job-post/${jobId}`,
             {
               headers: {
                 Authorization: `Bearer ${token}`,
@@ -282,7 +282,7 @@ function Preview() {
 
       try {
         await axios.put(
-          `https://wazafny.online/api/update-job-post-info/${jobId}`,
+          `https://laravel.wazafny.online/api/update-job-post-info/${jobId}`,
           jobPostData,
           {
             headers: {
@@ -328,7 +328,7 @@ function Preview() {
       // Handle create job post
       try {
         await axios.post(
-          "https://wazafny.online/api/create-job-post",
+          "https://laravel.wazafny.online/api/create-job-post",
           jobPostData,
           {
             headers: {

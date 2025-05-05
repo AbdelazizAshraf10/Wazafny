@@ -42,7 +42,7 @@ function ViewApplications() {
 
       try {
         const response = await axios.get(
-          `https://wazafny.online/api/show-applications-company/${jobId}`,
+          `https://laravel.wazafny.online/api/show-applications-company/${jobId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

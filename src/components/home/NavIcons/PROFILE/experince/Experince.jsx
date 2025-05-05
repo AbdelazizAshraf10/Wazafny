@@ -170,7 +170,7 @@ function Experience({ userRole, initialExperiences }) {
 
     try {
       const response = await axios.post(
-        "https://wazafny.online/api/create-experience",
+        "https://laravel.wazafny.online/api/create-experience",
         experienceData,
         {
           headers: {
@@ -289,7 +289,7 @@ function Experience({ userRole, initialExperiences }) {
 
     try {
       const response = await axios.put(
-        `https://wazafny.online/api/update-experience/${formInputs.experience_id}`,
+        `https://laravel.wazafny.online/api/update-experience/${formInputs.experience_id}`,
         experienceData,
         {
           headers: {
@@ -399,7 +399,7 @@ function Experience({ userRole, initialExperiences }) {
 
     try {
       const response = await axios.delete(
-        `https://wazafny.online/api/delete-experience/${experienceId}`,
+        `https://laravel.wazafny.online/api/delete-experience/${experienceId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

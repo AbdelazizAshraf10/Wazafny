@@ -9,9 +9,9 @@ export default function Location() {
   const navigate = useNavigate();
   const seekerId = localStorage.getItem("seeker_id");
 
-  const [countries, setCountries] = useState([]); // Store countries with countryCode
-  const [cities, setCities] = useState([]); // Store cities for the selected country
-  const [selectedCountryCode, setSelectedCountryCode] = useState(""); // Store selected country code
+  const [countries, setCountries] = useState([]); // Store country names
+  const [cities, setCities] = useState([]); // Store states as cities for the selected country
+  const [selectedCountry, setSelectedCountry] = useState(""); // Store selected country name
   const [error, setError] = useState(null); // State for API errors
   const [success, setSuccess] = useState(null); // State for success messages
   const [loadingCountries, setLoadingCountries] = useState(false); // Loading state for countries
@@ -28,23 +28,19 @@ export default function Location() {
     }
   }, [error, success]);
 
-  // Fetch countries from GeoNames API
+  // Fetch countries from CountriesNow API
   useEffect(() => {
     const fetchCountries = async () => {
       setLoadingCountries(true);
       try {
-        const response = await axios.get(
-          "http://api.geonames.org/countryInfoJSON?username=youssef797"
-        );
-        
-
-        if (response.data.geonames && Array.isArray(response.data.geonames)) {
-          const sortedCountries = response.data.geonames.sort((a, b) =>
-            a.countryName.localeCompare(b.countryName)
+        const response = await axios.get("https://countriesnow.space/api/v0.1/countries");
+        if (response.data.error === false) {
+          const sortedCountries = response.data.data.sort((a, b) =>
+            a.country.localeCompare(b.country)
           );
           setCountries(sortedCountries);
         } else {
-          throw new Error("Unexpected API response format for countries");
+          throw new Error("Failed to fetch countries");
         }
       } catch (err) {
         console.error("Error fetching countries:", {
@@ -60,9 +56,9 @@ export default function Location() {
     fetchCountries();
   }, []);
 
-  // Fetch cities based on selectedCountryCode
+  // Fetch states (as cities) based on selectedCountry
   useEffect(() => {
-    if (!selectedCountryCode) {
+    if (!selectedCountry || selectedCountry === "Select a country") {
       setCities([]);
       formik.setFieldValue("City", ""); // Reset city when country changes
       return;
@@ -71,21 +67,24 @@ export default function Location() {
     const fetchCities = async () => {
       setLoadingCities(true);
       try {
-        const response = await axios.get(
-          `http://api.geonames.org/searchJSON?country=${selectedCountryCode}&featureClass=A&featureCode=ADM1&maxRows=1000&username=Youssef797`
-        );
-        const fetchedCities = response.data.geonames || [];
-        setCities(fetchedCities);
-        
-
-        if (
-          formik.values.City &&
-          !fetchedCities.some((city) => city.name === formik.values.City)
-        ) {
-          formik.setFieldValue("City", "");
+        const response = await axios.post("https://countriesnow.space/api/v0.1/countries/states", {
+          country: selectedCountry,
+        });
+        if (response.data.error === false && response.data.data) {
+          const states = response.data.data.states || [];
+          const stateNames = states.map(state => state.name);
+          setCities(stateNames);
+          if (
+            formik.values.City &&
+            !stateNames.includes(formik.values.City)
+          ) {
+            formik.setFieldValue("City", "");
+          }
+        } else {
+          throw new Error("Failed to fetch states");
         }
       } catch (error) {
-        console.error("Error fetching cities:", error);
+        console.error("Error fetching states:", error);
         setError("Failed to load cities. Please try again.");
         setCities([]);
       } finally {
@@ -94,7 +93,7 @@ export default function Location() {
     };
 
     fetchCities();
-  }, [selectedCountryCode]);
+  }, [selectedCountry]);
 
   // Formik setup
   const handleLogin = async (values) => {
@@ -120,7 +119,7 @@ export default function Location() {
 
     try {
       const response = await axios.post(
-        "https://wazafny.online/api/create-location",
+        "https://laravel.wazafny.online/api/create-location",
         payload,
         {
           headers: {
@@ -130,7 +129,6 @@ export default function Location() {
         }
       );
 
-      
       setSuccess("Location saved successfully!");
       setTimeout(() => navigate("/info"), 2000);
     } catch (error) {
@@ -140,9 +138,9 @@ export default function Location() {
         setTimeout(() => navigate("/login"), 2000);
       } else if (error.response?.status === 500) {
         console.log("Server error. Please try again later.");
-      }else if (error.response?.status === 422) {
+      } else if (error.response?.status === 422) {
         console.log("Validation error. Please check your input.");
-      }else if (error.response?.status === 404) {
+      } else if (error.response?.status === 404) {
         console.log("Seeker_id not found");
       } else {
         setError("Failed to save location. Please try again.");
@@ -164,13 +162,10 @@ export default function Location() {
     onSubmit: handleLogin,
   });
 
-  // Handle country change to set countryCode
+  // Handle country change to set selectedCountry
   const handleCountryChange = (e) => {
     const selectedCountryName = e.target.value;
-    const selectedCountry = countries.find(
-      (country) => country.countryName === selectedCountryName
-    );
-    setSelectedCountryCode(selectedCountry ? selectedCountry.countryCode : "");
+    setSelectedCountry(selectedCountryName);
     formik.handleChange(e);
   };
 
@@ -215,11 +210,11 @@ export default function Location() {
                 </option>
                 {countries.map((country) => (
                   <option
-                    key={country.countryCode}
-                    value={country.countryName}
+                    key={country.iso2}
+                    value={country.country}
                     className="text-[#242645] bg-white hover:bg-[#6A0DAD] hover:text-white py-2 px-4"
                   >
-                    {country.countryName}
+                    {country.country}
                   </option>
                 ))}
               </select>
@@ -281,18 +276,18 @@ export default function Location() {
                 id="City"
                 className="block py-2.5 px-0 w-full text-sm text-[#242645] bg-transparent border-0 border-b-2 border-[#D9D9D9] appearance-none dark:border-[#D9D9D9] dark:focus:border-[#6A0DAD] focus:outline-none focus:ring-0 focus:border-[#6A0DAD] peer transition-colors duration-300"
                 required
-                disabled={loadingCities || !selectedCountryCode}
+                disabled={loadingCities || !selectedCountry}
               >
                 <option value="" disabled className="text-gray-500">
                   {loadingCities ? "Loading..." : "Select a city"}
                 </option>
-                {cities.map((city) => (
+                {cities.map((city, index) => (
                   <option
-                    key={city.geonameId}
-                    value={city.name}
+                    key={index}
+                    value={city}
                     className="text-[#242645] bg-white hover:bg-[#6A0DAD] hover:text-white py-2 px-4"
                   >
-                    {city.name}
+                    {city}
                   </option>
                 ))}
               </select>

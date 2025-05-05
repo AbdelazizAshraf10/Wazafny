@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import * as Yup from "yup";
 import axios from "axios";
 import { useState, useEffect } from "react";
-
+import logo from "../../assets/seeker-login-sign.svg";
 export default function Register() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
@@ -23,7 +23,7 @@ export default function Register() {
   async function handleRegister(values) {
     try {
       const response = await axios.post(
-        "https://wazafny.online/api/register/Seeker",
+        "https://laravel.wazafny.online/api/register/Seeker",
         {
           email: values.Email,
           password: values.Password,
@@ -203,7 +203,7 @@ export default function Register() {
           <img
             className="mt-12 ml-[-100px] animate-fadeIn"
             style={{ animationDelay: "0s" }}
-            src="\src\assets\sign-up-seeker.png"
+            src={logo}
             alt="frame"
           />
         </div>

@@ -53,7 +53,7 @@ function ViewAppSeeker() {
 
     try {
       const response = await axios.put(
-        `https://wazafny.online/api/update-application-status/${id}`,
+        `https://laravel.wazafny.online/api/update-application-status/${id}`,
         {
           status: actionType,
           response: comment || "",
@@ -104,7 +104,7 @@ function ViewAppSeeker() {
 
     try {
       const response = await axios.get(
-        `https://wazafny.online/api/show-application-company/${id}`,
+        `https://laravel.wazafny.online/api/show-application-company/${id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

@@ -170,7 +170,7 @@ function FirstSection({
         };
 
         await axios.post(
-          `https://wazafny.online/api/update-presonal-info`,
+          `https://laravel.wazafny.online/api/update-presonal-info`,
           payload,
           {
             headers: {
@@ -260,7 +260,7 @@ function FirstSection({
       try {
         try {
           const response = await axios.post(
-            "https://wazafny.online/api/update-cover-img",
+            "https://laravel.wazafny.online/api/update-cover-img",
             formData,
             {
               headers: {
@@ -355,7 +355,7 @@ function FirstSection({
 
     try {
       const response = await axios.delete(
-        `https://wazafny.online/api/delete-cover-img/${userId}`,
+        `https://laravel.wazafny.online/api/delete-cover-img/${userId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -445,7 +445,7 @@ function FirstSection({
       try {
         try {
           const response = await axios.post(
-            "https://wazafny.online/api/update-profile-img",
+            "https://laravel.wazafny.online/api/update-profile-img",
             formData,
             {
               headers: {
@@ -535,7 +535,7 @@ function FirstSection({
 
     try {
       const response = await axios.delete(
-        `https://wazafny.online/api/delete-profile-img/${userId}`,
+        `https://laravel.wazafny.online/api/delete-profile-img/${userId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

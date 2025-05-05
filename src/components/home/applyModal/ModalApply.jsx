@@ -189,7 +189,7 @@ function ModalApply({
 
     try {
       const response = await axios.post(
-        "https://wazafny.online/api/create-application",
+        "https://laravel.wazafny.online/api/create-application",
         formDataToSend,
         {
           headers: {

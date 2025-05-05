@@ -55,7 +55,7 @@ function CompanyJobs() { // Renamed to match the component's purpose
           return;
         }
 
-        const response = await axios.get("https://wazafny.online/api/show-compaines", {
+        const response = await axios.get("https://laravel.wazafny.online/api/show-compaines", {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",

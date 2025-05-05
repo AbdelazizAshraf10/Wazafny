@@ -56,7 +56,7 @@ function EmailConfirm() {
     const checkVerification = async () => {
       try {
         const response = await axios.get(
-          `https://wazafny.online/api/check/${userId}`,
+          `https://laravel.wazafny.online/api/check/${userId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

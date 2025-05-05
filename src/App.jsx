@@ -17,7 +17,6 @@ import ResetPassword from "./components/ResetPassword/ResetPassword";
 import Location from "./components/Location/Location";
 import Info from "./components/Info/Info";
 import Welcome from "./components/home/welcome/welcome";
-
 import UserProfile from "./components/home/NavIcons/PROFILE/profile/ProfilePage-1";
 import Dashboard from "./components/Dashboard-Company/Dashboard";
 import ViewApplicationJon from "./components/Dashboard-Company/ViewApplicationJon";
@@ -31,7 +30,6 @@ import Questions from "./components/Dashboard-Company/post-new-job-modal/Questio
 import Preview from "./components/Dashboard-Company/post-new-job-modal/Preview";
 import CompanyProfile from "./components/Dashboard-Company/Company-Profile/CompanyProfile";
 import EmailConfirm from "./components/EmailConfirmation/EmailConfirm";
-
 import CompanyNav from "./components/home/NavIcons/company-nav";
 import JopsPage from "./components/home/jobs/JopsPage";
 import CompanyJobs from "./components/home/companyjobs/CompanyJobs";
@@ -40,6 +38,8 @@ import CompanyOverview from "./components/home/companyjobs/CompanyOverview";
 import ViewApplications from "./components/home/ViewApplications/ViewApplications";
 import JobTilteLink from "./components/Dashboard-Company/JobTilteLink";
 import SeekerProfile from "./components/Dashboard-Company/profile-seeker/SeekerProfile";
+import ProtectedRoute from "./Contexts/ProtectedRoute";
+
 const router = createBrowserRouter([
   {
     path: "/",
@@ -62,10 +62,10 @@ const router = createBrowserRouter([
       { path: "*", element: <NotFound /> },
     ],
   },
-  // Seeker home with a unique base path
+  // Protected Seeker routes (only for seekers)
   {
     path: "/seeker",
-    element: <CompanyNav />,
+    element: <ProtectedRoute allowedRole="Seeker"><CompanyNav /></ProtectedRoute>,
     children: [
       { path: "", element: <Navigate to="JopsPage" replace /> },
       { path: "JopsPage", element: <JopsPage /> },
@@ -79,9 +79,10 @@ const router = createBrowserRouter([
       { path: "apply/:jobId", element: <Apply /> },
     ],
   },
+  // Protected Dashboard routes (only for companies)
   {
     path: "/Dashboard",
-    element: <Dashboard />,
+    element: <ProtectedRoute allowedRole="Company"><Dashboard /></ProtectedRoute>,
     children: [
       { path: "", element: <Navigate to="Overview" replace /> },
       { path: "Overview", element: <DashboardContent /> },
@@ -129,8 +130,6 @@ function App() {
 
 function AppContent() {
   const { isLoading } = useLoading();
-
-  
 
   return (
     <>

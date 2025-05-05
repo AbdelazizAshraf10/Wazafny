@@ -67,7 +67,7 @@ const { startLoading, stopLoading } = useLoading(); // Use the global loading co
       
       try {
         const response = await axios.get(
-          `https://wazafny.online/api/show-seeker-profile/${seekerId}`,
+          `https://laravel.wazafny.online/api/show-seeker-profile/${seekerId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -180,7 +180,7 @@ const { startLoading, stopLoading } = useLoading(); // Use the global loading co
 
       try {
         const response = await axios.post(
-          "https://wazafny.online/api/update-cover-img",
+          "https://laravel.wazafny.online/api/update-cover-img",
           formData,
           {
             headers: {
@@ -247,7 +247,7 @@ const { startLoading, stopLoading } = useLoading(); // Use the global loading co
 
     try {
       const response = await axios.delete(
-        `https://wazafny.online/api/delete-cover-img/${userId}`,
+        `https://laravel.wazafny.online/api/delete-cover-img/${userId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -315,7 +315,7 @@ const { startLoading, stopLoading } = useLoading(); // Use the global loading co
       startLoading(); // Start loading animation
       try {
         const response = await axios.post(
-          "https://wazafny.online/api/update-profile-img",
+          "https://laravel.wazafny.online/api/update-profile-img",
           formData,
           {
             headers: {
@@ -379,7 +379,7 @@ const { startLoading, stopLoading } = useLoading(); // Use the global loading co
     startLoading(); // Start loading animation
     try {
       const response = await axios.delete(
-        `https://wazafny.online/api/delete-profile-img/${userId}`,
+        `https://laravel.wazafny.online/api/delete-profile-img/${userId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -583,7 +583,7 @@ const { startLoading, stopLoading } = useLoading(); // Use the global loading co
 
       
       try {
-        const response = await axios.delete("https://wazafny.online/api/unfollow", {
+        const response = await axios.delete("https://laravel.wazafny.online/api/unfollow", {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",

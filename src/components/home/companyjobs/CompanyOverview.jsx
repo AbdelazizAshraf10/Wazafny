@@ -51,7 +51,7 @@ function CompanyOverview() {
       try {
         
         const response = await axios.get(
-          `https://wazafny.online/api/show-company-profile/${companyId}/${seekerId}`,
+          `https://laravel.wazafny.online/api/show-company-profile/${companyId}/${seekerId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -105,7 +105,7 @@ function CompanyOverview() {
     try {
       if (companyData.followstatus) {
         // Unfollow: Send DELETE request
-        await axios.delete("https://wazafny.online/api/unfollow", {
+        await axios.delete("https://laravel.wazafny.online/api/unfollow", {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
@@ -121,7 +121,7 @@ function CompanyOverview() {
         }));
       } else {
         // Follow: Send POST request
-        await axios.post("https://wazafny.online/api/follow", payload, {
+        await axios.post("https://laravel.wazafny.online/api/follow", payload, {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",

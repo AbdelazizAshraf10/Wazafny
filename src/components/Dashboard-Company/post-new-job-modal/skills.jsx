@@ -34,7 +34,7 @@ function Skills() {
 
       try {
         const response = await axios.get(
-          "https://wazafny.online/api/skill-search",
+          "https://laravel.wazafny.online/api/skill-search",
           {
             headers: {
               Authorization: `Bearer ${token}`,

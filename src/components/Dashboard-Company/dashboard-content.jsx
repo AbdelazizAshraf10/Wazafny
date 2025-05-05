@@ -45,7 +45,7 @@ function DashboardContent() {
 
       try {
         const response = await axios.get(
-          `https://wazafny.online/api/show-statics/${companyId}`,
+          `https://laravel.wazafny.online/api/show-statics/${companyId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -93,7 +93,7 @@ function DashboardContent() {
 
       try {
         const response = await axios.get(
-          `https://wazafny.online/api/show-lastest-applications-company/${companyId}`,
+          `https://laravel.wazafny.online/api/show-lastest-applications-company/${companyId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -157,7 +157,7 @@ function DashboardContent() {
 
       try {
         const response = await axios.get(
-          `https://wazafny.online/api/lastest-job-posts/${companyId}`,
+          `https://laravel.wazafny.online/api/lastest-job-posts/${companyId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

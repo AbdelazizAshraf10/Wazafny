@@ -10,7 +10,7 @@ function BasicInfo() {
   const [message, setMessage] = useState({ text: "", type: "" });
   const [countries, setCountries] = useState([]);
   const [cities, setCities] = useState([]);
-  const [selectedCountryCode, setSelectedCountryCode] = useState("");
+  const [selectedCountry, setSelectedCountry] = useState("");
   const [selectedCityName, setSelectedCityName] = useState("");
   const [loadingCountries, setLoadingCountries] = useState(false);
   const [loadingCities, setLoadingCities] = useState(false);
@@ -38,7 +38,6 @@ function BasicInfo() {
 
     // If location.state.formData exists (from edit mode), use it
     if (location.state?.formData) {
-      
       return location.state.formData;
     }
 
@@ -51,10 +50,15 @@ function BasicInfo() {
     const fetchCountries = async () => {
       setLoadingCountries(true);
       try {
-        const response = await axios.get(
-          "http://api.geonames.org/countryInfoJSON?username=youssef797"
-        );
-        setCountries(response.data.geonames || []);
+        const response = await axios.get("https://countriesnow.space/api/v0.1/countries");
+        if (response.data.error === false) {
+          const sortedCountries = response.data.data.sort((a, b) =>
+            a.country.localeCompare(b.country)
+          );
+          setCountries(sortedCountries);
+        } else {
+          throw new Error("Failed to fetch countries");
+        }
       } catch (error) {
         console.error("Error fetching countries:", error);
         setMessage({
@@ -68,23 +72,18 @@ function BasicInfo() {
     fetchCountries();
   }, []);
 
-  // Set selectedCountryCode based on formData.country
+  // Set selectedCountry based on formData.country
   useEffect(() => {
-    if (formData.country && countries.length > 0) {
-      const selectedCountry = countries.find(
-        (country) => country.countryName === formData.country
-      );
-      if (selectedCountry) {
-        setSelectedCountryCode(selectedCountry.countryCode);
-      } else {
-        setSelectedCountryCode("");
-      }
+    if (formData.country) {
+      setSelectedCountry(formData.country);
+    } else {
+      setSelectedCountry("");
     }
-  }, [formData.country, countries]);
+  }, [formData.country]);
 
-  // Fetch cities based on selectedCountryCode
+  // Fetch states (as cities) based on selectedCountry
   useEffect(() => {
-    if (!selectedCountryCode) {
+    if (!selectedCountry || selectedCountry === "Select Country") {
       setCities([]);
       setFormData((prev) => ({ ...prev, cityState: "" }));
       setSelectedCityName("");
@@ -94,14 +93,26 @@ function BasicInfo() {
     const fetchCities = async () => {
       setLoadingCities(true);
       try {
-        const response = await axios.get(
-          `http://api.geonames.org/searchJSON?country=${selectedCountryCode}&featureClass=A&featureCode=ADM1&maxRows=1000&username=Youssef797`
-        );
-        const fetchedCities = response.data.geonames || [];
-        setCities(fetchedCities);
-        
+        const response = await axios.post("https://countriesnow.space/api/v0.1/countries/states", {
+          country: selectedCountry,
+        });
+        if (response.data.error === false && response.data.data) {
+          const states = response.data.data.states || [];
+          const stateNames = states.map(state => state.name);
+          setCities(stateNames);
+          if (formData.cityState && !stateNames.includes(formData.cityState)) {
+            setCityNotFound(true);
+            setFormData((prev) => ({ ...prev, cityState: "" }));
+            setSelectedCityName("");
+          } else {
+            setCityNotFound(false);
+            setSelectedCityName(formData.cityState);
+          }
+        } else {
+          throw new Error("Failed to fetch states");
+        }
       } catch (error) {
-        console.error("Error fetching cities:", error);
+        console.error("Error fetching states:", error);
         setMessage({
           text: "Failed to load cities. Please try again.",
           type: "error",
@@ -112,35 +123,17 @@ function BasicInfo() {
       }
     };
     fetchCities();
-  }, [selectedCountryCode]);
+  }, [selectedCountry]);
 
-  // Set selectedCityName and check for city mismatch
+  // Update localStorage when formData changes
   useEffect(() => {
     localStorage.setItem("basicInfoFormData", JSON.stringify(formData));
-
-    if (formData.cityState && cities.length > 0) {
-      
-      const selectedCity = cities.find(
-        (city) => city.name === formData.cityState
-      );
-      if (selectedCity) {
-        setSelectedCityName(selectedCity.name);
-        setCityNotFound(false);
-      } else {
-        setSelectedCityName("");
-        setCityNotFound(true);
-        console.log("City not found in cities array:", formData.cityState);
-      }
-    }
-  }, [formData.cityState, cities]);
+  }, [formData]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     if (name === "country") {
-      const selectedCountry = countries.find(
-        (country) => country.countryName === value
-      );
-      setSelectedCountryCode(selectedCountry ? selectedCountry.countryCode : "");
+      setSelectedCountry(value);
       setFormData((prev) => ({
         ...prev,
         country: value,
@@ -154,6 +147,7 @@ function BasicInfo() {
         [name]: value,
       }));
       if (name === "cityState") {
+        setSelectedCityName(value);
         setCityNotFound(false);
       }
     }
@@ -329,8 +323,8 @@ function BasicInfo() {
                   {loadingCountries ? "Loading..." : "Select Country"}
                 </option>
                 {countries.map((country) => (
-                  <option key={country.countryCode} value={country.countryName}>
-                    {country.countryName}
+                  <option key={country.iso2} value={country.country}>
+                    {country.country}
                   </option>
                 ))}
               </select>
@@ -341,7 +335,7 @@ function BasicInfo() {
                 value={formData.cityState}
                 onChange={handleChange}
                 className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none appearance-none pr-10 custom-select"
-                disabled={loadingCities || !selectedCountryCode}
+                disabled={loadingCities || !selectedCountry}
               >
                 <option value="" disabled>
                   {loadingCities
@@ -350,9 +344,9 @@ function BasicInfo() {
                     ? "City not found, please reselect"
                     : "Select City/State"}
                 </option>
-                {cities.map((city) => (
-                  <option key={city.geonameId} value={city.name}>
-                    {city.name}
+                {cities.map((city, index) => (
+                  <option key={index} value={city}>
+                    {city}
                   </option>
                 ))}
               </select>

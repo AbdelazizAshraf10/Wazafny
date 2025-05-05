@@ -28,7 +28,7 @@ const UserProfileDropdown = ({ isOpen, onToggle, setSuccessMessage }) => {
       setLoading(true);
       try {
         const response = await axios.get(
-          `https://wazafny.online/api/show-personal-info/${seekerId}`,
+          `https://laravel.wazafny.online/api/show-personal-info/${seekerId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -78,7 +78,7 @@ const UserProfileDropdown = ({ isOpen, onToggle, setSuccessMessage }) => {
 
     try {
       const response = await axios.post(
-        "https://wazafny.online/api/logout",
+        "https://laravel.wazafny.online/api/logout",
         { user_id: userId },
         {
           headers: {

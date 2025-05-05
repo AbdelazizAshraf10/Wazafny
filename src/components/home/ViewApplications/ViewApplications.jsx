@@ -66,7 +66,7 @@ function ViewApplications() {
       setLoading(true);
       try {
         const response = await axios.get(
-          `https://wazafny.online/api/show-applications-seeker/${seekerId}`,
+          `https://laravel.wazafny.online/api/show-applications-seeker/${seekerId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -144,7 +144,7 @@ function ViewApplications() {
 
       try {
         await axios.delete(
-          `https://wazafny.online/api/delete-application/${applicationId}`,
+          `https://laravel.wazafny.online/api/delete-application/${applicationId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

@@ -76,8 +76,8 @@ export default function Info() {
     };
 
     try {
-      const response = await axios.post(
-        "https://wazafny.online/api/create-headline",
+      await axios.post(
+        "https://laravel.wazafny.online/api/create-headline",
         payload,
         {
           headers: {

@@ -58,7 +58,7 @@ function Skill({ userRole, initialSkills }) {
         throw new Error("Authentication token is missing. Please log in again.");
       }
       const response = await fetch(
-        `https://wazafny.online/api/skill-search?q=${encodeURIComponent(query)}`,
+        `https://laravel.wazafny.online/api/skill-search?q=${encodeURIComponent(query)}`,
         { headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } }
       );
       if (!response.ok) {
@@ -129,7 +129,7 @@ function Skill({ userRole, initialSkills }) {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch("https://wazafny.online/api/update-skills", {
+      const response = await fetch("https://laravel.wazafny.online/api/update-skills", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify(requestBody),
@@ -202,7 +202,7 @@ function Skill({ userRole, initialSkills }) {
     setIsLoading(true);
     setError(null);
     try {
-      const updateResponse = await fetch("https://wazafny.online/api/update-skills", {
+      const updateResponse = await fetch("https://laravel.wazafny.online/api/update-skills", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify({ seeker_id: parseInt(seekerId), skills: skillNames }),

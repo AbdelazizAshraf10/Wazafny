@@ -64,7 +64,7 @@ const OTPInput = ({ length = 6 }) => {
 
     try {
       const response = await axios.post(
-        'https://wazafny.online/api/verify-otp',
+        'https://laravel.wazafny.online/api/verify-otp',
         {
           email: email,
           otp: otpValue,
@@ -114,7 +114,7 @@ const OTPInput = ({ length = 6 }) => {
 
     try {
       const response = await axios.post(
-        'https://wazafny.online/api/generate-otp',
+        'https://laravel.wazafny.online/api/generate-otp',
         {
           email: email,
         }

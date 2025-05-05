@@ -72,7 +72,7 @@ function EditAppModal({
       setLoading(true);
       try {
         const response = await axios.get(
-          `https://wazafny.online/api/show-application-seeker/${applicationId}`,
+          `https://laravel.wazafny.online/api/show-application-seeker/${applicationId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -232,7 +232,7 @@ function EditAppModal({
 
         try {
           const response = await axios.post(
-            `https://wazafny.online/api/update-application/${applicationId}`,
+            `https://laravel.wazafny.online/api/update-application/${applicationId}`,
             formDataToSubmit,
             {
               headers: {

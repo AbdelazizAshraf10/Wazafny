@@ -36,7 +36,7 @@ function HeaderCompany() {
 
       try {
         const response = await axios.get(
-          `https://wazafny.online/api/show-company-profile/${companyId}`,
+          `https://laravel.wazafny.online/api/show-company-profile/${companyId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -86,7 +86,7 @@ function HeaderCompany() {
 
     try {
       await axios.post(
-        "https://wazafny.online/api/logout",
+        "https://laravel.wazafny.online/api/logout",
         { user_id: parseInt(userId) }, // Send user_id in the body
         {
           headers: {

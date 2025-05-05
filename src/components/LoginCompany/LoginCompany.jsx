@@ -3,7 +3,7 @@ import { useFormik } from "formik";
 import { Link, useNavigate } from "react-router-dom";
 import * as Yup from "yup";
 import axios from "axios";
-
+import logo from "../../assets/company-login-sign.svg";
 export default function LoginCompany() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
@@ -21,7 +21,7 @@ export default function LoginCompany() {
 
   async function handleLogin(values) {
     try {
-      const response = await axios.post("https://wazafny.online/api/login", {
+      const response = await axios.post("https://laravel.wazafny.online/api/login", {
         email: values.Email,
         password: values.Password,
         role: "Company",
@@ -183,7 +183,7 @@ export default function LoginCompany() {
           <img
             className="  ml-[-100px] animate-fadeIn"
             style={{ animationDelay: "0s" }}
-            src="\src\assets\company-sign-up.png"
+            src={logo}
             alt="frame"
           />
         </div>

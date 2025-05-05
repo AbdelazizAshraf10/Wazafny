@@ -73,7 +73,7 @@ function About({ userRole, initialAbout }) {
 
     try {
       const response = await axios.post(
-        "https://wazafny.online/api/update-about",
+        "https://laravel.wazafny.online/api/update-about",
         requestBody,
         {
           headers: {

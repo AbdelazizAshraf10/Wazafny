@@ -19,7 +19,7 @@ function CompanyProfile() {
           return;
         }
 
-        const response = await axios.get(`https://wazafny.online/api/show-company-profile/${comId}`, {
+        const response = await axios.get(`https://laravel.wazafny.online/api/show-company-profile/${comId}`, {
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',

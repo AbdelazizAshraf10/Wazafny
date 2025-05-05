@@ -1,4 +1,4 @@
-import React from "react";
+
 import { useFormik } from "formik";
 import { useNavigate } from "react-router-dom";
 import * as Yup from "yup";
@@ -35,7 +35,7 @@ export default function Forget() {
   async function handleLogin(values) {
     try {
       const response = await axios.post(
-        "https://wazafny.online/api/generate-otp",
+        "https://laravel.wazafny.online/api/generate-otp",
         {
           email: values.Email,
         }

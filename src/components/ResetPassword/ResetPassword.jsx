@@ -68,7 +68,7 @@ export default function ResetPassword() {
     }
     try {
       const response = await axios.post(
-        "https://wazafny.online/api/reset-password",
+        "https://laravel.wazafny.online/api/reset-password",
         {
           email: email,
           password: values.Password,

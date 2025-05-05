@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import * as Yup from "yup";
 import axios from "axios";
 import { useState, useEffect } from "react";
-
+import logo from "../../assets/company-login-sign.svg";
 export default function Register() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
@@ -23,7 +23,7 @@ export default function Register() {
   async function handleRegister(values) {
     try {
       const response = await axios.post(
-        "https://wazafny.online/api/register/Company",
+        "https://laravel.wazafny.online/api/register/Company",
         {
           email: values.Email,
           password: values.Password,
@@ -196,7 +196,7 @@ export default function Register() {
           <img
             className="w-full mt-10 animate-fadeIn"
             style={{ animationDelay: "0s" }}
-            src="\src\assets\company-sign-up.png"
+            src={logo}
             alt="frame"
           />
         </div>

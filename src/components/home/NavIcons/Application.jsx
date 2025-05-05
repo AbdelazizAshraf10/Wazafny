@@ -41,7 +41,7 @@ const JobApplicationDropdown = ({ isOpen, onToggle }) => {
       setLoading(true);
       try {
         const response = await axios.get(
-          `https://wazafny.online/api/show-lastest-application-seeker/${seekerId}`,
+          `https://laravel.wazafny.online/api/show-lastest-application-seeker/${seekerId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

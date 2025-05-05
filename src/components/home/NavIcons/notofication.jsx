@@ -43,7 +43,7 @@ const NotificationDropdown = ({ isOpen, onToggle }) => {
       setLoading(true);
       try {
         const response = await axios.get(
-          `https://wazafny.online/api/show-notifications/${seekerId}`,
+          `https://laravel.wazafny.online/api/show-notifications/${seekerId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -114,7 +114,7 @@ const NotificationDropdown = ({ isOpen, onToggle }) => {
 
     try {
       await axios.delete(
-        `https://wazafny.online/api/delete-notification/${notificationId}`,
+        `https://laravel.wazafny.online/api/delete-notification/${notificationId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -150,7 +150,7 @@ const NotificationDropdown = ({ isOpen, onToggle }) => {
 
     try {
       await axios.delete(
-        `https://wazafny.online/api/delete-all-notifications/${seekerId}`,
+        `https://laravel.wazafny.online/api/delete-all-notifications/${seekerId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

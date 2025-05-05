@@ -37,7 +37,7 @@ function JobsPage() {
 
       try {
         const response = await axios.post(
-          "https://wazafny.online/api/recommended-jobs-posts",
+          "https://laravel.wazafny.online/api/recommended-jobs-posts",
           { seeker_id: parseInt(seekerId) },
           {
             headers: {
