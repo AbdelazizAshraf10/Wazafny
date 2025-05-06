@@ -517,12 +517,7 @@ function Education({ userRole, initialEducation }) {
                     )}
                   </div>
                   <hr className="border-t-2 border-gray-300 my-[17px]" />
-                  <button
-                    onClick={() => setIsModalAddOpen(true)}
-                    className="flex items-center gap-2 text-[#6A0DAD] hover:text-black"
-                  >
-                    <span className="text-2xl">+</span> Add New Education
-                  </button>
+                 
                   <div className="flex justify-end mb-4">
                     <button
                       type="submit"

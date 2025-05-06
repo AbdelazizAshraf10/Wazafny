@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import NotificationDropdown from "./notofication";
 import UserProfileDropdown from "./PROFILE/profile/ProfileIcon";
-import JobApplicationDropdown from "./Application"; // Ensure correct import
+import JobApplicationDropdown from "./Application";
 import { Outlet } from "react-router-dom";
 import { Message } from "../../CustomMessage/FloatMessage";
 
@@ -13,7 +13,7 @@ function CompanyNav() {
   const location = useLocation();
   const [activeTab, setActiveTab] = useState("Jobs");
   const [activeDropdown, setActiveDropdown] = useState(null);
-  const [successMessage, setSuccessMessage] = useState(null); // State for success message
+  const [successMessage, setSuccessMessage] = useState(null);
 
   // Update activeTab based on the current URL
   useEffect(() => {
@@ -26,23 +26,25 @@ function CompanyNav() {
 
   const handleJobsClick = () => {
     setActiveTab("Jobs");
+    setActiveDropdown(null); // Close any open dropdowns
     navigate("/seeker/JopsPage");
   };
 
   const handleCompanyClick = () => {
     setActiveTab("Company");
+    setActiveDropdown(null); // Close any open dropdowns
     navigate("/seeker/companypage");
   };
 
-  // Handle dropdown toggle and ensure only one is open
+  // Handle dropdown toggle and set activeTab for icons
   const handleDropdownToggle = (dropdownName) => {
-    
     if (activeDropdown === dropdownName) {
       setActiveDropdown(null); // Close the dropdown if it's already open
+      setActiveTab(null); // Remove active tab if closing
     } else {
-      setActiveDropdown(dropdownName); // Open the clicked dropdown and close others
+      setActiveDropdown(dropdownName); // Open the clicked dropdown
+      setActiveTab(dropdownName); // Set the active tab to the dropdown name
     }
-    
   };
 
   // Animation variants for the buttons
@@ -85,46 +87,50 @@ function CompanyNav() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <img src={logo} alt="logo" />
+          <img src={logo} alt="logo"  onClick={() => navigate("/seeker/JopsPage")} className="cursor-pointer"/>
         </motion.div>
 
         {/* Job and company select in the middle */}
-        <div className="flex items-center gap-x-40 text-2xl font-bold mt-3 ml-4 relative">
-          <motion.button
-            onClick={handleJobsClick}
-            className="relative pb-2"
-            variants={buttonVariants}
-            animate={activeTab === "Jobs" ? "active" : "inactive"}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            Jobs
-            {activeTab === "Jobs" && (
-              <motion.div
-                className="absolute left-0 bottom-[-3px] w-full h-[4px] bg-[#6A0DAD]"
-                layoutId="underline"
-                transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              />
-            )}
-          </motion.button>
+        <div className="flex items-center gap-x-40 text-2xl font-bold mt-3 ml-4">
+          <div className="relative">
+            <motion.button
+              onClick={handleJobsClick}
+              className="relative pb-2"
+              variants={buttonVariants}
+              animate={activeTab === "Jobs" ? "active" : "inactive"}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              Jobs
+              {activeTab === "Jobs" && (
+                <motion.div
+                  className="absolute left-0 bottom-[-3px] w-full h-[4px] bg-[#6A0DAD]"
+                  layoutId="underline"
+                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                />
+              )}
+            </motion.button>
+          </div>
 
-          <motion.button
-            onClick={handleCompanyClick}
-            className="relative pb-2"
-            variants={buttonVariants}
-            animate={activeTab === "Company" ? "active" : "inactive"}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            Company
-            {activeTab === "Company" && (
-              <motion.div
-                className="absolute left-0 bottom-[-3px] w-full h-[4px] bg-[#6A0DAD]"
-                layoutId="underline"
-                transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              />
-            )}
-          </motion.button>
+          <div className="relative">
+            <motion.button
+              onClick={handleCompanyClick}
+              className="relative pb-2"
+              variants={buttonVariants}
+              animate={activeTab === "Company" ? "active" : "inactive"}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              Company
+              {activeTab === "Company" && (
+                <motion.div
+                  className="absolute left-0 bottom-[-3px] w-full h-[4px] bg-[#6A0DAD]"
+                  layoutId="underline"
+                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                />
+              )}
+            </motion.button>
+          </div>
         </div>
 
         {/* Icons on the right */}
@@ -135,40 +141,68 @@ function CompanyNav() {
           transition={{ duration: 0.5 }}
         >
           {/* Application List Icon */}
-          <motion.div
-            className="relative"
-            variants={iconVariants}
-          >
-            <JobApplicationDropdown
-              isOpen={activeDropdown === "application"}
-              onToggle={() => handleDropdownToggle("application")}
-            />
-          </motion.div>
+          <div className="relative">
+            <motion.div
+              className="relative"
+              variants={iconVariants}
+              onClick={() => handleDropdownToggle("application")}
+            >
+              <JobApplicationDropdown
+                isOpen={activeDropdown === "application"}
+                onToggle={() => handleDropdownToggle("application")}
+              />
+              {activeTab === "application" && (
+                <motion.div
+                  className="absolute left-0 bottom-[-3px] w-full h-[4px] bg-[#6A0DAD]"
+                  layoutId="underline"
+                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                />
+              )}
+            </motion.div>
+          </div>
 
           {/* Notification Icon with Badge */}
-          <motion.div
-            className="relative"
-            variants={iconVariants}
-          >
-            <NotificationDropdown
-              isOpen={activeDropdown === "notification"}
-              onToggle={() => handleDropdownToggle("notification")}
-            />
-          </motion.div>
+          <div className="relative">
+            <motion.div
+              className="relative"
+              variants={iconVariants}
+              onClick={() => handleDropdownToggle("notification")}
+            >
+              <NotificationDropdown
+                isOpen={activeDropdown === "notification"}
+                onToggle={() => handleDropdownToggle("notification")}
+              />
+              {activeTab === "notification" && (
+                <motion.div
+                  className="absolute left-0 bottom-[-3px] w-full h-[4px] bg-[#6A0DAD]"
+                  layoutId="underline"
+                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                />
+              )}
+            </motion.div>
+          </div>
 
           {/* Profile Icon with Verification Badge */}
-          <motion.div
-            className="relative bg-[#6A0DAD] text-white w-10 h-10 flex items-center justify-center rounded-full text-lg font-bold"
-            variants={iconVariants}
-            whileHover="hover"
-            
-          >
-            <UserProfileDropdown
-              isOpen={activeDropdown === "profile"}
-              onToggle={() => handleDropdownToggle("profile")}
-              setSuccessMessage={setSuccessMessage} // Pass callback to set success message
-            />
-          </motion.div>
+          <div className="relative">
+            <motion.div
+              className="relative bg-[#6A0DAD] text-white w-10 h-10 flex items-center justify-center rounded-full text-lg font-bold"
+              variants={iconVariants}
+              onClick={() => handleDropdownToggle("profile")}
+            >
+              <UserProfileDropdown
+                isOpen={activeDropdown === "profile"}
+                onToggle={() => handleDropdownToggle("profile")}
+                setSuccessMessage={setSuccessMessage}
+              />
+              {activeTab === "profile" && (
+                <motion.div
+                  className="absolute left-0 bottom-[-3px] w-full h-[4px] bg-[#6A0DAD]"
+                  layoutId="underline"
+                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                />
+              )}
+            </motion.div>
+          </div>
         </motion.div>
       </div>
 

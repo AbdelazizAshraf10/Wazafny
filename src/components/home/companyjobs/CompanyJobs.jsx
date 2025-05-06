@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import search from "../../../assets/seeker/search.png";
 import loc from "../../../assets/seeker/location.png";
 import { useNavigate } from "react-router-dom";
-
+import defaultImage from "../../../assets/company/personnn.svg"
 // Counter component to animate numbers
 const Counter = ({ target, duration = 230 }) => {
   const [count, setCount] = useState(0);
@@ -160,7 +160,7 @@ function CompanyJobs() { // Renamed to match the component's purpose
                     variants={childVariants}
                   >
                     <img
-                      src={company.profile_img}
+                      src={company.profile_img || defaultImage}
                       alt={`${company.company_name} logo`}
                       className="w-10 h-10 rounded-md object-contain"
                       onError={(e) => (e.target.src = "default-image-url")} // Add fallback image

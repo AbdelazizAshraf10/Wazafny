@@ -42,23 +42,40 @@ function EditAppModal({
   const [fetchError, setFetchError] = useState(null);
   const [submitError, setSubmitError] = useState(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [countries, setCountries] = useState([]);
+  const [countryCitiesMap, setCountryCitiesMap] = useState({});
 
   const phoneRegex = /^[+0-9]+$/;
   const maxPhoneLength = 20;
   const maxFileSize = 2 * 1024 * 1024;
 
-  const countryCitiesMap = {
-    Egypt: ["Cairo", "Alexandria", "Giza"],
-    "United States": ["New York", "Los Angeles", "Chicago"],
-    "United Kingdom": ["London", "Manchester", "Birmingham"],
-    Canada: ["Toronto", "Vancouver", "Montreal"],
-    Australia: ["Sydney", "Melbourne", "Brisbane"],
-  };
+  // Fetch countries and cities on component mount
+  useEffect(() => {
+    const fetchCountriesAndCities = async () => {
+      try {
+        const countriesResponse = await axios.get("https://countriesnow.space/api/v0.1/countries");
+        if (countriesResponse.data.error) {
+          throw new Error(countriesResponse.data.msg);
+        }
+        const countriesData = countriesResponse.data.data;
+        const sortedCountries = countriesData.map(item => item.country).sort();
+        setCountries(sortedCountries);
 
-  const countries = Object.keys(countryCitiesMap);
-  const cities = formData.country
-    ? countryCitiesMap[formData.country] || []
-    : [];
+        const map = {};
+        countriesData.forEach(item => {
+          map[item.country] = item.cities.sort();
+        });
+        setCountryCitiesMap(map);
+      } catch (error) {
+        console.error("Error fetching countries:", error);
+        setFetchError("Failed to load countries. Please try again later.");
+      }
+    };
+
+    fetchCountriesAndCities();
+  }, []);
+
+  const cities = formData.country ? (countryCitiesMap[formData.country] || []).sort() : [];
 
   useEffect(() => {
     const fetchApplicationDetails = async () => {
@@ -179,14 +196,12 @@ function EditAppModal({
       });
     }
 
-    
     setErrors(newErrors);
     return isValid;
   };
 
   const handleNext = async () => {
     const isValid = validateStep();
-    
 
     if (isValid) {
       if (step < totalSteps) {
@@ -209,12 +224,10 @@ function EditAppModal({
         formDataToSubmit.append("city", formData.city);
         formDataToSubmit.append("phone", formData.phoneNumber);
 
-        // Handle resume: Only send the resume if a new file is uploaded
         if (formData.resume instanceof File) {
           formDataToSubmit.append("resume", formData.resume);
         }
 
-        // Handle answers
         if (totalSteps === 3 && questions.length > 0) {
           Object.keys(answers).forEach((questionId, index) => {
             formDataToSubmit.append(`answers[${index}]`, answers[questionId]);
@@ -224,8 +237,6 @@ function EditAppModal({
             formDataToSubmit.append(`answers[${i}]`, "no");
           }
         }
-
-        
 
         setLoading(true);
         setSubmitError(null);
@@ -242,7 +253,6 @@ function EditAppModal({
             }
           );
 
-          
           setIsSubmitted(true);
           setTimeout(() => {
             onClose();

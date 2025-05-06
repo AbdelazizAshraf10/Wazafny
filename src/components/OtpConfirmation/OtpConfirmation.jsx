@@ -1,5 +1,4 @@
-
-import {  useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useEffect, useState, useRef } from 'react';
 import { motion } from 'framer-motion';
@@ -7,7 +6,10 @@ import { motion } from 'framer-motion';
 const OTPInput = ({ length = 6 }) => {
   const [otp, setOtp] = useState(new Array(length).fill(''));
   const [email, setEmail] = useState(null);
-  const [message, setMessage] = useState({ text: '', type: '' }); // State for floating message
+  const [message, setMessage] = useState({ text: '', type: '' });
+  const [resendAttempts, setResendAttempts] = useState(0);
+  const [lastResendTime, setLastResendTime] = useState(null);
+  const [cooldownTime, setCooldownTime] = useState(0);
   const inputRefs = useRef([]);
   const navigate = useNavigate();
 
@@ -30,6 +32,17 @@ const OTPInput = ({ length = 6 }) => {
       return () => clearTimeout(timer);
     }
   }, [message]);
+
+  // Timer for cooldown
+  useEffect(() => {
+    let timer;
+    if (cooldownTime > 0) {
+      timer = setInterval(() => {
+        setCooldownTime((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [cooldownTime]);
 
   // Handle OTP input change
   const handleChange = (index, value) => {
@@ -71,11 +84,9 @@ const OTPInput = ({ length = 6 }) => {
         }
       );
 
-     
-
       if (response.status === 200) {
         setMessage({ text: 'OTP verified! Redirecting...', type: 'success' });
-        setTimeout(() => navigate('/ResetPassword'), 1000); // Delay navigation to show message
+        setTimeout(() => navigate('/ResetPassword'), 1000);
       } else {
         console.warn('Unexpected status:', response.status);
         setMessage({ text: 'Unexpected response. Please try again.', type: 'error' });
@@ -88,13 +99,13 @@ const OTPInput = ({ length = 6 }) => {
       });
 
       if (error.response) {
-        const { status, data } = error.response;
+        const { status } = error.response;
         if (status === 400) {
           setMessage({ text: 'Invalid or Expired OTP.', type: 'error' });
         } else if (status === 422) {
-          console.log("'Email or OTP is invalid.'", data.errors);
+          setMessage({ text: 'Email or OTP is invalid.', type: 'error' });
         } else {
-          console.log("'An error occurred. Please try again.'");
+          setMessage({ text: 'An error occurred. Please try again.', type: 'error' });
         }
       } else {
         setMessage({
@@ -105,10 +116,24 @@ const OTPInput = ({ length = 6 }) => {
     }
   };
 
-  // Handle resend OTP
+  // Handle resend OTP with cooldown logic
   const handleResendOtp = async () => {
     if (!email) {
       setMessage({ text: 'Email not found. Please try again.', type: 'error' });
+      return;
+    }
+
+    const now = Date.now();
+    const timeSinceLastResend = lastResendTime ? (now - lastResendTime) / 1000 : Infinity;
+    const isRestrictedMode = resendAttempts >= 10;
+    const cooldownDuration = isRestrictedMode ? 300 : 30; // 5 minutes or 30 seconds
+
+    if (timeSinceLastResend < cooldownDuration) {
+      setMessage({
+        text: `Please wait ${Math.ceil(cooldownDuration - timeSinceLastResend)} seconds before resending.`,
+        type: 'error',
+      });
+      setCooldownTime(Math.ceil(cooldownDuration - timeSinceLastResend));
       return;
     }
 
@@ -120,8 +145,19 @@ const OTPInput = ({ length = 6 }) => {
         }
       );
 
-      
       setMessage({ text: 'OTP resent successfully. Please check your email.', type: 'success' });
+      setLastResendTime(now);
+      setResendAttempts((prev) => {
+        const newAttempts = prev + 1;
+        if (newAttempts === 10) {
+          setMessage({
+            text: 'Maximum attempts reached. Next resend available after 5 minutes.',
+            type: 'warning',
+          });
+        }
+        return newAttempts;
+      });
+      setCooldownTime(cooldownDuration);
     } catch (error) {
       console.error('Resend OTP Error:', {
         status: error.response?.status,
@@ -217,6 +253,11 @@ const OTPInput = ({ length = 6 }) => {
             color: white;
           }
 
+          .floating-message.warning {
+            background-color: #ff9800;
+            color: white;
+          }
+
           .floating-message.hide {
             animation: slideOut 0.9s ease-out forwards;
           }
@@ -287,15 +328,30 @@ const OTPInput = ({ length = 6 }) => {
           animate={{ opacity: 1, transition: { delay: 0.4, duration: 0.5 } }}
         >
           Didn’t get OTP?{' '}
-          <motion.span
-            className="text-[#6a0dad] underline font-medium cursor-pointer"
-            onClick={handleResendOtp}
-            variants={linkVariants}
-            whileHover="hover"
-          >
-            Try again
-          </motion.span>
+          {cooldownTime > 0 ? (
+            <span className="text-gray-500">
+              Try again in {cooldownTime} seconds
+            </span>
+          ) : (
+            <motion.span
+              className="text-[#6a0dad] underline font-medium cursor-pointer"
+              onClick={handleResendOtp}
+              variants={linkVariants}
+              whileHover="hover"
+            >
+              Try again
+            </motion.span>
+          )}
         </motion.p>
+        {resendAttempts > 0 && (
+          <motion.p
+            className="mt-2 text-lg text-gray-600"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1, transition: { delay: 0.5, duration: 0.5 } }}
+          >
+            Attempts used: {resendAttempts}
+          </motion.p>
+        )}
       </motion.div>
     </>
   );

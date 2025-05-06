@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom"; // Replace useLocatio
 import axios from "axios";
 import { motion } from "framer-motion";
 import profile from "../../../assets/seeker/profile-banner.png";
-import vod from "../../../assets/seeker/vod.png";
+import vod from "../../../assets/company/personnn.svg";
 import CompanyAbout from "./CompanyAbout";
 import CompanyPost from "./CompanyPost";
 
@@ -241,7 +241,7 @@ function CompanyOverview() {
               <img
                 src={companyData.profile_img || vod}
                 alt="Company Logo"
-                className="w-24 h-24 rounded-2xl sm:-mt-20 object-cover"
+                className="w-24 h-24 rounded-2xl sm:-mt-20 object-cover bg-white"
               />
               <motion.div className="my-4" variants={childVariants}>
                 <h4 className="text-2xl sm:text-3xl font-bold">

@@ -170,7 +170,7 @@ export default function ResetPassword() {
             position: fixed;
             top: 20px;
             /* Adjust left/transform for better centering if needed */
-            left: 50%;
+            left: 42%;
             transform: translateX(-50%);
             padding: 12px 24px;
             border-radius: 8px;
@@ -180,6 +180,16 @@ export default function ResetPassword() {
             animation: slideIn 0.3s ease-out forwards;
             max-width: 90%; /* Prevent overflow on small screens */
             text-align: center;
+          }
+
+          .floating-message.success {
+            background-color: #4caf50;
+            color: white;
+          }
+
+          .floating-message.error {
+            background-color: #f44336;
+            color: white;
           }
 
          /* ... other existing styles ... */
