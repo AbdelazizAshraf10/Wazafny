@@ -96,7 +96,7 @@ function EmailConfirm() {
             }
 
             localStorage.removeItem("userEmail");
-            localStorage.removeItem("user_id");
+            
           } else if (response.data.verified === 0) {
             console.log("Email not verified yet, retrying...");
           } else {

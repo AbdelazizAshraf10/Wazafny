@@ -98,6 +98,8 @@ function SecondSection({ companyId, about, industry, companySize, headquarters, 
       case 'founded':
         if (!value.trim()) return 'Founded year is required';
         if (!/^\d{4}$/.test(value)) return 'Please enter a valid year (YYYY)';
+        const currentYear = new Date().getFullYear();
+        if (parseInt(value) > currentYear) return `Year cannot be in the future (after ${currentYear})`;
         return '';
       default:
         return '';
@@ -116,6 +118,11 @@ function SecondSection({ companyId, about, industry, companySize, headquarters, 
     } else if (name === 'country') {
       setFormData((prev) => ({ ...prev, [name]: value, city: '' }));
       setSelectedCountry(value);
+    } else if (name === 'founded') {
+      // Allow only digits and limit to 4 characters
+      if (/^\d{0,4}$/.test(value)) {
+        setFormData((prev) => ({ ...prev, [name]: value }));
+      }
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
@@ -287,7 +294,7 @@ function SecondSection({ companyId, about, industry, companySize, headquarters, 
               strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth="2"
-              d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.536L15.232 5.232z"
+              d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.536L16.732 3.732z"
             />
           </svg>
         </button>
@@ -456,6 +463,7 @@ function SecondSection({ companyId, about, industry, companySize, headquarters, 
                       errors.founded ? 'border-red-500' : 'border-gray-300'
                     } focus:ring-purple-500`}
                     placeholder="YYYY"
+                    maxLength="4"
                   />
                   {errors.founded && (
                     <p className="text-red-500 text-xs mt-1">{errors.founded}</p>

@@ -4,6 +4,7 @@ import { InputField } from "../../home/NavIcons/PROFILE/profile/my-component";
 import Cover from "../../../assets/company/default.png";
 import axios from "axios";
 import { Navigate } from "react-router-dom";
+
 function FirstSection({
   companyId,
   companyName,
@@ -61,9 +62,19 @@ function FirstSection({
   };
 
   const validateUrl = (url) => {
-    if (!url) return true;
+    if (!url) return true; // Allow empty URL as it's optional
+    // Regex for valid URL, including protocol and common TLDs
+    const urlRegex = /^(https?:\/\/)?([\w-]+\.)+[\w-]{2,}(\/[\w-._~:/?#[\]@!$&'()*+,;=]*)?$/i;
+    
+    // Check if URL matches regex
+    if (!urlRegex.test(url)) {
+      return false;
+    }
+
+    // Additional validation using URL constructor
     try {
-      new URL(url.startsWith("http") ? url : `https://${url}`);
+      const formattedUrl = url.startsWith("http") ? url : `https://${url}`;
+      new URL(formattedUrl);
       return true;
     } catch {
       return false;
@@ -107,12 +118,12 @@ function FirstSection({
         if (value && /\s/.test(value)) {
           setFormErrors((prev) => ({
             ...prev,
-            website: "Please enter a valid URL, no spaces allowed",
+            website: "URL cannot contain spaces",
           }));
         } else if (value && !validateUrl(value)) {
           setFormErrors((prev) => ({
             ...prev,
-            website: "Please enter a valid URL",
+            website: "Please enter a valid URL (e.g., example.com or https://example.com)",
           }));
         } else {
           setFormErrors((prev) => ({ ...prev, website: "" }));
@@ -145,7 +156,7 @@ function FirstSection({
     }
 
     if (formData.website && !validateUrl(formData.website)) {
-      errors.website = "Please enter a valid URL";
+      errors.website = "Please enter a valid URL (e.g., example.com or https://example.com)";
     }
 
     setFormErrors(errors);
@@ -200,9 +211,9 @@ function FirstSection({
           Navigate("/LoginCompany");
         } else if (err.response?.status === 422) {
           console.log("Invalid data provided. Please check your inputs.");
-        }else if (err.response?.status === 500) {
+        } else if (err.response?.status === 500) {
           console.log("Internal server error");
-        }else if (err.response?.status === 404) {
+        } else if (err.response?.status === 404) {
           console.log("Company not found id company not correct.");
         } else {
           setMessage({
@@ -258,38 +269,16 @@ function FirstSection({
       formData.append("cover_img", file);
 
       try {
-        try {
-          const response = await axios.post(
-            "https://laravel.wazafny.online/api/update-cover-img",
-            formData,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "multipart/form-data",
-              },
-            }
-          );
-        } catch (err) {
-          console.error("Error uploading banner photo:", err);
-          if (err.response?.status === 401) {
-            setMessage({
-              text: "Unauthorized. Please log in again.",
-              type: "error",
-            });
-            Navigate("/LoginCompany");
-          } else if (err.response?.status === 422) {
-            console.log("Invalid data provided. Please check your inputs.");
-          }else if (err.response?.status === 500) {
-            console.log("Internal server error");
-          }else if (err.response?.status === 404) {
-            console.log("user not found id user not correct.");
-          } else {
-            setMessage({
-              text: "Failed to upload banner photo. Please try again later.",
-              type: "error",
-            });
+        const response = await axios.post(
+          "https://laravel.wazafny.online/api/update-cover-img",
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "multipart/form-data",
+            },
           }
-        }
+        );
 
         const reader = new FileReader();
         reader.onloadend = () => {
@@ -311,19 +300,16 @@ function FirstSection({
             text: "Unauthorized. Please log in again.",
             type: "error",
           });
-          // Clear invalid token and redirect to login
-          localStorage.removeItem("token");
-          localStorage.removeItem("user_id");
-          // Redirect to login page (adjust based on your app's routing)
-          // window.location.href = "/login";
-        } else if (err.response?.status === 400) {
-          setMessage({
-            text: "Invalid file or user ID. Please try again.",
-            type: "error",
-          });
+          Navigate("/LoginCompany");
+        } else if (err.response?.status === 422) {
+          console.log("Invalid data provided. Please check your inputs.");
+        } else if (err.response?.status === 500) {
+          console.log("Internal server error");
+        } else if (err.response?.status === 404) {
+          console.log("user not found id user not correct.");
         } else {
           setMessage({
-            text: "Failed to update banner photo. Please try again later.",
+            text: "Failed to upload banner photo. Please try again later.",
             type: "error",
           });
         }
@@ -351,8 +337,6 @@ function FirstSection({
       return;
     }
 
-    
-
     try {
       const response = await axios.delete(
         `https://laravel.wazafny.online/api/delete-cover-img/${userId}`,
@@ -363,8 +347,6 @@ function FirstSection({
           },
         }
       );
-
-      
 
       setCompanyData((prevData) => ({
         ...prevData,
@@ -386,9 +368,9 @@ function FirstSection({
           type: "error",
         });
         Navigate("/LoginCompany");
-      }else if (err.response?.status === 500) {
+      } else if (err.response?.status === 500) {
         console.log("Internal server error");
-      }else if (err.response?.status === 404) {
+      } else if (err.response?.status === 404) {
         console.log("user not found id user not correct.");
       } else {
         setMessage({
@@ -443,38 +425,16 @@ function FirstSection({
       formData.append("profile_img", file);
 
       try {
-        try {
-          const response = await axios.post(
-            "https://laravel.wazafny.online/api/update-profile-img",
-            formData,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "multipart/form-data",
-              },
-            }
-          );
-        } catch (err) {
-          console.error("Error updating profile photo:", err.response?.data || err.message);
-          if (err.response?.status === 401) {
-            setMessage({
-              text: "Unauthorized. Please log in again.",
-              type: "error",
-            });
-            Navigate("/LoginCompany");
-          } else if (err.response?.status === 422) {
-            console.log("Invalid data provided. Please check your inputs.");
-          }else if (err.response?.status === 500) {
-            console.log("Internal server error");
-          }else if (err.response?.status === 404) {
-            console.log("user not found id user not correct.");
-          } else {
-            setMessage({
-              text: "Failed to update profile photo. Please try again later.",
-              type: "error",
-            });
+        const response = await axios.post(
+          "https://laravel.wazafny.online/api/update-profile-img",
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "multipart/form-data",
+            },
           }
-        }
+        );
 
         const reader = new FileReader();
         reader.onloadend = () => {
@@ -496,11 +456,13 @@ function FirstSection({
             text: "Unauthorized. Please log in again.",
             type: "error",
           });
-        } else if (err.response?.status === 400) {
-          setMessage({
-            text: "Invalid file or user ID. Please try again.",
-            type: "error",
-          });
+          Navigate("/LoginCompany");
+        } else if (err.response?.status === 422) {
+          console.log("Invalid data provided. Please check your inputs.");
+        } else if (err.response?.status === 500) {
+          console.log("Internal server error");
+        } else if (err.response?.status === 404) {
+          console.log("user not found id user not correct.");
         } else {
           setMessage({
             text: "Failed to update profile photo. Please try again later.",
@@ -531,8 +493,6 @@ function FirstSection({
       return;
     }
 
-    
-
     try {
       const response = await axios.delete(
         `https://laravel.wazafny.online/api/delete-profile-img/${userId}`,
@@ -543,8 +503,6 @@ function FirstSection({
           },
         }
       );
-
-      
 
       setCompanyData((prevData) => ({
         ...prevData,
@@ -566,9 +524,9 @@ function FirstSection({
           type: "error",
         });
         Navigate("/LoginCompany");
-      }else if (err.response?.status === 500) {
+      } else if (err.response?.status === 500) {
         console.log("Internal server error");
-      }else if (err.response?.status === 404) {
+      } else if (err.response?.status === 404) {
         console.log("user not found id user not correct.");
       } else {
         setMessage({
@@ -698,7 +656,9 @@ function FirstSection({
           animate="visible"
         ></motion.div>
 
-        <div className="relative p-6">
+        <div className="
+
+relative p-6">
           <motion.div
             className="absolute -top-12 left-6 w-24 h-24 bg-red-600 rounded-lg flex items-center justify-center cursor-pointer border-4 border-white"
             onClick={() => setIsProfileModalOpen(true)}
@@ -859,7 +819,7 @@ function FirstSection({
                     name="website"
                     value={formData.website}
                     onChange={handleInputChange}
-                    placeholder="Enter website"
+                    placeholder="Enter website (e.g., example.com)"
                   />
                   {formErrors.website && (
                     <p className="error-text">{formErrors.website}</p>

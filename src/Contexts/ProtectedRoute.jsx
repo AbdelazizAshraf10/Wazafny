@@ -5,12 +5,10 @@ const ProtectedRoute = ({ children, allowedRole }) => {
   const seekerId = localStorage.getItem("seeker_id");
   const userRole = localStorage.getItem("role"); // Get user role from localStorage
   const companyid = localStorage.getItem("company_id");
-  console.log(userRole);
-  console.log(seekerId);
-  console.log(token);
-  console.log(companyid);
+  const user_id = localStorage.getItem("user_id");
+ 
   // If no token or seekerId, redirect to login
-  if (!token && !seekerId || !token && !companyid) {
+  if (!token && !seekerId || !token && !companyid && !user_id)  {
     
     return <Navigate to="/Login" replace />;
   }
