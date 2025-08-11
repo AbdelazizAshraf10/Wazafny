@@ -18,3 +18,5 @@ empowers job seekers with intelligent tools to discover suitable opportunities a
 employers with a streamlined way to connect with qualified candidates. The system enhances 
 engagement, reduces hiring inefficiencies, and supports better employment outcomes, making it a 
 practical and impactful solution in the field of digital recruitment.
+
+Link: https://www.wazafny.online/
